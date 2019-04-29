@@ -1,0 +1,10 @@
+gunicorn
+flask
+html2text
+pymysql
+bleach
+bcrypt
+cryptography
+PyJWT
+requests
+firebase-admin
