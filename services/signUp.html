@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Sign Up</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="static/bootstrap.min.css" rel="stylesheet" media="screen">
+    </head>
+    <body>
+        <div class="container">
+        <h1>Please sign up</h1>
+        <br>
+        <form action="./sign_up" method="POST">
+            <input type="text" placeholder="First name" name="firstname" >
+            <br>
+            <input type="text" placeholder="Last name" name="lastname" >
+            <br>
+            <input type="text" placeholder="Email" name="email" >
+            <br>
+            <input type="password" placeholder="Password" name="password" >
+            <br>
+            <input type="password" placeholder="Confirm password" name="confirmpassword" >
+            <br>
+            <input class="btn btn-default" type="submit" value="Submit">
+        </form>
+            
+        <p class="error"></p>
+            
+        </div>
+    </body>
+</html>
