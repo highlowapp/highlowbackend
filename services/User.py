@@ -44,7 +44,7 @@ class User:
     def set_column(self, column, value):
 
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database)
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
         cursor = conn.cursor()
 
         #Clean the values
@@ -75,7 +75,7 @@ class User:
         self.set_column("password", value)
 
     def request_friend(self, uid):
-        conn = pymysql.connect(self.host, self.username, self.password, self.database)
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
         cursor = conn.cursor()
 
         uid = bleach.clean(uid)
@@ -86,7 +86,7 @@ class User:
         conn.close()
 
     def reject_friend(self, uid):
-        conn = pymysql.connect(self.host, self.username, self.password, self.database)
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
         cursor = conn.cursor()
 
         uid = bleach.clean(uid)
@@ -97,7 +97,7 @@ class User:
         conn.close()
 
     def accept_friend(self, uid):
-        conn = pymysql.connect(self.host, self.username, self.password, self.database)        
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)        
         cursor = conn.cursor()
 
         uid = bleach.clean(uid)
@@ -106,3 +106,36 @@ class User:
 
         conn.commit()
         conn.close()
+
+
+    def list_friends(self):
+        conn = pymysql.conenct(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        cursor = conn.cursor()
+
+        cursor.execute( "SELECT * FROM friends WHERE (acceptor='{}' OR initiator='{}') AND status=2;".format(self.uid, self.uid) )
+
+        friends = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        return friends
+
+    def is_friend_with(self, uid):
+        conn = pymysql.conenct(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        cursor = conn.cursor()
+
+        uid = bleach.clean(uid)
+
+        cursor.execute( "SELECT status FROM friends WHERE (acceptor='{}' OR initiator='{}') AND (acceptor='{}' OR initiator='{}') AND status=2;".format(self.uid, self.uid, uid, uid) )
+
+        row = cursor.fetchone()
+
+        conn.commit()
+        conn.close()
+
+
+        if row == None:
+            return '{"isFriend": false}'
+
+        return '{"isFriend": true}'
