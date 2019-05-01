@@ -109,7 +109,7 @@ class User:
 
 
     def list_friends(self):
-        conn = pymysql.conenct(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
         cursor = conn.cursor()
 
         cursor.execute( "SELECT * FROM friends WHERE (acceptor='{}' OR initiator='{}') AND status=2;".format(self.uid, self.uid) )
@@ -122,7 +122,7 @@ class User:
         return friends
 
     def is_friend_with(self, uid):
-        conn = pymysql.conenct(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
         cursor = conn.cursor()
 
         uid = bleach.clean(uid)
