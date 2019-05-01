@@ -35,9 +35,6 @@ class Auth:
         self.SECRET_KEY = SECRET_KEY
 
 
-        #Run the tests
-        self.run_tests()
-
         ## Load blacklisted tokens ##
 
         #Connect to the MySQL server
