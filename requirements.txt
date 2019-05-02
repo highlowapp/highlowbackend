@@ -1,3 +1,4 @@
+six
 gunicorn
 flask
 html2text
