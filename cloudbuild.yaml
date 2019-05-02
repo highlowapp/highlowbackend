@@ -2,7 +2,7 @@
 steps:
 - name: 'gcr.io/cloud-builders/gcloud'
   args: ['source', 'repos', 'clone', 'config', '--project', 'highlow']
-- name: 'ubuntu'
+- name: 'python:latest'
   args: ['bash', '/workspace/config/build.sh']
 - name: 'gcr.io/cloud-builders/gcloud'
   args: ['app', 'deploy', '--project', 'highlow']
