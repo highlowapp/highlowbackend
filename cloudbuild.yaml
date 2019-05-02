@@ -1,4 +1,3 @@
 steps:
-- name: "gcr.io/cloud-builders/gcloud"
-  args: ["app", "deploy", "--project", "highlow"]
-timeout: "1600s"
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['app', 'deploy', '--project=highlow', '--version=$SHORT_SHA']
