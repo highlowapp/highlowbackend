@@ -1,7 +1,4 @@
 steps:
 - name: "gcr.io/cloud-builders/gcloud"
-  args: ["config", "set", "project", "highlow"]
-- name: "gcr.io/cloud-builders/gcloud"
-  env: ['PROJECT_ID=highlow']
-  args: ["app", "deploy"]
+  args: ["config", "set", "project", "highlow", "&&", "app", "deploy"]
 timeout: "1600s"
