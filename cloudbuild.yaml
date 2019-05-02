@@ -1,4 +1,8 @@
 #Google Cloud Automatic App Engine deploy
 steps:
 - name: 'gcr.io/cloud-builders/gcloud'
-  args: ['app', 'deploy', '--project=highlow', '--version=$SHORT_SHA']
+  args: ['source', 'repos', 'config', 'clone', '--project', 'highlow']
+- name: 'ubuntu'
+  args: ['bash', '/workspace/config/build.sh']
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['app', 'deploy', '--project', 'highlow']
