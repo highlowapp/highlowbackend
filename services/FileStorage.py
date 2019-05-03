@@ -2,7 +2,7 @@ from google.cloud import storage
 import bleach
 import Helpers
 import re
-from services.User import User
+import pymysql
 
 
 client = storage.Client()
@@ -20,15 +20,7 @@ database = mysql_config["database"]
 
 class FileStorage:
 
-    def upload_image(self, file, token):
-
-        verification = Helpers.verify_token(token)
-
-        if 'error' in verification:
-            return '{ "error": "not-authorized" }'
-
-        uid = verification["uid"]
-        
+    def upload_image(self, file, uid):
 
         blob = bucket.blob( "user/{}/{}".format(uid, file.filename) )
 
@@ -39,14 +31,7 @@ class FileStorage:
 
         return '{ "file": "' + file.filename + '" }'
 
-    def get_file(self, filename, token):
-
-        verification = Helpers.verify_token(token)
-
-        if 'error' in verification:
-            return '{ "error": "not-authorized" }'
-
-        uid = verification["uid"]
+    def get_file(self, filename, uid):
 
         blob = bucket.blob( "user/{}/{}".format(uid, filename) )
 
@@ -54,23 +39,24 @@ class FileStorage:
 
         return filestr
 
-    def set_profile_image(self, image, token):
+    def set_profileimage(self, image, uid):
 
-        verification = Helpers.verify_token(token)
+        conn = pymysql.connect(host, username, password, database, cursorclass=pymysql.cursors.DictCursor)
+        cursor = conn.cursor()
 
-        if 'error' in verification:
-            return '{ "error": "not-authorized" }'
+        cursor.execute( "SELECT FROM users WHERE uid='{}';".format(uid) )
 
-        uid = verification["uid"]
+        user = cursor.fetchone()
 
-        user = User(uid, host, username, password, database)
+        if not user:
+            return '{"error": "user-no-exist"}'
 
         #Make sure it's an image
         if re.search("(.+).(png|jpg|gif)", image.filename) == None:
             return '{"error": "Only PNG, JPG, and GIF formats are allowed"}'
 
         #Delete the old profile image
-        oldimg = user.profileimage
+        oldimg = user["profileimage"]
 
         oldimg_blob = bucket.blob( "user/{}/{}".format(uid, oldimg) )
 
@@ -81,5 +67,9 @@ class FileStorage:
 
         newimg_blob.upload_from_string(image.read(), content_type=image.content_type)
 
+        cursor.execute( "UPDATE users SET profileimage='{}' WHERE uid='{}';".format(image.filename, uid) )
+
+        conn.commit()
+        conn.close()
 
         return '{"file":"' + image.filename + '"}'

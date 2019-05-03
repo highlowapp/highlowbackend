@@ -208,8 +208,16 @@ def set(property):
     #Otherwise, get the user
     user = User(result["uid"], host, username, password, database)
 
-    #Set the specified property
-    user.set_column(property, request.form["value"])
+    if property != "profileimage":
+        #Set the specified property
+        user.set_column(property, request.form["value"])
+    else:
+        image = request.files.get("file")
+
+        if not image:
+            return '{"error":"no-file-uploaded"}'
+        
+        user.set_profileimage(image, result["uid"])
 
     return '{ "status": "success" }'
 
@@ -404,7 +412,13 @@ def send():
 
 
 
-#TODO: Add File Storage Service
+
+
+
+
+
+
+
 
 
 
