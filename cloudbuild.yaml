@@ -1,0 +1,10 @@
+#Google Cloud Automatic App Engine deploy
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['source', 'repos', 'clone', 'config', '--project', 'highlow']
+- name: 'python:latest'
+  args: ['ls']
+- name: 'python:latest'
+  args: ['/workspace/config/build.sh', 'false']
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['app', 'deploy', '--project', 'highlow']
