@@ -208,8 +208,16 @@ def set(property):
     #Otherwise, get the user
     user = User(result["uid"], host, username, password, database)
 
-    #Set the specified property
-    user.set_column(property, request.form["value"])
+    if property != "profileimage":
+        #Set the specified property
+        user.set_column(property, request.form["value"])
+    else:
+        image = request.files.get("file")
+
+        if not image:
+            return '{"error":"no-file-uploaded"}'
+        
+        user.set_profileimage(image, result["uid"])
 
     return '{ "status": "success" }'
 
@@ -222,31 +230,56 @@ def set(property):
 #######################
 # HighLow             #
 #######################
-@app.route("/highlow/set/<string:highlowid>", methods=["POST"])
-def setproperty(highlowid):
-	#Verify auth token
-	token = request.headers["Authentication"].replace("Bearer ", "")
+@app.route("/highlow/set/high", methods=["POST"])
+def sethigh():
+    #Verify auth token
+    token = request.headers["Authentication"].replace("Bearer ", "")
 
-	verification = Helpers.verify_token(token)
+    verification = Helpers.verify_token(token)
 
-	if 'error' in verification:
-		return verification
+    if 'error' in verification:
+        return verification
 
-	else:
-		uid = verification["uid"]
+    uid = verification["uid"]
 
-		high = request.form.get("high") or ""
-		low = request.form.get("low") or ""
+    high = request.form.get("high")
+    high_image = request.files.get("file")
 
-		highlow = None
+    highlow = None
 
-		if "highlowid" in request.form:
-			highlow = HighLow(host, username, password, database, request.form["highlowid"])
-			highlow.update(high, low)
+    if "highlowid" in request.form:
+        highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
+        highlow.update_high(text=high, image=high_image)
 
-		else:
-			highlow = HighLow(host, username, password, database)
-			highlow.create(uid, high, low)
+    else:
+        highlow = HighLow(host, username, password, database)
+        highlow.create(uid, high=high, low=None, high_image=high_image, low_image=None)
+
+
+@app.route("/highlow/set/low", methods=["POST"])
+def setlow():
+    #Verify auth token
+    token = request.headers["Authentication"].replace("Bearer ", "")
+
+    verification = Helpers.verify_token(token)
+
+    if 'error' in verification:
+        return verification
+
+    uid = verification["uid"]
+
+    low = request.form.get("low")
+    low_image = request.files.get("file")
+
+    highlow = None
+
+    if "highlowid" in request.form:
+        highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
+        highlow.update_low(text=low, image=low_image)
+
+    else:
+        highlow = HighLow(host, username, password, database)
+        highlow.create(uid, high=None, low=low, high_image=None, low_image=low_image)
 
 
 @app.route("/highlow/like/<string:highlowid>", methods=["POST"])
@@ -404,7 +437,13 @@ def send():
 
 
 
-#TODO: Add File Storage Service
+
+
+
+
+
+
+
 
 
 

@@ -5,6 +5,7 @@ import time
 import datetime
 import bleach
 import json
+from services.FileStorage import FileStorage
 
 class HighLow:
 
@@ -16,10 +17,12 @@ class HighLow:
         self.high_low_id = bleach.clean(high_low_id)
         self.high = ""
         self.low = ""
+        self.high_image = ""
+        self.low_image = ""
         self.timestamp = None
         self.protected_columns = []
 
-    def create(self, uid, high, low):
+    def create(self, uid, high=None, low=None, high_image=None, low_image=None):
         ## Create a new High/Low entry in the database ##
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
@@ -28,12 +31,44 @@ class HighLow:
         #Create a High/Low ID
         self.high_low_id = str( uuid.uuid1() )
 
-        #Clean the High and Low data
-        self.high = bleach.clean(high)
-        self.low = bleach.clean(low)
+        if high != None:
+            self.high = bleach.clean(high)
+            self.high = "'{}'".format(self.high)
+        else:
+            self.high = "NULL"
+
+        if low != None:
+            self.low = bleach.clean(low)
+            self.low = "'{}'".format(self.low)
+        else:
+            self.low = "NULL"
+
+        if high_image != None:
+            fileStorage = FileStorage()
+
+            upload_result = json.loads( fileStorage.upload_to_high_images(high_image) )
+
+            if 'error' in upload_result:
+                return upload_result
+        
+            self.high_image = "'{}'".format(upload_result["file"])
+        else:
+            self.high_image = "NULL"
+
+        if low_image != None:
+            fileStorage = FileStorage()
+
+            upload_result = json.loads( fileStorage.upload_to_high_images(low_image) )
+
+            if 'error' in upload_result:
+                return upload_result
+        
+            self.low_image = "'{}'".format(upload_result["file"])
+        else:
+            self.low_image = "NULL"
 
         #Now, insert the data
-        cursor.execute("INSERT INTO highlows(highlowid, uid, high, low, total_likes) VALUES('" + self.high_low_id + "', '" + uid + "', '" + self.high + "', '" + self.low + "', 0);")
+        cursor.execute("INSERT INTO highlows(highlowid, uid, high, low, high_image, low_image, total_likes) VALUES('{}', '{}', {}, {}, {}, {}, 0);".format(self.high_low_id, uid, self.high, self.low, self.high_image, self.low_image) )
 
         #Commit and close the connection
         conn.commit()
@@ -44,18 +79,83 @@ class HighLow:
 
 
 
-    def update(self, high, low):
-        ## Update the High/Low database entry ##
+    def update(self, uid, high=None, low=None, high_image=None, low_image=None):
+        
+        self.update_high(uid, text=high, image=high_image)
+        self.update_low(uid, text=low, image=low_image)
+
+
+    def update_high(self, uid, text=None, image=None):
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
         cursor = conn.cursor()
 
-        #Now, get and clean the High and Low
-        self.high = bleach.clean(high)
-        self.low = bleach.clean(low)
+
+
+        if text != None:
+            text = bleach.clean(text)
+            text = "'{}'".format(text)
+        else:
+            text = "NULL"
+
+        filename = ""
+
+        if image != None:
+            
+            fileStorage = FileStorage()
+
+            upload_result = json.loads( fileStorage.upload_to_high_images(image, uid) )
+
+            if 'error' in upload_result:
+                return upload_result
+        
+            filename = "'{}'".format(upload_result["file"])
+
+        else:
+            filename = "NULL"
+
+        self.high = text
+        self.high_image = image
 
         #Update the data
-        cursor.execute("UPDATE highlows SET high='" + self.high + "', low='" + self.low + "' WHERE highlowid='" + self.high_low_id + "';")
+        cursor.execute( "UPDATE highlows SET high={}, high_image={} WHERE highlowid='{}' AND uid='{}';".format(text, filename, self.high_low_id, uid) )
+
+        #Commit and close the connection
+        conn.commit()
+        conn.close()
+
+    def update_low(self, uid, text=None, image=None):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        cursor = conn.cursor()
+
+        if text != None:
+            text = bleach.clean(text)
+            text = "'{}'".format(text)
+        else:
+            text = "NULL"
+
+        filename = ""
+
+        if image != None:
+            
+            fileStorage = FileStorage()
+
+            upload_result = json.loads( fileStorage.upload_to_low_images(image, uid) )
+
+            if 'error' in upload_result:
+                return upload_result
+        
+            filename = "'{}'".format(upload_result["file"])
+
+        else:
+            filename = "NULL"
+
+        self.low = text
+        self.low_image = image
+
+        #Update the data
+        cursor.execute( "UPDATE highlows SET low={}, low_image={} WHERE highlowid='{}' AND uid='{}';".format(text, filename, self.high_low_id, uid) )
 
         #Commit and close the connection
         conn.commit()
@@ -92,6 +192,7 @@ class HighLow:
         conn.commit()
         conn.close()
 
+    
     def like(self, uid):
         ## Add a new entry to the "Likes" table 
         #Connect to MySQL

@@ -9,3 +9,5 @@ cryptography
 PyJWT
 requests
 firebase-admin
+google-cloud-storage
+Pillow

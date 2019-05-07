@@ -1,5 +1,6 @@
 import pymysql
 import bleach
+from services.FileStorage import FileStorage
 
 class User:
 
@@ -67,8 +68,16 @@ class User:
     def set_email(self, value):
         self.set_column("email", value)
 
-    def set_profileimage(self, value):
-        self.set_column("profileimage", value)
+    #NOTE: This function is different from the rest, because rather than using set_column, it utilizes the filestorage service
+    def set_profileimage(self, image, uid):
+        
+        fileStorage = FileStorage()
+
+        result = fileStorage.set_profileimage(image, uid)
+
+        return result
+
+
 
     def set_password(self, value):
         print("WARNING: Setting the password can be dangerous!")
