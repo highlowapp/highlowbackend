@@ -160,7 +160,7 @@ class FileStorage:
             resized_img = BytesIO()
             img.save(resized_img, format="PNG")
 
-            blob = bucket.blob( "user/{}/profile/{}x{}.png".format(size[0], size[1]) )
+            blob = bucket.blob( "user/{}/profile/{}x{}.png".format(uid, size[0], size[1]) )
 
             blob.upload_from_string(
                 resized_img.getvalue(),
