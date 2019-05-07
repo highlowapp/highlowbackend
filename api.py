@@ -8,6 +8,7 @@ from services.User import User
 from services.HighLow import HighLow, HighLowList
 from services.EventLogger import EventLogger
 from services.Notifications import Notifications
+import serviceutils
 
 
 #MySQL server configuration
@@ -164,11 +165,8 @@ def get(property):
     #Get token from Authorization
     token = request.headers["Authorization"].replace("Bearer ", "")
 
-    #Create the headers
-    headers = { 'Authorization': "Bearer " + token }
-
     #Make a request to the Auth service
-    token_verification_request = requests.post("http://{}/verify_token".format(auth_service), headers=headers)
+    token_verification_request = serviceutils.verify_token(token)
 
     #Obtain the result as JSON
     result = token_verification_request.json()
@@ -191,11 +189,9 @@ def set(property):
     #Get token from Authorization
     token = request.headers["Authorization"].replace("Bearer ", "")
 
-    #Create the headers
-    headers = { 'Authorization': "Bearer " + token }
-
     #Make a request to the Auth service
-    token_verification_request = requests.post("https://{}/verify_token".format(auth_service), headers=headers)
+    token_verification_request = serviceutils.verify_token(token)
+
 
     #Obtain the result as JSON
     result = token_verification_request.json()
@@ -235,7 +231,7 @@ def sethigh():
     #Verify auth token
     token = request.headers["Authentication"].replace("Bearer ", "")
 
-    verification = Helpers.verify_token(token)
+    verification = serviceutils.verify_token(token)
 
     if 'error' in verification:
         return verification
@@ -261,7 +257,7 @@ def setlow():
     #Verify auth token
     token = request.headers["Authentication"].replace("Bearer ", "")
 
-    verification = Helpers.verify_token(token)
+    verification = serviceutils.verify_token(token)
 
     if 'error' in verification:
         return verification
@@ -287,7 +283,7 @@ def like(highlowid):
     #Verify auth token
 	token = request.headers["Authentication"].replace("Bearer ", "")
 
-	verification = Helpers.verify_token(token)
+	verification = serviceutils.verify_token(token)
 
 	if 'error' in verification:
 		return verification
@@ -308,7 +304,7 @@ def comment(highlowid):
     #Verify auth token
 	token = request.headers["Authentication"].replace("Bearer ", "")
 
-	verification = Helpers.verify_token(token)
+	verification = serviceutils.verify_token(token)
 
 	if 'error' in verification:
 		return verification
@@ -332,7 +328,7 @@ def get_today():
 	#Verify auth token
 	token = request.headers["Authentication"].replace("Bearer ", "")
 
-	verification = Helpers.verify_token(token)
+	verification = serviceutils.verify_token(token)
 
 	if 'error' in verification:
 		return verification
@@ -353,7 +349,7 @@ def get_user():
 	#Verify auth token
 	token = request.headers["Authentication"].replace("Bearer ", "")
 
-	verification = Helpers.verify_token(token)
+	verification = serviceutils.verify_token(token)
 
 	if 'error' in verification:
 		return verification
@@ -412,7 +408,7 @@ def register():
     #Retrieve the token
     token = request.headers["Authorization"].replace("Bearer ", "")
 
-    token_verification = Helpers.verify_token(token)
+    token_verification = serviceutils.verify_token(token)
 
     if 'error' in token_verification:
         return token_verification

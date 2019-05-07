@@ -8,6 +8,7 @@ import datetime
 import time
 import requests
 import Helpers
+import serviceutils
 
 #Email Config
 email_config = Helpers.read_json_from_file("config/email_config.json")
@@ -178,7 +179,6 @@ class Auth:
         expiration = current_time + datetime.timedelta( minutes=expiration_minutes ) #Defaults to six months in the future
 
 
-
         token_payload = {
             "iss": "highlow",
             "exp": time.mktime( expiration.timetuple() ),
@@ -242,9 +242,8 @@ class Auth:
         password_reset_html = password_reset_html.format(user["firstname"], user["lastname"], 'http://' + self.servername + '/password_reset/' + token)
 
         #Send the email
-        requests.post("http://{}/send_html_email".format(email_service) , data = {'email': user["email"], 'message': password_reset_html, 'password': email_config["password"]}) 
+        serviceutils.send_email(user["email"], password_reset_html)
         
-
 
         return "success"
 
