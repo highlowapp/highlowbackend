@@ -3,11 +3,16 @@ import bleach
 import Helpers
 import re
 import pymysql
+import uuid
+import bleach
+from io import BytesIO
+from PIL import Image
 
+HIGHLOW_IMAGE_SIZE = (800, 600)
+PROFILE_IMAGE_SIZES = [(128, 128), (64, 64), (32, 32)]
 
-client = storage.Client()
-
-bucket = client.lookup_bucket("highlowfiles")
+SUPPORTED_MIMETYPES = ["image/png", "image/jpeg", "image/gif"]
+SUPPORTED_FILE_EXTENSIONS = ["png", "jpeg", "jpg", "gif"]
 
 #MySQL Config
 mysql_config = Helpers.read_json_from_file("config/mysql_config.json")
@@ -21,6 +26,9 @@ database = mysql_config["database"]
 class FileStorage:
 
     def upload_image(self, file, uid):
+        client = storage.Client()
+
+        bucket = client.lookup_bucket("highlowfiles")
 
         blob = bucket.blob( "user/{}/{}".format(uid, file.filename) )
 
@@ -32,6 +40,9 @@ class FileStorage:
         return '{ "file": "' + file.filename + '" }'
 
     def get_file(self, filename, uid):
+        client = storage.Client()
+
+        bucket = client.lookup_bucket("highlowfiles")
 
         blob = bucket.blob( "user/{}/{}".format(uid, filename) )
 
@@ -39,37 +50,123 @@ class FileStorage:
 
         return filestr
 
-    def set_profileimage(self, image, uid):
+    #TODO: Check that they are actually images
+    def upload_to_high_images(self, file):
 
-        conn = pymysql.connect(host, username, password, database, cursorclass=pymysql.cursors.DictCursor)
-        cursor = conn.cursor()
+        client = storage.Client()
 
-        cursor.execute( "SELECT FROM users WHERE uid='{}';".format(uid) )
+        bucket = client.lookup_bucket("highlowfiles")
 
-        user = cursor.fetchone()
-
-        if not user:
-            return '{"error": "user-no-exist"}'
+        file_content = BytesIO( file.read() )
 
         #Make sure it's an image
-        if re.search("(.+).(png|jpg|gif)", image.filename) == None:
+        file_extension = file.filename.split(".")[-1]
+        if file_extension not in SUPPORTED_FILE_EXTENSIONS:
             return '{"error": "Only PNG, JPG, and GIF formats are allowed"}'
 
-        #Delete the old profile image
-        oldimg = user["profileimage"]
+        #Check MIME type
+        if file.mimetype not in SUPPORTED_MIMETYPES:
+            return '{"error": "Unsupported MIMETYPE. Supported MIMETYPES are ' + ", ".join(SUPPORTED_MIMETYPES) + '"}'
 
-        oldimg_blob = bucket.blob( "user/{}/{}".format(uid, oldimg) )
 
-        oldimg_blob.delete()
 
-        #Upload and set the new profile image
-        newimg_blob = bucket.blob( "user/{}/{}".format(uid, image.filename) )
+        #Resize the image
+        img = Image(file_content)
+        img.resize(HIGHLOW_IMAGE_SIZE)
+        resized_img = BytesIO()
+        img.save(resized_img, format="PNG")
 
-        newimg_blob.upload_from_string(image.read(), content_type=image.content_type)
 
-        cursor.execute( "UPDATE users SET profileimage='{}' WHERE uid='{}';".format(image.filename, uid) )
 
-        conn.commit()
-        conn.close()
+        filename = str( uuid.uuid1() ) + ".png"
 
-        return '{"file":"' + image.filename + '"}'
+        blob = bucket.blob( "highs/{}".format(filename) )
+
+        blob.upload_from_string(
+            resized_img.getvalue(),
+            content_type=file.content_type
+        )
+
+        return '{ "file": "' + filename + '" }'
+
+
+
+
+
+
+    def upload_to_low_images(self, file):
+
+        client = storage.Client()
+
+        bucket = client.lookup_bucket("highlowfiles")
+
+        file_content = BytesIO( file.read() )
+
+        #Make sure it's an image
+        file_extension = file.filename.split(".")[-1]
+        if file_extension not in SUPPORTED_FILE_EXTENSIONS:
+            return '{"error": "Only PNG, JPG, and GIF formats are allowed"}'
+
+
+        #Check MIME type
+        if file.mimetype not in SUPPORTED_MIMETYPES:
+            return '{"error": "Unsupported MIMETYPE. Supported MIMETYPES are ' + ", ".join(SUPPORTED_MIMETYPES) + '"}'
+
+
+
+        #Resize the image
+        img = Image(file_content)
+        img.resize(HIGHLOW_IMAGE_SIZE)
+        resized_img = BytesIO()
+        img.save(resized_img, format="PNG")
+
+
+        filename = str( uuid.uuid1() ) + ".png"
+
+        blob = bucket.blob( "lows/{}".format(filename) )
+
+        blob.upload_from_string(
+            resized_img.getvalue(),
+            content_type=file.content_type
+        )
+
+        return '{ "file": "' + filename + '" }'
+
+    def set_profileimage(self, image, uid):
+
+        client = storage.Client()
+
+        bucket = client.lookup_bucket("highlowfiles")
+
+
+        file_content = BytesIO( image.read() )
+
+
+        #Make sure it's an image
+        file_extension = image.filename.split(".")[-1]
+        if file_extension not in SUPPORTED_FILE_EXTENSIONS:
+            return '{"error": "Only PNG, JPG, and GIF formats are allowed"}'
+
+
+        #Check MIME type
+        if image.mimetype not in SUPPORTED_MIMETYPES:
+            return '{"error": "Unsupported MIMETYPE. Supported MIMETYPES are ' + ", ".join(SUPPORTED_MIMETYPES) + '"}'
+
+
+
+        for size in PROFILE_IMAGE_SIZES:
+            img = Image.open( file_content )
+            img.resize(size)
+            resized_img = BytesIO()
+            img.save(resized_img, format="PNG")
+
+            blob = bucket.blob( "user/{}/profile/{}x{}.png".format(size[0], size[1]) )
+
+            blob.upload_from_string(
+                resized_img.getvalue(),
+                content_type=image.content_type
+            )
+
+        
+
+        return '{"status":"success"}'
