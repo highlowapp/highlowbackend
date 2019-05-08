@@ -25,15 +25,12 @@ class EventLogger:
         event_type = bleach.clean(event_type)
         data = bleach.clean( json.dumps(data) )
 
-        #Get the timestamp
-        timestamp = datetime.datetime.now().timestamp()
-
         #Connect to MySQL database
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
         cursor = conn.cursor()
 
         #Insert a new row
-        cursor.execute("INSERT INTO events(type, data, timestamp) VALUES('" + event_type + "', '" + data + "', " + timestamp + ");")
+        cursor.execute("INSERT INTO events(type, data) VALUES('" + event_type + "', '" + data + "');")
 
         #Commit and close the connection
         conn.commit()
