@@ -240,8 +240,6 @@ class HighLow:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
         cursor = conn.cursor()
 
-        #TODO: Should we update the timestamp or not?
-
         cleaned_message = bleach.clean(message)
         cleaned_commentid = bleach.clean(commentid)
         
