@@ -1,5 +1,6 @@
 from services.Auth import Auth
 from services.HLEmail import HLEmail
+from services.EventLogger import EventLogger
 import json
 import Helpers
 
@@ -26,6 +27,11 @@ email_service = Helpers.service("email")
 hlemail = HLEmail(email_config["email"])
 
 
+#Event logger
+event_logger_config = Helpers.read_json_from_file("config/eventlogger_config.json")
+event_logger = EventLogger(host, username, password, database)
+
+
 def verify_token(token):
     result = auth.validate_token(token)
 
@@ -39,3 +45,6 @@ def verify_token(token):
 
 def send_email(recipient, message):
     hlemail.send_html_email(recipient, message, email_config["password"])
+
+def log_event(type, data):
+    event_logger.log_event(type, data, event_logger_config["admin_password"])
