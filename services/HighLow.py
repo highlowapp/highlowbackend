@@ -342,3 +342,33 @@ class HighLowList:
             }
 
         return highlow
+
+    def flag(self, uid):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        cursor = conn.cursor()
+
+        uid = bleach.clean(uid)
+
+        _type = "highlow"
+         
+        cursor.execute( "INSERT INTO flags(flagger, highlowid, _type) VALUES('{}', '{}', '{}');".format(uid, self.high_low_id, _type) )
+
+        conn.commit()
+        conn.close()
+
+        return '{"status": "success"}'
+
+    def unflag(self, uid):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        cursor = conn.cursor()
+
+        uid = bleach.clean(uid)
+         
+        cursor.execute( "DELETE FROM flags WHERE highlowid='{}' AND flagger='{}';".format(self.high_low_id, uid) )
+
+        conn.commit()
+        conn.close()
+
+        return '{"status": "success"}'

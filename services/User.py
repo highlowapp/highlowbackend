@@ -148,3 +148,33 @@ class User:
             return '{"isFriend": false}'
 
         return '{"isFriend": true}'
+
+    def flag(self, uid):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        cursor = conn.cursor()
+
+        uid = bleach.clean(uid)
+
+        _type = "user"
+         
+        cursor.execute( "INSERT INTO flags(flagger, uid, _type) VALUES('{}', '{}', '{}');".format(uid, self.uid, _type) )
+
+        conn.commit()
+        conn.close()
+
+        return '{"status": "success"}'
+
+    def unflag(self, uid):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        cursor = conn.cursor()
+
+        uid = bleach.clean(uid)
+
+        cursor.execute( "DELETE FROM flags WHERE flagger='{}' AND uid='{}'".format(uid, self.uid) )
+
+        conn.commit()
+        conn.close()
+
+        return '{"status": "success"}'
