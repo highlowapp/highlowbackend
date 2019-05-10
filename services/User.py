@@ -1,6 +1,8 @@
 import pymysql
 import bleach
 from services.FileStorage import FileStorage
+import serviceutils
+
 
 class User:
 
@@ -94,6 +96,11 @@ class User:
         conn.commit()
         conn.close()
 
+        serviceutils.log_event("friend_requested", {
+                    "uid1": self.uid,
+                    "uid2": uid
+                    })
+
     def reject_friend(self, uid):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
         cursor = conn.cursor()
@@ -105,6 +112,11 @@ class User:
         conn.commit()
         conn.close()
 
+        serviceutils.log_event("friend_rejected", {
+                    "initiator_uid": self.uid,
+                    "acceptor_uid": uid
+                    })
+
     def accept_friend(self, uid):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)        
         cursor = conn.cursor()
@@ -115,6 +127,11 @@ class User:
 
         conn.commit()
         conn.close()
+
+        serviceutils.log_event("friend_accepted", {
+                    "initiator_uid": self.uid,
+                    "acceptor_uid": uid
+                    })
 
 
     def list_friends(self):
