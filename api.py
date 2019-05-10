@@ -218,6 +218,60 @@ def set(property):
     return '{ "status": "success" }'
 
 
+@app.route("/user/flag/<string:user>", methods=["POST"])
+def flag(user):
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
+
+
+    #Obtain the result as JSON
+    result = token_verification_request.json()
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+
+    flagger = result["uid"]
+
+    try:
+        user = User(user, host, username, password, database)
+    except:
+        return '{ "error": "user-no-exist" }'
+
+    return user.flag(flagger)
+
+@app.route("/user/unflag/<string:user>", methods=["POST"])
+def unflag(user):
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
+
+
+    #Obtain the result as JSON
+    result = token_verification_request.json()
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+
+    flagger = result["uid"]
+
+    try:
+        user = User(user, host, username, password, database)
+    except:
+        return '{ "error": "user-no-exist" }'
+
+    return user.unflag(flagger)
+
+    
+
+
+
 
 
 
@@ -363,6 +417,62 @@ def get_user():
 		highlows = highlowlist.get_highlows_for_user(uid, sortby=request.args.get("sortby"), limit=request.args.get("limit"))
 
 		return json.dumps(highlows)
+
+
+@app.route("/highlow/flag/<string:highlowid>", methods=["POST"])
+def flag(highlowid):
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
+
+
+    #Obtain the result as JSON
+    result = token_verification_request.json()
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+
+    flagger = result["uid"]
+
+    try:
+        highlow = HighLow(host, username, password, database, high_low_id=highlowid)
+    except:
+        return '{ "error": "highlow-no-exist" }'
+
+    return highlow.flag(flagger)
+
+
+@app.route("/highlow/unflag/<string:highlowid>", methods=["POST"])
+def unflag(highlowid):
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
+
+
+    #Obtain the result as JSON
+    result = token_verification_request.json()
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+
+    flagger = result["uid"]
+
+    try:
+        highlow = HighLow(host, username, password, database, high_low_id=highlowid)
+    except:
+        return '{ "error": "highlow-no-exist" }'
+
+    return highlow.unflag(flagger)
+
+
+
+
 
 
 

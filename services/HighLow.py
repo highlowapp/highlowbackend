@@ -14,7 +14,21 @@ class HighLow:
         self.username = username
         self.password = password
         self.database = database
-        self.high_low_id = bleach.clean(high_low_id)
+        self.high_low_id = ""
+
+        if high_low_id != None:
+            self.high_low_id = bleach.clean(high_low_id)
+
+            conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+            cursor = conn.cursor()
+            cursor.execute( "SELECT id FROM highlows WHERE highlowid='{}';".format(self.high_low_id) )
+            result = cursor.fetchone()
+            conn.commit()
+            conn.close()
+
+            if not result:
+                raise ValueError("highlow-no-exist")
+
         self.high = ""
         self.low = ""
         self.high_image = ""
@@ -77,13 +91,10 @@ class HighLow:
         #Return the HighLow ID
         return '{ "highlowid":"' + self.high_low_id + '" }'
 
-
-
     def update(self, uid, high=None, low=None, high_image=None, low_image=None):
         
         self.update_high(uid, text=high, image=high_image)
         self.update_low(uid, text=low, image=low_image)
-
 
     def update_high(self, uid, text=None, image=None):
         #Connect to MySQL
@@ -161,8 +172,6 @@ class HighLow:
         conn.commit()
         conn.close()
 
-
-
     def delete(self):
         ## Delete the HighLow database entry ##
         #Connect to MySQL
@@ -176,7 +185,6 @@ class HighLow:
         conn.commit()
         conn.close()
 
-    
     def update_total_likes(self):
         ## Count the number of likes in the database that belong to the current high/low ##
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
@@ -191,7 +199,6 @@ class HighLow:
 
         conn.commit()
         conn.close()
-
     
     def like(self, uid):
         ## Add a new entry to the "Likes" table 
@@ -219,7 +226,6 @@ class HighLow:
         conn.commit()
         conn.close()
 
-    
     def comment(self, uid, message):
         #Collect the specified data and add to the database
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
@@ -275,6 +281,36 @@ class HighLow:
         result = cursor.fetchone()
 
         return json.dumps( { "result": result[column_name] } )
+
+    def flag(self, uid):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        cursor = conn.cursor()
+
+        uid = bleach.clean(uid)
+
+        _type = "highlow"
+         
+        cursor.execute( "INSERT INTO flags(flagger, highlowid, _type) VALUES('{}', '{}', '{}');".format(uid, self.high_low_id, _type) )
+
+        conn.commit()
+        conn.close()
+
+        return '{"status": "success"}'
+
+    def unflag(self, uid):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        cursor = conn.cursor()
+
+        uid = bleach.clean(uid)
+         
+        cursor.execute( "DELETE FROM flags WHERE highlowid='{}' AND flagger='{}';".format(self.high_low_id, uid) )
+
+        conn.commit()
+        conn.close()
+
+        return '{"status": "success"}'
 
 
 class HighLowList:
