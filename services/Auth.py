@@ -8,13 +8,15 @@ import datetime
 import time
 import requests
 import Helpers
-import serviceutils
+from services.HLEmail import HLEmail
 
 #Email Config
 email_config = Helpers.read_json_from_file("config/email_config.json")
 
 #Email service
 email_service = Helpers.service("email")
+
+hlemail = HLEmail(email_config["email"])
 
 #Load secret key from file
 SECRET_KEY = ""
@@ -242,7 +244,7 @@ class Auth:
         password_reset_html = password_reset_html.format(user["firstname"], user["lastname"], 'http://' + self.servername + '/password_reset/' + token)
 
         #Send the email
-        serviceutils.send_email(user["email"], password_reset_html)
+        hlemail.send_html_email(user["email"], password_reset_html, email_config["password"])
         
 
         return "success"
