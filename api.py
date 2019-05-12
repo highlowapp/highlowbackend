@@ -420,7 +420,7 @@ def get_user():
 
 
 @app.route("/highlow/flag/<string:highlowid>", methods=["POST"])
-def flag(highlowid):
+def flaghighlow(highlowid):
     #Get token from Authorization
     token = request.headers["Authorization"].replace("Bearer ", "")
 
@@ -446,7 +446,7 @@ def flag(highlowid):
 
 
 @app.route("/highlow/unflag/<string:highlowid>", methods=["POST"])
-def unflag(highlowid):
+def unflaghighlow(highlowid):
     #Get token from Authorization
     token = request.headers["Authorization"].replace("Bearer ", "")
 
