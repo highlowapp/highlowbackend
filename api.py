@@ -503,6 +503,9 @@ def query():
     conditions = None
     if conditions_raw:
         conditions_json_str = unquote(conditions_raw)
+
+        print(conditions_json_str)
+
         conditions = json.loads( conditions_json_str )
 
     return event_logger.query( _type=_type, min_time=min_time, max_time=max_time, conditions=conditions, admin_password=request.args["admin_password"] )
