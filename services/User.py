@@ -97,8 +97,8 @@ class User:
         conn.close()
 
         serviceutils.log_event("friend_requested", {
-                    "uid1": self.uid,
-                    "uid2": uid
+                    "initiator": self.uid,
+                    "acceptor": uid
                     })
 
     def reject_friend(self, uid):
