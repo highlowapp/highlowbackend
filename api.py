@@ -69,10 +69,22 @@ app = Flask(__name__)
 #Sign_up
 @app.route("/auth/sign_up", methods=["GET", "POST"])
 def sign_up():
+    result =  auth.sign_up( request.form["firstname"], request.form["lastname"], request.form["email"], request.form["password"], request.form["confirmpassword"] )
 
     if request.method == "POST":
 
-        return auth.sign_up( request.form["firstname"], request.form["lastname"], request.form["email"], request.form["password"], request.form["confirmpassword"] )
+        return result
+    
+    if "error" in result:
+
+        serviceutils.log_event("sign_up_error", {
+                    "uid": result["uid"],
+                    "error": result["error"]
+                    })
+
+    serviceutils.log_event("user_signed_up", {
+                    "uid": result["uid"]   
+                    })
     
     return sign_up_html
 
@@ -80,9 +92,21 @@ def sign_up():
 @app.route("/auth/sign_in", methods=["GET", "POST"])
 def sign_in():
 
+    result = auth.sign_in( request.form["email"], request.form["password"] )
+
     if request.method == "POST":
 
-        return auth.sign_in( request.form["email"], request.form["password"] )
+        return result
+
+    if "error" in result:
+        serviceutils.log_event("sign_in_error", {
+                    "uid": result["uid"],
+                    "error": result["error"]
+                    })
+
+    serviceutils.log_event("user_signed_in", {
+                    "uid": result["uid"]   
+                    })
 
     return sign_in_html
 
@@ -90,9 +114,23 @@ def sign_in():
 @app.route("/auth/password_reset/<string:reset_id>", methods=["GET", "POST"])
 def password_reset(reset_id):
     
+    result = auth.reset_password( reset_id, request.form["password"], request.form["confirmpassword"] )
+
     if request.method == "POST":
         
-        return auth.reset_password( reset_id, request.form["password"], request.form["confirmpassword"] )
+        return result
+
+    if result == "success":
+
+        serviceutils.log_event("user_reset_password", {
+                    "uid": result["uid"],
+                    })
+
+
+    serviceutils.log_event("error_in_reseting_password", {
+                    "uid": result["uid"],
+                    "error": result
+                    })
 
     return reset_password_html
 
@@ -114,9 +152,20 @@ def verify_token():
     #If token is invalid...
     if result == "ERROR-INVALID-TOKEN":
         #Return an error
+
+        serviceutils.log_event("invalid_token", {
+                    "error": result,
+                    "false_token": token
+                    })
+
         return '{ "error": "' + result + '" }'
 
     #Otherwise, return the UID
+    serviceutils.log_event("token_valid", {
+                    "uid": result,
+                    "token": token
+                    })
+
     return '{ "uid": "' + result + '" }'
 
 #Blacklist token
@@ -268,7 +317,7 @@ def unflag(user):
 
     return user.unflag(flagger)
 
-    
+
 
 
 
@@ -419,6 +468,12 @@ def get_user():
 		return json.dumps(highlows)
 
 
+
+
+
+
+
+
 @app.route("/highlow/flag/<string:highlowid>", methods=["POST"])
 def flag(highlowid):
     #Get token from Authorization
@@ -521,10 +576,19 @@ def register():
     token_verification = serviceutils.verify_token(token)
 
     if 'error' in token_verification:
+
+        serviceutils.log_event("could_not_register", {
+                    "error": token_verification
+                    })
+
         return token_verification
 
     uid = token_verification["uid"]
-    
+
+    serviceutils.log_event("successfully_registered", {
+                    "uid": uid
+                    })
+
     return notifs.register_device( request.form["platform"], request.form["device_id"], uid )
 
 
