@@ -85,10 +85,11 @@ def sign_up():
                         "uid": result["uid"]   
                         })
     
-            
-            return sign_up_html
-        
         return result
+
+    return sign_up_html
+        
+        
     
 
 #Sign_in
@@ -112,10 +113,10 @@ def sign_in():
             serviceutils.log_event("user_signed_in", {
                         "uid": result["uid"]   
                         })
-
-            return sign_in_html
-        
+ 
         return result
+
+    return sign_in_html
 
 
 #Reset password
@@ -138,9 +139,9 @@ def password_reset(reset_id):
                         "error": result
                         })
 
-            return reset_password_html
-
         return result
+
+    return reset_password_html
 
     
 
