@@ -44,9 +44,9 @@ class EventLogger:
         condition_str = ""
 
         for i in conditions:
-            path = i["path"]
-            operator = i["operator"]
-            value = i["value"]
+            path = conditions[i]["path"]
+            operator = conditions[i]["operator"]
+            value = conditions[i]["value"]
 
             condition_str += " AND JSON_EXTRACT(data, '{}') {} {} ".format(path, operator, value)
 

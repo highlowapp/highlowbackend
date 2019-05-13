@@ -9,6 +9,7 @@ from services.HighLow import HighLow, HighLowList
 from services.EventLogger import EventLogger
 from services.Notifications import Notifications
 import serviceutils
+from urllib.parse import unquote
 
 
 #MySQL server configuration
@@ -420,7 +421,7 @@ def get_user():
 
 
 @app.route("/highlow/flag/<string:highlowid>", methods=["POST"])
-def flag(highlowid):
+def flaghighlow(highlowid):
     #Get token from Authorization
     token = request.headers["Authorization"].replace("Bearer ", "")
 
@@ -446,7 +447,7 @@ def flag(highlowid):
 
 
 @app.route("/highlow/unflag/<string:highlowid>", methods=["POST"])
-def unflag(highlowid):
+def unflaghighlow(highlowid):
     #Get token from Authorization
     token = request.headers["Authorization"].replace("Bearer ", "")
 
@@ -497,7 +498,15 @@ def query():
     _type = request.args.get("type")
     min_time = request.args.get("min_time")
     max_time = request.args.get("max_time")
-    conditions = json.loads( request.args.get("conditions") )
+
+    conditions_raw = request.args.get("conditions")
+    conditions = None
+    if conditions_raw:
+        conditions_json_str = unquote(conditions_raw)
+
+        print(conditions_json_str)
+
+        conditions = json.loads( conditions_json_str )
 
     return event_logger.query( _type=_type, min_time=min_time, max_time=max_time, conditions=conditions, admin_password=request.args["admin_password"] )
 
