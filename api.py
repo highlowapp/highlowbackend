@@ -69,70 +69,80 @@ app = Flask(__name__)
 #Sign_up
 @app.route("/auth/sign_up", methods=["GET", "POST"])
 def sign_up():
-    result =  auth.sign_up( request.form["firstname"], request.form["lastname"], request.form["email"], request.form["password"], request.form["confirmpassword"] )
 
     if request.method == "POST":
+        result =  auth.sign_up( request.form["firstname"], request.form["lastname"], request.form["email"], request.form["password"], request.form["confirmpassword"] )
+        
+        if "error" in result:
+            result =  auth.sign_up( request.form["firstname"], request.form["lastname"], request.form["email"], request.form["password"], request.form["confirmpassword"] )
 
+            serviceutils.log_event("sign_up_error", {
+                        "uid": result["uid"],
+                        "error": result["error"]
+                        })
+        else:
+            serviceutils.log_event("user_signed_up", {
+                        "uid": result["uid"]   
+                        })
+    
+            
+            return sign_up_html
+        
         return result
     
-    if "error" in result:
-
-        serviceutils.log_event("sign_up_error", {
-                    "uid": result["uid"],
-                    "error": result["error"]
-                    })
-
-    serviceutils.log_event("user_signed_up", {
-                    "uid": result["uid"]   
-                    })
-    
-    return sign_up_html
 
 #Sign_in
 @app.route("/auth/sign_in", methods=["GET", "POST"])
 def sign_in():
 
-    result = auth.sign_in( request.form["email"], request.form["password"] )
+    
 
     if request.method == "POST":
 
+        result = auth.sign_in( request.form["email"], request.form["password"] )
+
+        if "error" in result:
+
+            serviceutils.log_event("sign_in_error", {
+                        "uid": result["uid"],
+                        "error": result["error"]
+                        })
+
+        else:
+            serviceutils.log_event("user_signed_in", {
+                        "uid": result["uid"]   
+                        })
+
+            return sign_in_html
+        
         return result
 
-    if "error" in result:
-        serviceutils.log_event("sign_in_error", {
-                    "uid": result["uid"],
-                    "error": result["error"]
-                    })
-
-    serviceutils.log_event("user_signed_in", {
-                    "uid": result["uid"]   
-                    })
-
-    return sign_in_html
 
 #Reset password
 @app.route("/auth/password_reset/<string:reset_id>", methods=["GET", "POST"])
 def password_reset(reset_id):
     
-    result = auth.reset_password( reset_id, request.form["password"], request.form["confirmpassword"] )
 
     if request.method == "POST":
+        result = auth.reset_password( reset_id, request.form["password"], request.form["confirmpassword"] )
         
+        if result == "success":
+
+            serviceutils.log_event("user_reset_password", {
+                        "uid": result["uid"],
+                        })
+
+        else:
+            serviceutils.log_event("error_in_reseting_password", {
+                        "uid": result["uid"],
+                        "error": result
+                        })
+
+            return reset_password_html
+
         return result
 
-    if result == "success":
-
-        serviceutils.log_event("user_reset_password", {
-                    "uid": result["uid"],
-                    })
-
-
-    serviceutils.log_event("error_in_reseting_password", {
-                    "uid": result["uid"],
-                    "error": result
-                    })
-
-    return reset_password_html
+    
 
 #Send password reset email
 @app.route("/auth/forgot_password", methods=["POST"])
@@ -156,15 +166,12 @@ def verify_token():
         serviceutils.log_event("invalid_token", {
                     "error": result,
                     "false_token": token
+                    #Add IP address of the computer here 
                     })
 
         return '{ "error": "' + result + '" }'
 
     #Otherwise, return the UID
-    serviceutils.log_event("token_valid", {
-                    "uid": result,
-                    "token": token
-                    })
 
     return '{ "uid": "' + result + '" }'
 
