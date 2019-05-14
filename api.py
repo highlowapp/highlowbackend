@@ -30,6 +30,13 @@ auth = Auth(auth_service, host, username, password, database)
 email_config = Helpers.read_json_from_file("config/email_config.json")
 hlemail = HLEmail(email_config["email"])
 
+
+
+#Event Logger configuration
+eventlogger_config = Helpers.read_json_from_file("config/eventlogger_config.json")
+
+
+
 #Create an event logger instance
 event_logger = EventLogger(host, username, password, database)
 
@@ -107,7 +114,8 @@ def sign_in():
 
             serviceutils.log_event("sign_in_error", {
                         "uid": result["uid"],
-                        "error": result["error"]
+                        "error": result["error"],
+                        "ip": request.remote_addr
                         })
 
         else:
@@ -167,8 +175,8 @@ def verify_token():
 
         serviceutils.log_event("invalid_token", {
                     "error": result,
-                    "false_token": token
-                    #Add IP address of the computer here 
+                    "false_token": token,
+                    "ip": request.remote_addr
                     })
 
         return '{ "error": "' + result + '" }'
@@ -553,6 +561,12 @@ def unflaghighlow(highlowid):
 #Create the `log_event` route
 @app.route("/eventlogger/log_event", methods=["POST"])
 def log_event():
+
+    if request.form.get(admin_password) != eventlogger_config["admin_password"]:
+        serviceutils.log_event("eventlogger_failed_attempt", {
+            "ip": request.remote_addr
+            })
+
     return event_logger.log_event( request.form["event_type"], request.form["data"], request.form["admin_password"] )
 
 
@@ -567,9 +581,13 @@ def query():
     if conditions_raw:
         conditions_json_str = unquote(conditions_raw)
 
-        print(conditions_json_str)
 
         conditions = json.loads( conditions_json_str )
+
+    if request.args.get(admin_password) != eventlogger_config["admin_password"]:
+        serviceutils.log_event("eventlogger_failed_attempt", {
+            "ip": request.remote_addr
+            })
 
     return event_logger.query( _type=_type, min_time=min_time, max_time=max_time, conditions=conditions, admin_password=request.args["admin_password"] )
 
