@@ -1,5 +1,6 @@
 import pymysql
 import bleach
+import json
 from services.FileStorage import FileStorage
 
 class User:
@@ -178,3 +179,57 @@ class User:
         conn.close()
 
         return '{"status": "success"}'
+
+
+    def get_feed(self, limit, page):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        cursor = conn.cursor()
+
+        limit = bleach.clean( str(limit) )
+        offset = bleach.clean( str(page) ) * limit
+
+        cursor.execute( """
+
+
+            SELECT 
+
+            CASE 
+                WHEN friends.initiator = '{}' THEN friends.acceptor
+                WHEN friends.acceptor = '{}' THEN friends.initiator
+            END AS friend_id,
+
+            highlows.highlowid AS highlowid,
+            highlows.high,
+            highlows.low, 
+            highlows.low_image,
+            highlows.high_image, 
+            highlows._timestamp,
+            highlows.total_likes,
+
+            CASE
+                WHEN flags.id IS NULL THEN 0
+                ELSE 1
+            END AS flagged,
+
+            CASE 
+                WHEN likes.id IS NULL THEN 0
+                ELSE 1
+            END AS liked
+             
+            FROM friends
+
+            JOIN highlows ON highlows.uid = friend_id
+            LEFT OUTER JOIN flags ON flags.flagger = '{}' AND flags.highlowid = highlows.highlowid
+            LEFT OUTER JOIN likes ON likes.uid = '{}' AND likes.highlowid = highlows.highlowid
+
+            WHERE (friends.initiator = '{}' OR friends.acceptor = '{}') AND friends.status = 2 ORDER BY highlows._timestamp DESC LIMIT {} OFFSET {};
+
+            """.format(self.uid, self.uid, self.uid, self.uid, self.uid, self.uid, limit, offset) )
+
+        feed = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        return json.dumps( feed )
