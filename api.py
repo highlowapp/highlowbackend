@@ -45,6 +45,12 @@ notifs = Notifications(host, username, password, database)
 
 
 
+
+FEED_LIMIT = 10
+
+
+
+
 #Placeholders for HTML
 sign_up_html = ""
 sign_in_html = ""
@@ -284,8 +290,8 @@ def set(property):
     return '{ "status": "success" }'
 
 
-@app.route("/user/flag/<string:user>", methods=["POST"])
-def flag(user):
+@app.route("/user/flag/<string:_user>", methods=["POST"])
+def flag(_user):
     #Get token from Authorization
     token = request.headers["Authorization"].replace("Bearer ", "")
 
@@ -303,14 +309,14 @@ def flag(user):
     flagger = result["uid"]
 
     try:
-        user = User(user, host, username, password, database)
+        user = User(_user, host, username, password, database)
     except:
         return '{ "error": "user-no-exist" }'
 
     return user.flag(flagger)
 
-@app.route("/user/unflag/<string:user>", methods=["POST"])
-def unflag(user):
+@app.route("/user/unflag/<string:_user>", methods=["POST"])
+def unflag(_user):
     #Get token from Authorization
     token = request.headers["Authorization"].replace("Bearer ", "")
 
@@ -328,11 +334,36 @@ def unflag(user):
     flagger = result["uid"]
 
     try:
-        user = User(user, host, username, password, database)
+        user = User(_user, host, username, password, database)
     except:
         return '{ "error": "user-no-exist" }'
 
     return user.unflag(flagger)
+
+@app.route("/user/feed/page/<string:page>", methods=["GET"])
+def get_feed(page):
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
+
+
+    #Obtain the result as JSON
+    result = token_verification_request.json()
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+
+
+    uid = result["uid"]
+
+    try:
+        user = User(uid, host, username, password, database)
+
+    except:
+        return user.get_feed(FEED_LIMIT, page)
 
 
 
