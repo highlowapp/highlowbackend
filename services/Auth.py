@@ -125,7 +125,8 @@ class Auth:
 
             #Create and return an auth token
             token = self.create_token(str(uid))
-            return token
+            return '{"token": "' + token + '", "uid": "' + str(uid) + '"}'
+
 
         else:
             #Close the connection
@@ -161,7 +162,7 @@ class Auth:
                 #The user is authenticated; create and return a token
                 token = self.create_token( existingUser["uid"] )
 
-                return token
+                return '{"token": "' + token + '", "uid": "' + existingUser['uid'] + '"}'
 
 
             else:
