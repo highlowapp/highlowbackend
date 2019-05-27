@@ -91,7 +91,6 @@ def sign_up():
             result =  auth.sign_up( request.form["firstname"], request.form["lastname"], request.form["email"], request.form["password"], request.form["confirmpassword"] )
 
             serviceutils.log_event("sign_up_error", {
-                        "uid": result["uid"],
                         "error": result["error"]
                         })
         else:
@@ -119,7 +118,6 @@ def sign_in():
         if "error" in result:
 
             serviceutils.log_event("sign_in_error", {
-                        "uid": result["uid"],
                         "error": result["error"],
                         "ip": request.remote_addr
                         })
