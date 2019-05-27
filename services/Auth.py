@@ -130,7 +130,7 @@ class Auth:
         else:
             #Close the connection
             conn.close()
-            return error
+            return '{"error": "' + error + '"}'
 
     #Sign in
     def sign_in(self, email, password):
@@ -171,7 +171,7 @@ class Auth:
             error = "user-no-exist"
 
         #If the user was not authenticated, return the error
-        return error
+        return '{"error": "' + error + '"}'
 
     #Create Token
     def create_token(self, uid, expiration_minutes= 60 * 24 * 365 / 2 ):
@@ -320,7 +320,7 @@ class Auth:
                               "password-too-short", "passwords-no-match"]
         result = self.sign_up( "Test", "Test", "test@example.com", "longpassword", "longpassword")
 
-        if result in error_messages:
+        if result.get('error') in error_messages:
             print("Something went wrong in the sign_up_test, the error was: " + result)
         else:
             print("Everything went fine in the sign_up_test")
@@ -332,7 +332,7 @@ class Auth:
 
         result = self.sign_in( "test@example.com", "longpassword")
 
-        if result in error_messages:
+        if result.get('error') in error_messages:
             print("Something went wrong in the sign_in_test, the error was: " + result)
         else: 
             print("Everything went fine in the sign_in_test")

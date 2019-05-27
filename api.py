@@ -85,7 +85,7 @@ app = Flask(__name__)
 def sign_up():
 
     if request.method == "POST":
-        result =  auth.sign_up( request.form["firstname"], request.form["lastname"], request.form["email"], request.form["password"], request.form["confirmpassword"] )
+        result = json.loads( auth.sign_up( request.form["firstname"], request.form["lastname"], request.form["email"], request.form["password"], request.form["confirmpassword"] ) )
         
         if "error" in result:
             result =  auth.sign_up( request.form["firstname"], request.form["lastname"], request.form["email"], request.form["password"], request.form["confirmpassword"] )
@@ -99,7 +99,7 @@ def sign_up():
                         "uid": result["uid"]   
                         })
     
-        return result
+        return json.dumps( result )
 
     return sign_up_html
         
@@ -114,7 +114,7 @@ def sign_in():
 
     if request.method == "POST":
 
-        result = auth.sign_in( request.form["email"], request.form["password"] )
+        result = json.loads( auth.sign_in( request.form["email"], request.form["password"] ) )
 
         if "error" in result:
 
@@ -129,7 +129,7 @@ def sign_in():
                         "uid": result["uid"]   
                         })
  
-        return result
+        return json.dumps( result )
 
     return sign_in_html
 
