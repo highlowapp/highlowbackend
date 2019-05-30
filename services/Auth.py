@@ -210,6 +210,9 @@ class Auth:
     #Send password reset email
     def send_password_reset_email(self, email):
 
+        error = ""
+        status = "success"
+
         #Clean the email
         email = bleach.clean(email)
 
@@ -229,26 +232,28 @@ class Auth:
 
         #Check and see if any users existed with that email
         if user == None:
-            return "user-no-exist"
+            error = "user-no-exist"
+            status = "failure"
 
-        #Create a "password reset id" token that expires in a day
-        token = self.create_token( user["uid"], expiration_minutes= 60 * 24 )
+        if error == "":
+            #Create a "password reset id" token that expires in a day
+            token = self.create_token( user["uid"], expiration_minutes= 60 * 24 )
 
-        ## Fetch the password reset email HTML and insert user information and the link we just generated ##
-        password_reset_html = ""
+            ## Fetch the password reset email HTML and insert user information and the link we just generated ##
+            password_reset_html = ""
 
-        with open("passwordResetEmail.html", "r") as file:
-            password_reset_html = file.read()
+            with open("passwordResetEmail.html", "r") as file:
+                password_reset_html = file.read()
 
+            
+            
+            password_reset_html = password_reset_html.format(user["firstname"], user["lastname"], 'http://' + self.servername + '/password_reset/' + token)
+
+            #Send the email
+            hlemail.send_html_email(user["email"], password_reset_html, email_config["password"])
         
-        
-        password_reset_html = password_reset_html.format(user["firstname"], user["lastname"], 'http://' + self.servername + '/password_reset/' + token)
 
-        #Send the email
-        hlemail.send_html_email(user["email"], password_reset_html, email_config["password"])
-        
-
-        return "success"
+        return { status: status, error: error }
 
     #Reset password
     def reset_password(self, token, password, confirmpassword):
@@ -260,29 +265,37 @@ class Auth:
         #Make sure the id token is valid
         uid = self.validate_token(token)
 
+        #Keep track of errors
+        error = ""
+        status = "success"
+
         if uid == "ERROR-INVALID-TOKEN":
-            return "ERROR-INVALID-TOKEN"
+            error = "ERROR-INVALID-TOKEN"
+            status = "failure"
 
         #Confirm the passwords match
         if password != confirmpassword:
-            return "passwords-no-match"
+            error = "passwords-no-match"
+            status = "failure"
 
-        #If the passwords matched and the token is valid, go ahead and reset the password
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        if error == "":
 
-        #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
-        cursor = conn.cursor()
+            #If the passwords matched and the token is valid, go ahead and reset the password
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-        #Update the password
-        cursor.execute("UPDATE users SET password = '" + hashed_password.decode('utf-8') + "' WHERE uid='" + uid + "';")
+            #Connect to MySQL
+            conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+            cursor = conn.cursor()
 
-        #Commit and close the connection
-        conn.commit()
-        conn.close()
+            #Update the password
+            cursor.execute("UPDATE users SET password = '" + hashed_password.decode('utf-8') + "' WHERE uid='" + uid + "';")
 
-        #Return success message
-        return "success"
+            #Commit and close the connection
+            conn.commit()
+            conn.close()
+
+        
+        return { error: error, status: status }
 
     def blacklist_token(self, token):
         #Connect to the MySQL server
