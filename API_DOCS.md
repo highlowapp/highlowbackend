@@ -21,6 +21,7 @@ In general, a request to the API will be to a URL of the form https://api.gethig
 ```
 {
 	token: <String>,
+	uid: <String>,
 	error: <String>
 }
 ```

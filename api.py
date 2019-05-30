@@ -88,7 +88,6 @@ def sign_up():
         result = json.loads( auth.sign_up( request.form["firstname"], request.form["lastname"], request.form["email"], request.form["password"], request.form["confirmpassword"] ) )
         
         if "error" in result:
-            result =  auth.sign_up( request.form["firstname"], request.form["lastname"], request.form["email"], request.form["password"], request.form["confirmpassword"] )
 
             serviceutils.log_event("sign_up_error", {
                         "error": result["error"]
@@ -140,16 +139,17 @@ def password_reset(reset_id):
     if request.method == "POST":
         result = auth.reset_password( reset_id, request.form["password"], request.form["confirmpassword"] )
         
-        if result == "success":
+        if result["status"] == "success":
 
             serviceutils.log_event("user_reset_password", {
-                        "uid": result["uid"],
+                        "reset_id": reset_id,
                         })
 
         else:
+
             serviceutils.log_event("error_in_reseting_password", {
-                        "uid": result["uid"],
-                        "error": result
+                        "error": result["error"],
+                        "ip": request.remote_addr
                         })
 
         return result
@@ -189,11 +189,7 @@ def verify_token():
 
     return '{ "uid": "' + result + '" }'
 
-#Blacklist token
-@app.route("/auth/blacklist/<string:token>", methods=["GET", "POST"])
-def blacklist_token(token):
-    auth.blacklist_token(token)
-    return '{"status":"success"}'
+
 
 
 
