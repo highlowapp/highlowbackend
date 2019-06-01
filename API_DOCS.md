@@ -86,7 +86,7 @@ In general, a request to the API will be to a URL of the form https://api.gethig
 
 **Errors:** 
 
-- *ERROR-RESET-ID*: The reset id provided in the URL was invalid
+- *ERROR-INVALID-RESET-ID*: The reset id provided in the URL was invalid
 - *passwords-no-match*: The password and confirmpassword do not match
 
 
