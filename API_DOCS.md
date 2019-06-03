@@ -148,5 +148,229 @@ You probably won't ever have to call this endpoint, as it will instead appear as
 
 
 
+## Email
+
+
+### /email/send_html_email
+
+**Description:** Sends an HTML-formatted email to a given address
+
+**Request Method:** POST
+
+**Authorization Required:** False
+
+**Parameters:** `email<String>, message<String>, password<String>`
+
+**Returns:** 
+
+```
+{
+	status: <String>
+}
+```
+
+**Errors:** 
+
+None
+
+
+
+
+
+
+### /email/send_email
+
+**Description:** Sends a plaintext email to a given address
+
+**Request Method:** POST
+
+**Authorization Required:** False
+
+**Parameters:** `email<String>, message<String>, password<String>`
+
+**Returns:** 
+
+```
+{
+	status: <String>
+}
+```
+
+**Errors:** 
+
+None
+
+
+
+
+
+
+## User
+
+
+
+### /user/get/<string:property>
+
+**Description:** Returns a property for a user
+
+**Request Method:** POST
+
+**Authorization Required:** True
+
+**Parameters:** None
+
+**Returns:**
+
+```
+{
+	property: <String>,
+	error: <String>
+}
+```
+
+**Errors:** 
+- *ERROR-INVALID-TOKEN*: The provided authentication token was invalid
+
+
+
+
+
+
+### /user/set/<string:property>
+
+**Description:** Sets a property for a user
+
+**Request Method:** POST
+
+**Authorization Required:** True
+
+**Parameters:** `value<String>`
+
+**Files:** `File (Optional; for setting profile picture)`
+
+**Returns:**
+
+```
+{
+	status: <String>,
+	error: <String>
+}
+```
+
+**Errors:** 
+- *ERROR-INVALID-TOKEN*: The provided authentication token was invalid
+- *no-file-uploaded*: No file was uploaded (only occurs when setting profile picture)
+
+
+
+
+
+
+
+
+### /user/flag/<string:user>
+
+**Description:** Flags a user for inappropriate content
+
+**Request Method:** POST
+
+**Authorization Required:** True
+
+**Parameters:** None
+
+**Returns:**
+
+```
+{
+	status: <String>,
+	error: <String>
+}
+```
+
+**Errors:** 
+- *ERROR-INVALID-TOKEN*: The provided authentication token was invalid
+- *user-no-exist*: The flagged user does not exist
+
+
+
+
+
+
+
+
+
+
+### /user/unflag/<string:user>
+
+**Description:** Unflags a user for inappropriate content
+
+**Request Method:** POST
+
+**Authorization Required:** True
+
+**Parameters:** None
+
+**Returns:**
+
+```
+{
+	status: <String>,
+	error: <String>
+}
+```
+
+**Errors:** 
+- *ERROR-INVALID-TOKEN*: The provided authentication token was invalid
+- *user-no-exist*: The flagged user does not exist
+
+
+
+
+
+### /user/feed/page/<int:page>
+
+**Description:** Fetches the items for a given page in the feed (each page can hold 10 items)
+
+**Request Method:** GET
+
+**Authorization Required:** True
+
+**Parameters:** None
+
+**Returns:**
+
+```
+[
+	{
+		friend_id: <String>,
+		highlowid: <String>,
+		high: <String>,
+		low: <String>,
+		high_image: <String>,
+		low_image: <String>,
+		_timestamp: <Timestamp>,
+		total_likes: <Int>
+	}
+]
+```
+
+If error:
+
+```
+{
+	error: <String>
+}
+```
+
+**Errors:** 
+- *ERROR-INVALID-TOKEN*: The provided authentication token was invalid
+
+
+
+
+
+
+
+
 
 
