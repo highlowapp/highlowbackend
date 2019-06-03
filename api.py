@@ -206,11 +206,11 @@ def verify_token():
 
 @app.route("/email/send_html_email", methods=["POST"])
 def send_html_email():
-	hlemail.send_html_email( request.form["email"], request.form["message"], request.form["password"] )
+	return hlemail.send_html_email( request.form["email"], request.form["message"], request.form["password"] )
 
 @app.route("/email/send_email", methods=["POST"])
 def send_email():
-	hlemail.send_email( request.form["email"], request.form["message"], request.form["password"] )
+	return hlemail.send_email( request.form["email"], request.form["message"], request.form["password"] )
 
 
 
@@ -334,7 +334,7 @@ def unflag(_user):
 
     return user.unflag(flagger)
 
-@app.route("/user/feed/page/<string:page>", methods=["GET"])
+@app.route("/user/feed/page/<int:page>", methods=["GET"])
 def get_feed(page):
     #Get token from Authorization
     token = request.headers["Authorization"].replace("Bearer ", "")

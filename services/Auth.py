@@ -270,7 +270,7 @@ class Auth:
         status = "success"
 
         if uid == "ERROR-INVALID-TOKEN":
-            error = "ERROR-INVALID-TOKEN"
+            error = "ERROR-INVALID-RESET-ID"
             status = "failure"
 
         #Confirm the passwords match

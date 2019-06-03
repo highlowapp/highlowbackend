@@ -17,9 +17,15 @@ class HLEmail:
 		sender_email = self.sender
 		receiver_email = receiver
 		context = ssl.create_default_context()
-		with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
-			server.login(sender_email, admin_password)
-			server.sendmail(sender_email, receiver_email, message.as_string())
+
+		try:
+			with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+				server.login(sender_email, admin_password)
+				server.sendmail(sender_email, receiver_email, message.as_string())
+
+			return '{"status": "success"}'
+		except:
+			return '{"status": "failure"}'
 
 	#The function that adds html to the message
 	def send_html_email(self, receiver, message, admin_password):
@@ -42,4 +48,4 @@ class HLEmail:
 		mime_message.attach(message_plaintext)
 		mime_message.attach(message_html)
 
-		self.send_email(  receiver=receiver,  message=mime_message, admin_password=admin_password )
+		return self.send_email(  receiver=receiver,  message=mime_message, admin_password=admin_password )
