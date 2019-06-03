@@ -10,6 +10,9 @@ from services.EventLogger import EventLogger
 from services.Notifications import Notifications
 import serviceutils
 from urllib.parse import unquote
+from werkzeug.contrib.fixers import ProxyFix
+
+
 
 
 #MySQL server configuration
@@ -71,6 +74,8 @@ with open("resetPassword.html", 'r') as file:
 
 #Create flask app
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app)
+
 
 
 
@@ -118,7 +123,7 @@ def sign_in():
 
             serviceutils.log_event("sign_in_error", {
                         "error": result["error"],
-                        "ip": request.remote_addr
+                        "ip": request.environ["REMOTE_ADDR"]
                         })
 
         else:
@@ -149,7 +154,7 @@ def password_reset(reset_id):
 
             serviceutils.log_event("error_in_reseting_password", {
                         "error": result["error"],
-                        "ip": request.remote_addr
+                        "ip": request.environ["REMOTE_ADDR"]
                         })
 
         return result
@@ -180,7 +185,7 @@ def verify_token():
         serviceutils.log_event("invalid_token", {
                     "error": result,
                     "false_token": token,
-                    "ip": request.remote_addr
+                    "ip": request.environ["REMOTE_ADDR"]
                     })
 
         return '{ "error": "' + result + '" }'
