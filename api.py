@@ -77,6 +77,17 @@ with open("resetPassword.html", 'r') as file:
 app = Flask(__name__)
 
 
+#Proxies 
+NUM_PROXIES = 1
+
+def get_remote_addr(request):
+    x_forwarded_for = request.headers.getlist("X-Forwarded-For")[0]
+
+    forward_list = x_forwarded_for.split(",")
+
+    return forward_list[-NUM_PROXIES]
+
+
 
 
 #Define app routes
@@ -113,7 +124,7 @@ def sign_up():
 @app.route("/auth/sign_in", methods=["GET", "POST"])
 def sign_in():
 
-    print(request.headers.getlist("X-Forwarded-For"))
+    print(get_remote_addr(request))
 
     if request.method == "POST":
 
