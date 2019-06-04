@@ -74,7 +74,6 @@ with open("resetPassword.html", 'r') as file:
 
 #Create flask app
 app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app)
 
 
 
@@ -683,7 +682,5 @@ def send():
 
 
 if __name__ == '__main__':
+    app.wsgi_app = ProxyFix(app.wsgi_app)
     app.run(host='0.0.0.0')
-
-    #Run tests
-    auth.run_tests()
