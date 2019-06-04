@@ -682,5 +682,5 @@ def send():
 
 
 if __name__ == '__main__':
-    app.wsgi_app = ProxyFix(app.wsgi_app)
+    app.wsgi_app = ProxyFix(app.wsgi_app, num_proxies=2)
     app.run(host='0.0.0.0')
