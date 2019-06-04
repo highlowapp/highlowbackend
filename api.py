@@ -11,6 +11,7 @@ from services.Notifications import Notifications
 import serviceutils
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
+import os
 
 
 
@@ -122,7 +123,7 @@ def sign_in():
 
             serviceutils.log_event("sign_in_error", {
                         "error": result["error"],
-                        "ip": request.environ["REMOTE_ADDR"]
+                        "ip": os.environ["REMOTE_ADDR"]
                         })
 
         else:
