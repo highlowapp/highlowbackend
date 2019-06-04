@@ -85,7 +85,7 @@ def get_remote_addr(request):
 
     forward_list = x_forwarded_for.split(",")
 
-    return forward_list[-NUM_PROXIES]
+    return forward_list[ -(NUM_PROXIES + 1) ]
 
 
 
@@ -124,8 +124,6 @@ def sign_up():
 @app.route("/auth/sign_in", methods=["GET", "POST"])
 def sign_in():
 
-    print(get_remote_addr(request))
-
     if request.method == "POST":
 
         result = json.loads( auth.sign_in( request.form["email"], request.form["password"] ) )
@@ -134,7 +132,7 @@ def sign_in():
 
             serviceutils.log_event("sign_in_error", {
                         "error": result["error"],
-                        "ip": request.environ["REMOTE_ADDR"]
+                        "ip": get_remote_addr(request)
                         })
 
         else:
@@ -165,7 +163,7 @@ def password_reset(reset_id):
 
             serviceutils.log_event("error_in_reseting_password", {
                         "error": result["error"],
-                        "ip": request.environ["REMOTE_ADDR"]
+                        "ip": get_remote_addr(request)
                         })
 
         return result
@@ -196,7 +194,7 @@ def verify_token():
         serviceutils.log_event("invalid_token", {
                     "error": result,
                     "false_token": token,
-                    "ip": request.environ["REMOTE_ADDR"]
+                    "ip": get_remote_addr(request)
                     })
 
         return '{ "error": "' + result + '" }'
@@ -605,7 +603,7 @@ def log_event():
 
     if request.form.get(admin_password) != eventlogger_config["admin_password"]:
         serviceutils.log_event("eventlogger_failed_attempt", {
-            "ip": request.remote_addr
+            "ip": get_remote_addr(request)
             })
 
     return event_logger.log_event( request.form["event_type"], request.form["data"], request.form["admin_password"] )
@@ -627,7 +625,7 @@ def query():
 
     if request.args.get(admin_password) != eventlogger_config["admin_password"]:
         serviceutils.log_event("eventlogger_failed_attempt", {
-            "ip": request.remote_addr
+            "ip": get_remote_addr(request)
             })
 
     return event_logger.query( _type=_type, min_time=min_time, max_time=max_time, conditions=conditions, admin_password=request.args["admin_password"] )
