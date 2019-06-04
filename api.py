@@ -113,7 +113,7 @@ def sign_up():
 @app.route("/auth/sign_in", methods=["GET", "POST"])
 def sign_in():
 
-    
+    print(request.headers.getlist("X-Forward-For"))
 
     if request.method == "POST":
 
@@ -123,7 +123,7 @@ def sign_in():
 
             serviceutils.log_event("sign_in_error", {
                         "error": result["error"],
-                        "ip": os.environ["REMOTE_ADDR"]
+                        "ip": request.environ["REMOTE_ADDR"]
                         })
 
         else:
@@ -683,5 +683,5 @@ def send():
 
 
 if __name__ == '__main__':
-    app.wsgi_app = ProxyFix(app.wsgi_app, num_proxies=2)
+    app.wsgi_app = ProxyFix(app.wsgi_app, num_proxies=3)
     app.run(host='0.0.0.0')
