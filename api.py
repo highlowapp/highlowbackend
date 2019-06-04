@@ -113,7 +113,7 @@ def sign_up():
 @app.route("/auth/sign_in", methods=["GET", "POST"])
 def sign_in():
 
-    print(request.headers.getlist("X-Forward-For"))
+    print(request.headers.getlist("X-Forwarded-For"))
 
     if request.method == "POST":
 
