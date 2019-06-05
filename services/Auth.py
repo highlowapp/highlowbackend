@@ -295,7 +295,7 @@ class Auth:
             conn.close()
 
 
-        return { error: error, status: status }
+        return { "error": error, "status": status }
 
     def blacklist_token(self, token):
         #Connect to the MySQL server
