@@ -43,8 +43,8 @@ def verify_token(token):
     #Otherwise, return the UID
     return '{ "uid": "' + result + '" }'
 
-def send_email(recipient, message):
-    hlemail.send_html_email(recipient, message, email_config["password"])
+def send_email(recipient, subject, message):
+    hlemail.send_email(recipient, subject, message, email_config["password"])
 
 def log_event(type, data):
     event_logger.log_event(type, data, event_logger_config["admin_password"])
