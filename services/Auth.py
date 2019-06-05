@@ -250,7 +250,7 @@ class Auth:
             password_reset_html = password_reset_html.format(user["firstname"], user["lastname"], 'http://' + self.servername + '/password_reset/' + token)
 
             #Send the email
-            hlemail.send_html_email(user["email"], "Confirm Password Reset - High/Low", password_reset_html, email_config["password"])
+            hlemail.send_email(user["email"], "Confirm Password Reset - High/Low", password_reset_html, email_config["password"])
 
 
         return { "status": status, "error": error }
