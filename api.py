@@ -10,6 +10,10 @@ from services.EventLogger import EventLogger
 from services.Notifications import Notifications
 import serviceutils
 from urllib.parse import unquote
+from werkzeug.contrib.fixers import ProxyFix
+import os
+
+
 
 
 #MySQL server configuration
@@ -73,6 +77,18 @@ with open("resetPassword.html", 'r') as file:
 app = Flask(__name__)
 
 
+#Proxies 
+NUM_PROXIES = 1
+
+def get_remote_addr(request):
+    x_forwarded_for = request.headers.getlist("X-Forwarded-For")[0]
+
+    forward_list = x_forwarded_for.split(",")
+
+    return forward_list[ -(NUM_PROXIES + 1) ]
+
+
+
 
 #Define app routes
 
@@ -108,8 +124,6 @@ def sign_up():
 @app.route("/auth/sign_in", methods=["GET", "POST"])
 def sign_in():
 
-    
-
     if request.method == "POST":
 
         result = json.loads( auth.sign_in( request.form["email"], request.form["password"] ) )
@@ -118,7 +132,7 @@ def sign_in():
 
             serviceutils.log_event("sign_in_error", {
                         "error": result["error"],
-                        "ip": request.remote_addr
+                        "ip": get_remote_addr(request)
                         })
 
         else:
@@ -149,7 +163,7 @@ def password_reset(reset_id):
 
             serviceutils.log_event("error_in_reseting_password", {
                         "error": result["error"],
-                        "ip": request.remote_addr
+                        "ip": get_remote_addr(request)
                         })
 
         return result
@@ -180,7 +194,7 @@ def verify_token():
         serviceutils.log_event("invalid_token", {
                     "error": result,
                     "false_token": token,
-                    "ip": request.remote_addr
+                    "ip": get_remote_addr(request)
                     })
 
         return '{ "error": "' + result + '" }'
@@ -589,7 +603,7 @@ def log_event():
 
     if request.form.get(admin_password) != eventlogger_config["admin_password"]:
         serviceutils.log_event("eventlogger_failed_attempt", {
-            "ip": request.remote_addr
+            "ip": get_remote_addr(request)
             })
 
     return event_logger.log_event( request.form["event_type"], request.form["data"], request.form["admin_password"] )
@@ -611,7 +625,7 @@ def query():
 
     if request.args.get(admin_password) != eventlogger_config["admin_password"]:
         serviceutils.log_event("eventlogger_failed_attempt", {
-            "ip": request.remote_addr
+            "ip": get_remote_addr(request)
             })
 
     return event_logger.query( _type=_type, min_time=min_time, max_time=max_time, conditions=conditions, admin_password=request.args["admin_password"] )
@@ -678,7 +692,5 @@ def send():
 
 
 if __name__ == '__main__':
+    app.wsgi_app = ProxyFix(app.wsgi_app, num_proxies=3)
     app.run(host='0.0.0.0')
-
-    #Run tests
-    auth.run_tests()
