@@ -21,7 +21,7 @@ class HLEmail:
 		try:
 			with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
 				server.login(sender_email, admin_password)
-				server.sendmail(sender_email, receiver_email, message.as_string())
+				server.sendmail("info@gethighlow.com", receiver_email, message.as_string())
 
 			return '{"status": "success"}'
 		except:
