@@ -166,7 +166,7 @@ def password_reset(reset_id):
                         "ip": get_remote_addr(request)
                         })
 
-        return result
+        return json.dumps(result)
 
     return reset_password_html
 
@@ -176,7 +176,7 @@ def password_reset(reset_id):
 @app.route("/auth/forgot_password", methods=["POST"])
 def forgot_password():
 
-    return auth.send_password_reset_email( request.form["email"] )
+    return json.dumps( auth.send_password_reset_email( request.form["email"] ) )
 
 #Verify token
 @app.route("/auth/verify_token", methods=["GET", "POST"])
