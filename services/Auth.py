@@ -253,7 +253,7 @@ class Auth:
             hlemail.send_html_email(user["email"], password_reset_html, email_config["password"])
         
 
-        return { status: status, error: error }
+        return { "status": status, "error": error }
 
     #Reset password
     def reset_password(self, token, password, confirmpassword):
