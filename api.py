@@ -159,6 +159,8 @@ def password_reset(reset_id):
                         "reset_id": reset_id,
                         })
 
+            return "Your password has been successfully reset!"
+
         else:
 
             serviceutils.log_event("error_in_reseting_password", {
@@ -166,7 +168,9 @@ def password_reset(reset_id):
                         "ip": get_remote_addr(request)
                         })
 
-        return result
+            return "An error occurred when resetting your password. Try again."
+
+        
 
     return reset_password_html
 
