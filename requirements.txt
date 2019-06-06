@@ -11,3 +11,4 @@ requests
 firebase-admin
 google-cloud-storage
 Pillow
+sendgrid
