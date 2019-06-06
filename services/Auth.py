@@ -21,7 +21,7 @@ hlemail = HLEmail(email_config["email"])
 #Load secret key from file
 SECRET_KEY = ""
 with open("config/encryption_key.txt", 'r') as file:
-    SECRET_KEY = file.read() 
+    SECRET_KEY = file.read()
 
 class Auth:
 
@@ -77,13 +77,13 @@ class Auth:
         #Check for empty firstname, lastname, or email
         if len(firstname) == 0:
             error = "empty-first-name"
-        
+
         if len(lastname) == 0:
             error = "empty-last-name"
-        
+
         if len(email) == 0:
             error = "empty-email"
-        
+
 
         #Check for email duplicates
         cursor.execute("SELECT uid FROM users WHERE email='" + email + "';")
@@ -104,7 +104,7 @@ class Auth:
         #Do the passwords match?
         if password != confirmpassword:
             error = "passwords-no-match"
-        
+
 
         if error == "":
 
@@ -115,7 +115,7 @@ class Auth:
 
             #Hash the password
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-            
+
             #Insert into the database
             cursor.execute("INSERT INTO users(uid, firstname, lastname, email, password, profileimage, streak) VALUES('" + str(uid) + "', '" + firstname + "', '" + lastname + "', '" + email + "', '" + hashed_password.decode('utf-8') + "', '', 0);")
 
@@ -150,10 +150,10 @@ class Auth:
 
         #Does a user exist with that email?
         cursor.execute("SELECT uid, password FROM users WHERE email='" + email + "';")
-        
+
         existingUser = cursor.fetchone()
-        
-        
+
+
         if existingUser != None:
 
             #If the password is correct...
@@ -197,7 +197,7 @@ class Auth:
 
     #Validate Token
     def validate_token(self, token):
-        
+
         payload = jwt.decode(token, self.SECRET_KEY, algorithms=["HS256"])
 
         current_timestamp = time.mktime( datetime.datetime.now().timetuple() )
@@ -245,15 +245,15 @@ class Auth:
             with open("passwordResetEmail.html", "r") as file:
                 password_reset_html = file.read()
 
-            
-            
-            password_reset_html = password_reset_html.format(user["firstname"], user["lastname"], 'http://' + self.servername + '/password_reset/' + token)
+
+
+            password_reset_html = password_reset_html.format(user["firstname"], user["lastname"], 'https://' + self.servername + '/password_reset/' + token)
 
             #Send the email
-            hlemail.send_html_email(user["email"], password_reset_html, email_config["password"])
-        
+            hlemail.send_email(user["email"], "Confirm Password Reset - High/Low", password_reset_html, email_config["password"])
 
-        return { status: status, error: error }
+
+        return { "status": status, "error": error }
 
     #Reset password
     def reset_password(self, token, password, confirmpassword):
@@ -294,8 +294,8 @@ class Auth:
             conn.commit()
             conn.close()
 
-        
-        return { error: error, status: status }
+
+        return { "error": error, "status": status }
 
     def blacklist_token(self, token):
         #Connect to the MySQL server
@@ -318,7 +318,7 @@ class Auth:
 
         conn.commit()
         conn.close()
-        
+
     def sign_up_test(self):
         #Make sure the user is already deleted
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
@@ -328,9 +328,9 @@ class Auth:
 
         conn.commit()
         conn.close()
-            
-        error_messages = ["empty-first-name", "empty-last-name", "empty-email", 
-                              "email-already-taken", "invalid-email", 
+
+        error_messages = ["empty-first-name", "empty-last-name", "empty-email",
+                              "email-already-taken", "invalid-email",
                               "password-too-short", "passwords-no-match"]
         result = self.sign_up( "Test", "Test", "test@example.com", "longpassword", "longpassword")
 
@@ -338,8 +338,8 @@ class Auth:
             print("Something went wrong in the sign_up_test, the error was: " + result)
         else:
             print("Everything went fine in the sign_up_test")
-        
-        
+
+
 
     def sign_in_test(self):
         error_messages = ["user-no-exist", "incorrect-email-or-password"]
@@ -348,9 +348,9 @@ class Auth:
 
         if result.get('error') in error_messages:
             print("Something went wrong in the sign_in_test, the error was: " + result)
-        else: 
+        else:
             print("Everything went fine in the sign_in_test")
-        
+
 
     def validate_token_test(self):
 
@@ -359,10 +359,10 @@ class Auth:
         result = self.validate_token( token )
 
         if result != "ERROR-INVALID_TOKEN":
-            print("Everything went fine in the validate_token_test")  
+            print("Everything went fine in the validate_token_test")
         else:
-            print("Something went wrong in the validate_token_test, the error was: " + result)    
-        
+            print("Something went wrong in the validate_token_test, the error was: " + result)
+
 
     def send_password_reset_email_test(self):
         result = self.send_password_reset_email("test@example.com")
@@ -371,20 +371,20 @@ class Auth:
             print("send_password_reset_email was a success")
         else:
             print("send_password_reset_email was not a success, the error is: " + result)
-        
+
 
     def reset_password_test(self):
         token = self.sign_in("test@example.com", "longpassword")
 
         result = self.reset_password( token , "longpassword", "longpassword")
-            
-        error_messages = ["ERROR-INVALID_TOKEN", "passwords-no-match"] 
-            
+
+        error_messages = ["ERROR-INVALID_TOKEN", "passwords-no-match"]
+
         if result in error_messages:
             print("Something went wrong in the reset_password_test, the error is " + result)
         elif result == "success":
             print("Everything went fine in the reset_password_test")
-        
+
 
     def run_tests(self):
         self.sign_up_test()

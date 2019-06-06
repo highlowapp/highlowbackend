@@ -77,7 +77,7 @@ with open("resetPassword.html", 'r') as file:
 app = Flask(__name__)
 
 
-#Proxies 
+#Proxies
 NUM_PROXIES = 1
 
 def get_remote_addr(request):
@@ -102,7 +102,7 @@ def sign_up():
 
     if request.method == "POST":
         result = json.loads( auth.sign_up( request.form["firstname"], request.form["lastname"], request.form["email"], request.form["password"], request.form["confirmpassword"] ) )
-        
+
         if "error" in result:
 
             serviceutils.log_event("sign_up_error", {
@@ -110,15 +110,15 @@ def sign_up():
                         })
         else:
             serviceutils.log_event("user_signed_up", {
-                        "uid": result["uid"]   
+                        "uid": result["uid"]
                         })
-    
+
         return json.dumps( result )
 
     return sign_up_html
-        
-        
-    
+
+
+
 
 #Sign_in
 @app.route("/auth/sign_in", methods=["GET", "POST"])
@@ -137,9 +137,9 @@ def sign_in():
 
         else:
             serviceutils.log_event("user_signed_in", {
-                        "uid": result["uid"]   
+                        "uid": result["uid"]
                         })
- 
+
         return json.dumps( result )
 
     return sign_in_html
@@ -148,11 +148,11 @@ def sign_in():
 #Reset password
 @app.route("/auth/password_reset/<string:reset_id>", methods=["GET", "POST"])
 def password_reset(reset_id):
-    
+
 
     if request.method == "POST":
         result = auth.reset_password( reset_id, request.form["password"], request.form["confirmpassword"] )
-        
+
         if result["status"] == "success":
 
             serviceutils.log_event("user_reset_password", {
@@ -170,17 +170,15 @@ def password_reset(reset_id):
 
             return "An error occurred when resetting your password. Try again."
 
-        
-
     return reset_password_html
 
-    
+
 
 #Send password reset email
 @app.route("/auth/forgot_password", methods=["POST"])
 def forgot_password():
-    
-    return auth.send_password_reset_email( request.form["email"] )
+
+    return json.dumps( auth.send_password_reset_email( request.form["email"] ) )
 
 #Verify token
 @app.route("/auth/verify_token", methods=["GET", "POST"])
@@ -221,14 +219,9 @@ def verify_token():
 #######################
 # Email               #
 #######################
-
-@app.route("/email/send_html_email", methods=["POST"])
-def send_html_email():
-	return hlemail.send_html_email( request.form["email"], request.form["message"], request.form["password"] )
-
 @app.route("/email/send_email", methods=["POST"])
 def send_email():
-	return hlemail.send_email( request.form["email"], request.form["message"], request.form["password"] )
+	return hlemail.send_email( request.form["email"], request.form["subject"], request.form["message"], request.form["password"] )
 
 
 
@@ -296,7 +289,7 @@ def set(property):
 
         if not image:
             return '{"error":"no-file-uploaded"}'
-        
+
         user.set_profileimage(image, result["uid"])
 
     return '{ "status": "success" }'
@@ -498,7 +491,7 @@ def get_today():
 
 	else:
 		uid = verification["uid"]
-		
+
 		#Now, we use `HighLowList` to get today's highlow
 		highlowlist = HighLowList(host, username, password, database)
 
