@@ -38,10 +38,10 @@ def verify_token(token):
     #If token is invalid...
     if result == "ERROR-INVALID-TOKEN":
         #Return an error
-        return '{ "error": "' + result + '" }'
+        return json.loads('{ "error": "' + result + '" }')
 
     #Otherwise, return the UID
-    return '{ "uid": "' + result + '" }'
+    return json.loads('{ "uid": "' + result + '" }')
 
 def send_email(recipient, subject, message):
     hlemail.send_email(recipient, subject, message, email_config["password"])
