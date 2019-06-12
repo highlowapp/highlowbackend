@@ -383,7 +383,7 @@ def get_feed(page):
 @app.route("/highlow/set/high", methods=["POST"])
 def sethigh():
     #Verify auth token
-    token = request.headers["Authentication"].replace("Bearer ", "")
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
     verification = serviceutils.verify_token(token)
 
@@ -409,7 +409,7 @@ def sethigh():
 @app.route("/highlow/set/low", methods=["POST"])
 def setlow():
     #Verify auth token
-    token = request.headers["Authentication"].replace("Bearer ", "")
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
     verification = serviceutils.verify_token(token)
 
@@ -435,7 +435,7 @@ def setlow():
 @app.route("/highlow/like/<string:highlowid>", methods=["POST"])
 def like(highlowid):
     #Verify auth token
-	token = request.headers["Authentication"].replace("Bearer ", "")
+	token = request.headers["Authorization"].replace("Bearer ", "")
 
 	verification = serviceutils.verify_token(token)
 
@@ -456,7 +456,7 @@ def like(highlowid):
 @app.route("/highlow/comment/<string:highlowid>", methods=["POST"])
 def comment(highlowid):
     #Verify auth token
-	token = request.headers["Authentication"].replace("Bearer ", "")
+	token = request.headers["Authorization"].replace("Bearer ", "")
 
 	verification = serviceutils.verify_token(token)
 
@@ -480,7 +480,7 @@ def comment(highlowid):
 @app.route("/highlow/get/today", methods=["GET"])
 def get_today():
 	#Verify auth token
-	token = request.headers["Authentication"].replace("Bearer ", "")
+	token = request.headers["Authorization"].replace("Bearer ", "")
 
 	verification = serviceutils.verify_token(token)
 
@@ -501,7 +501,7 @@ def get_today():
 @app.route("/highlow/get/user", methods=["GET"])
 def get_user():
 	#Verify auth token
-	token = request.headers["Authentication"].replace("Bearer ", "")
+	token = request.headers["Authorization"].replace("Bearer ", "")
 
 	verification = serviceutils.verify_token(token)
 
