@@ -200,12 +200,12 @@ class User:
             END AS friend_id,
 
             highlows.highlowid AS highlowid,
-            highlows.high,
-            highlows.low, 
-            highlows.low_image,
-            highlows.high_image, 
-            highlows._timestamp,
-            highlows.total_likes,
+            highlows.high AS high,
+            highlows.low AS low, 
+            highlows.low_image AS low_image,
+            highlows.high_image AS high_image, 
+            highlows._timestamp AS _timestamp,
+            highlows.total_likes AS total_likes,
 
             CASE
                 WHEN flags.id IS NULL THEN 0
