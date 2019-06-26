@@ -124,8 +124,10 @@ class Auth:
             conn.close()
 
             #Create and return an auth token
-            token = self.create_token(str(uid))
-            return '{"token": "' + token + '", "uid": "' + str(uid) + '"}'
+            access_token = self.create_token(str(uid))
+            refresh_token = self.create_refresh_token(str(uid))
+
+            return '{"access": "' + access_token + '", "refresh": "' + refresh_token + '", "uid": "' + str(uid) + '"}'
 
 
         else:
@@ -160,9 +162,10 @@ class Auth:
             if bcrypt.checkpw(password.encode('utf-8'), existingUser["password"].encode('utf-8')):
 
                 #The user is authenticated; create and return a token
-                token = self.create_token( existingUser["uid"] )
+                access_token = self.create_token( existingUser["uid"] )
+                refresh_token = self.create_refresh_token( existingUser["uid"] )
 
-                return '{"token": "' + token + '", "uid": "' + existingUser['uid'] + '"}'
+                return '{"access": "' + access_token + '", "refresh": "' + refresh_token + '", "uid": "' + existingUser['uid'] + '"}'
 
 
             else:
@@ -175,7 +178,7 @@ class Auth:
         return '{"error": "' + error + '"}'
 
     #Create Token
-    def create_token(self, uid, expiration_minutes= 60 * 24 * 365 / 2 ):
+    def create_token(self, uid, expiration_minutes= 60 ):
 
         #Calculate time half a year in the future (approximately)
         current_time = datetime.datetime.now()
@@ -186,6 +189,7 @@ class Auth:
             "iss": "highlow",
             "exp": time.mktime( expiration.timetuple() ),
             "sub": uid,
+            "typ": "access"
             "iat": time.mktime( current_time.timetuple() )
         }
 
@@ -202,7 +206,7 @@ class Auth:
 
         current_timestamp = time.mktime( datetime.datetime.now().timetuple() )
 
-        if payload["exp"] > current_timestamp and token not in self.blacklisted_tokens:
+        if payload["exp"] > current_timestamp and token not in self.blacklisted_tokens and payload["typ"] == "access":
             return payload["sub"]
 
         return "ERROR-INVALID-TOKEN"
@@ -318,6 +322,41 @@ class Auth:
 
         conn.commit()
         conn.close()
+
+
+    def create_refresh_token(self, uid):
+        #Calculate time half a year in the future (approximately)
+        current_time = datetime.datetime.now()
+        expiration = current_time + datetime.timedelta(minutes=60 * 24 * 365 / 2)
+
+
+        token_payload = {
+            "iss": "highlow",
+            "exp": time.mktime( expiration.timetuple() ),
+            "sub": uid,
+            "typ": "refresh"
+            "iat": time.mktime( current_time.timetuple() )
+        }
+
+        token = jwt.encode(token_payload, self.SECRET_KEY, algorithm="HS256")
+
+        token = token.decode('utf-8')
+
+        return token
+
+    def refresh_access(self, refresh_token):
+        payload = jwt.decode(refresh_token, self.SECRET_KEY, algorithms=["HS256"])
+
+        current_timestamp = time.mktime( datetime.datetime.now().timetuple() )
+
+        if payload["exp"] > current_timestamp and refresh_token not in self.blacklisted_tokens and payload["typ"] == "refresh":
+            #Create a new token and return it
+            new_access_token = self.create_token(payload["sub"])
+            return new_access_token
+
+        return "ERROR-INVALID-REFRESH-TOKEN"
+
+
 
     def sign_up_test(self):
         #Make sure the user is already deleted
