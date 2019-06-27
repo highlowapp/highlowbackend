@@ -373,11 +373,11 @@ class HighLowList:
 
         if highlow == None:
             highlow = {
-                'high':"",
-                'low':'',
-                'total_likes': 0,
-                'high_image': "",
-                'low_image': ""
+                "high":"",
+                "low":"",
+                "total_likes": 0,
+                "high_image": "",
+                "low_image": ""
             }
 
         return highlow
