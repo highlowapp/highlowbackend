@@ -376,8 +376,7 @@ class HighLowList:
                 "high":"",
                 "low":"",
                 "total_likes": 0,
-                "high_image": "",
-                "low_image": ""
+                "high_image": ""
             }
 
         return highlow
