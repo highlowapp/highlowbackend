@@ -372,7 +372,7 @@ class HighLowList:
         conn.close()
 
         if highlow == None:
-            highlow = {
+            return {
                 "high":"",
                 "low":"",
                 "total_likes": 0,
@@ -381,3 +381,4 @@ class HighLowList:
             }
 
         return highlow
+        
