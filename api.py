@@ -206,6 +206,28 @@ def verify_token():
     return '{ "uid": "' + result + '" }'
 
 
+#Refresh access
+@app.route("/auth/refresh_access", methods=["POST"])
+def refresh_access():
+    #Get the refresh token
+    refresh_token = request.form["refresh"]
+
+    #Refresh access
+    result = auth.refresh_access(refresh_token)
+
+    #Make sure there wasn't an error
+    if result == "ERROR-INVALID-REFRESH-TOKEN":
+        serviceutils.log_event("invalid_refresh_token", {
+            "error": result,
+            "false_token": refresh_token, 
+            "ip": get_remote_addr(request)
+        })
+
+        return '{"error": "' + result + '" }'
+
+    #Otherwise, return the new access token
+    return '{"access": "' + result + '"}'
+
 
 
 
