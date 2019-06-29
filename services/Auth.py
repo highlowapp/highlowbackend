@@ -189,7 +189,7 @@ class Auth:
             "iss": "highlow",
             "exp": time.mktime( expiration.timetuple() ),
             "sub": uid,
-            "typ": "access"
+            "typ": "access",
             "iat": time.mktime( current_time.timetuple() )
         }
 
@@ -334,7 +334,7 @@ class Auth:
             "iss": "highlow",
             "exp": time.mktime( expiration.timetuple() ),
             "sub": uid,
-            "typ": "refresh"
+            "typ": "refresh",
             "iat": time.mktime( current_time.timetuple() )
         }
 
