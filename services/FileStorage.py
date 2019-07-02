@@ -72,7 +72,7 @@ class FileStorage:
 
 
         #Resize the image
-        img = Image(file_content)
+        img = Image.open(file_content)
         img.resize(HIGHLOW_IMAGE_SIZE)
         resized_img = BytesIO()
         img.save(resized_img, format="PNG")
@@ -116,7 +116,7 @@ class FileStorage:
 
 
         #Resize the image
-        img = Image(file_content)
+        img = Image.open(file_content)
         img.resize(HIGHLOW_IMAGE_SIZE)
         resized_img = BytesIO()
         img.save(resized_img, format="PNG")
