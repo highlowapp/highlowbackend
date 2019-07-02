@@ -61,8 +61,9 @@ class FileStorage:
 
         #Make sure it's an image
         file_extension = file.filename.split(".")[-1]
-        if file_extension not in SUPPORTED_FILE_EXTENSIONS:
-            return '{"error": "Only PNG, JPG, and GIF formats are allowed"}'
+
+        if file_extension.lower() not in SUPPORTED_FILE_EXTENSIONS:
+            return '{"error": "Only PNG, JPG, and GIF formats are allowed", "invalid_extension": "' + file_extension + '"}'
 
         #Check MIME type
         if file.mimetype not in SUPPORTED_MIMETYPES:
@@ -71,7 +72,7 @@ class FileStorage:
 
 
         #Resize the image
-        img = Image(file_content)
+        img = Image.open(file_content)
         img.resize(HIGHLOW_IMAGE_SIZE)
         resized_img = BytesIO()
         img.save(resized_img, format="PNG")
@@ -115,7 +116,7 @@ class FileStorage:
 
 
         #Resize the image
-        img = Image(file_content)
+        img = Image.open(file_content)
         img.resize(HIGHLOW_IMAGE_SIZE)
         resized_img = BytesIO()
         img.save(resized_img, format="PNG")

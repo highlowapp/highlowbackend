@@ -422,12 +422,16 @@ def sethigh():
     highlow = None
 
     if "highlowid" in request.form:
+        
         highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
-        highlow.update_high(text=high, image=high_image)
+        return highlow.update_high(text=high, image=high_image)
+        
 
     else:
         highlow = HighLow(host, username, password, database)
-        highlow.create(uid, high=high, low=None, high_image=high_image, low_image=None)
+        return highlow.create(uid, high=high, low=None, high_image=high_image, low_image=None)
+
+
 
 
 @app.route("/highlow/set/low", methods=["POST"])
@@ -448,12 +452,17 @@ def setlow():
     highlow = None
 
     if "highlowid" in request.form:
+        
         highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
-        highlow.update_low(text=low, image=low_image)
+        return highlow.update_low(text=low, image=low_image)
+        
+
 
     else:
+
         highlow = HighLow(host, username, password, database)
-        highlow.create(uid, high=None, low=low, high_image=None, low_image=low_image)
+        return highlow.create(uid, high=None, low=low, high_image=None, low_image=low_image)
+      
 
 
 @app.route("/highlow/like/<string:highlowid>", methods=["POST"])
