@@ -38,9 +38,6 @@ class HighLow:
 
     def create(self, uid, high=None, low=None, high_image=None, low_image=None):
         ## Create a new High/Low entry in the database ##
-        #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
-        cursor = conn.cursor()
 
         #Create a High/Low ID
         self.high_low_id = str( uuid.uuid1() )
@@ -80,6 +77,10 @@ class HighLow:
             self.low_image = "'{}'".format(upload_result["file"])
         else:
             self.low_image = "NULL"
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        cursor = conn.cursor()
 
         #Now, insert the data
         cursor.execute("INSERT INTO highlows(highlowid, uid, high, low, high_image, low_image, total_likes) VALUES('{}', '{}', {}, {}, {}, {}, 0);".format(self.high_low_id, uid, self.high, self.low, self.high_image, self.low_image) )
