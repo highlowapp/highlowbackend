@@ -412,7 +412,7 @@ def sethigh():
     verification = serviceutils.verify_token(token)
 
     if 'error' in verification:
-        return verification
+        return json.dumps( verification )
 
     uid = verification["uid"]
 
@@ -438,7 +438,7 @@ def setlow():
     verification = serviceutils.verify_token(token)
 
     if 'error' in verification:
-        return verification
+        return json.dumps( verification )
 
     uid = verification["uid"]
 
@@ -464,7 +464,7 @@ def like(highlowid):
 	verification = serviceutils.verify_token(token)
 
 	if 'error' in verification:
-		return verification
+		return json.dumps( verification )
 
 	else:
 		uid = verification["uid"]
@@ -485,7 +485,7 @@ def comment(highlowid):
 	verification = serviceutils.verify_token(token)
 
 	if 'error' in verification:
-		return verification
+		return json.dumps( verification )
 
 	else:
 		uid = verification["uid"]
@@ -509,7 +509,7 @@ def get_today():
 	verification = serviceutils.verify_token(token)
 
 	if 'error' in verification:
-		return verification
+		return json.dumps( verification )
 
 	else:
 		uid = verification["uid"]
@@ -530,7 +530,7 @@ def get_user():
 	verification = serviceutils.verify_token(token)
 
 	if 'error' in verification:
-		return verification
+		return json.dumps( verification )
 
 	else:
 		#Defaults to the current user

@@ -202,7 +202,10 @@ class Auth:
     #Validate Token
     def validate_token(self, token):
 
-        payload = jwt.decode(token, self.SECRET_KEY, algorithms=["HS256"])
+        try:
+            payload = jwt.decode(token, self.SECRET_KEY, algorithms=["HS256"])
+        except:
+            return "ERROR-INVALID-TOKEN"
 
         current_timestamp = time.mktime( datetime.datetime.now().timetuple() )
 
@@ -345,7 +348,10 @@ class Auth:
         return token
 
     def refresh_access(self, refresh_token):
-        payload = jwt.decode(refresh_token, self.SECRET_KEY, algorithms=["HS256"])
+        try:
+            payload = jwt.decode(refresh_token, self.SECRET_KEY, algorithms=["HS256"])
+        except:
+            return "ERROR-INVALID-REFRESH-TOKEN"
 
         current_timestamp = time.mktime( datetime.datetime.now().timetuple() )
 
