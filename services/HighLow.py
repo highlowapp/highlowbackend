@@ -135,6 +135,8 @@ class HighLow:
         conn.commit()
         conn.close()
 
+        return '{"status": "success"}'
+
     def update_low(self, uid, text=None, image=None):
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
@@ -171,6 +173,8 @@ class HighLow:
         #Commit and close the connection
         conn.commit()
         conn.close()
+
+        return '{"status": "success"}'
 
     def delete(self):
         ## Delete the HighLow database entry ##

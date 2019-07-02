@@ -422,12 +422,20 @@ def sethigh():
     highlow = None
 
     if "highlowid" in request.form:
-        highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
-        highlow.update_high(text=high, image=high_image)
+        try:
+            highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
+            return highlow.update_high(text=high, image=high_image)
+        except: 
+            return '{"error":"unkown"}'
 
     else:
-        highlow = HighLow(host, username, password, database)
-        highlow.create(uid, high=high, low=None, high_image=high_image, low_image=None)
+        try:
+            highlow = HighLow(host, username, password, database)
+            return highlow.create(uid, high=high, low=None, high_image=high_image, low_image=None)
+        except:
+            return '{"error":"unkown"}'
+
+
 
 
 @app.route("/highlow/set/low", methods=["POST"])
@@ -448,12 +456,19 @@ def setlow():
     highlow = None
 
     if "highlowid" in request.form:
-        highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
-        highlow.update_low(text=low, image=low_image)
+        try:
+            highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
+            return highlow.update_low(text=low, image=low_image)
+        except: 
+            return '{"error": "unkown"}'
+
 
     else:
-        highlow = HighLow(host, username, password, database)
-        highlow.create(uid, high=None, low=low, high_image=None, low_image=low_image)
+        try: 
+            highlow = HighLow(host, username, password, database)
+            return highlow.create(uid, high=None, low=low, high_image=None, low_image=low_image)
+        except: 
+            return '{"error": "unkown"}'
 
 
 @app.route("/highlow/like/<string:highlowid>", methods=["POST"])
