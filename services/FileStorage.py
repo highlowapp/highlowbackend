@@ -62,7 +62,7 @@ class FileStorage:
         #Make sure it's an image
         file_extension = file.filename.split(".")[-1]
 
-        if file_extension not in SUPPORTED_FILE_EXTENSIONS:
+        if file_extension.lower() not in SUPPORTED_FILE_EXTENSIONS.lower():
             return '{"error": "Only PNG, JPG, and GIF formats are allowed", "invalid_extension": "' + file_extension + '"}'
 
         #Check MIME type
