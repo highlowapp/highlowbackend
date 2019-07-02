@@ -72,7 +72,7 @@ class HighLow:
             upload_result = json.loads( fileStorage.upload_to_high_images(low_image) )
 
             if 'error' in upload_result:
-                return upload_result
+                return json.dumps( upload_result )
         
             self.low_image = "'{}'".format(upload_result["file"])
         else:
