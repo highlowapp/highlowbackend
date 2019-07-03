@@ -424,7 +424,7 @@ def sethigh():
     if "highlowid" in request.form:
         
         highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
-        return highlow.update_high(text=high, image=high_image)
+        return highlow.update_high(uid, text=high, image=high_image)
         
 
     else:
@@ -454,7 +454,7 @@ def setlow():
     if "highlowid" in request.form:
         
         highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
-        return highlow.update_low(text=low, image=low_image)
+        return highlow.update_low(uid, text=low, image=low_image)
         
 
 
