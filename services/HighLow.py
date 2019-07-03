@@ -386,5 +386,7 @@ class HighLowList:
                 "low_image": ""
             }
 
+        highlow["_timestamp"] = datetime.datetime.timestamp(highlow["_timestamp"])
+
         return highlow
         
