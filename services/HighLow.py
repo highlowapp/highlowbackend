@@ -116,7 +116,7 @@ class HighLow:
             
             fileStorage = FileStorage()
 
-            upload_result = json.loads( fileStorage.upload_to_high_images(image, uid) )
+            upload_result = json.loads( fileStorage.upload_to_high_images(image) )
 
             if 'error' in upload_result:
                 return json.dumps( upload_result )
@@ -155,7 +155,7 @@ class HighLow:
             
             fileStorage = FileStorage()
 
-            upload_result = json.loads( fileStorage.upload_to_low_images(image, uid) )
+            upload_result = json.loads( fileStorage.upload_to_low_images(image) )
 
             if 'error' in upload_result:
                 return json.dumps( upload_result )
