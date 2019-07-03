@@ -369,14 +369,13 @@ class HighLowList:
 
         uid = bleach.clean(uid)
 
-        cursor.execute("SELECT * FROM highlows WHERE uid='{}' AND DATE(_timestamp) = CURDATE();")
+        cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND DATE(_timestamp) = CURDATE();".format(uid) )
 
         highlow = cursor.fetchone()
 
         conn.commit()
         conn.close()
 
-        print(highlow)
 
         if highlow == None:
             return {
