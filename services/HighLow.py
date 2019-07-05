@@ -116,7 +116,7 @@ class HighLow:
             
             fileStorage = FileStorage()
 
-            upload_result = json.loads( fileStorage.upload_to_high_images(image, uid) )
+            upload_result = json.loads( fileStorage.upload_to_high_images(image) )
 
             if 'error' in upload_result:
                 return json.dumps( upload_result )
@@ -155,7 +155,7 @@ class HighLow:
             
             fileStorage = FileStorage()
 
-            upload_result = json.loads( fileStorage.upload_to_low_images(image, uid) )
+            upload_result = json.loads( fileStorage.upload_to_low_images(image) )
 
             if 'error' in upload_result:
                 return json.dumps( upload_result )
@@ -369,12 +369,13 @@ class HighLowList:
 
         uid = bleach.clean(uid)
 
-        cursor.execute("SELECT * FROM highlows WHERE uid='{}' AND DATE(_timestamp) = CURDATE();")
+        cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND DATE(_timestamp) = CURDATE();".format(uid) )
 
         highlow = cursor.fetchone()
 
         conn.commit()
         conn.close()
+
 
         if highlow == None:
             return {
@@ -384,6 +385,8 @@ class HighLowList:
                 "high_image": "",
                 "low_image": ""
             }
+
+        highlow["_timestamp"] = datetime.datetime.timestamp(highlow["_timestamp"])
 
         return highlow
         
