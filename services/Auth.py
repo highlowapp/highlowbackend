@@ -41,7 +41,7 @@ class Auth:
         ## Load blacklisted tokens ##
 
         #Connect to the MySQL server
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         #Refresh blacklisted_tokens cache
@@ -59,7 +59,7 @@ class Auth:
     def sign_up(self, firstname, lastname, email, password, confirmpassword):
 
         #Make a MySQL connection
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
 
         cursor = conn.cursor()
 
@@ -139,7 +139,7 @@ class Auth:
     def sign_in(self, email, password):
 
         #Make a connection to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
 
         cursor = conn.cursor()
 
@@ -226,7 +226,7 @@ class Auth:
         ## Find user with that email ##
 
         #Connect to the MySQL server
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         #Get the relevant user(s)
@@ -291,7 +291,7 @@ class Auth:
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
             #Connect to MySQL
-            conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+            conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
             cursor = conn.cursor()
 
             #Update the password
@@ -306,7 +306,7 @@ class Auth:
 
     def blacklist_token(self, token):
         #Connect to the MySQL server
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         token = bleach.clean(token)
@@ -366,7 +366,7 @@ class Auth:
 
     def sign_up_test(self):
         #Make sure the user is already deleted
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor)
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         cursor.execute("DELETE FROM users WHERE email='test@example.com';")
