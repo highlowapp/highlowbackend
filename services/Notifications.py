@@ -25,7 +25,7 @@ class Notifications:
 
     def register_device(self, platform, device_id, uid):
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
         cursor = conn.cursor()
 
         platform = bleach.clean(platform)
@@ -56,7 +56,7 @@ class Notifications:
             return json.dumps( { "error": "incorrect-password"} )
 
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
         cursor = conn.cursor()
 
         cursor.execute(query)

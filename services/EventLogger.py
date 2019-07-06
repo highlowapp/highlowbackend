@@ -26,7 +26,7 @@ class EventLogger:
         data = bleach.clean( json.dumps(data) )
 
         #Connect to MySQL database
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
         cursor = conn.cursor()
 
         #Insert a new row
@@ -74,7 +74,7 @@ class EventLogger:
         sql_statement = "SELECT * FROM events WHERE 1=1 {} {} {} ORDER BY _timestamp DESC;".format(condition_str, time_constraint_str, type_str)
 
         #Connect to MySQL database
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
         cursor = conn.cursor()
 
         #Get the appropriate data by executing the SQL statement

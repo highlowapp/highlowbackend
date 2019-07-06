@@ -17,7 +17,7 @@ class User:
         ## Get the user's data from MySQL ##
 
         #Connect to MySQL
-        conn = pymysql.connect(host, username, password, database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        conn = pymysql.connect(host, username, password, database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
         cursor = conn.cursor()
 
         #Select the row with the user from the database
@@ -46,7 +46,7 @@ class User:
     def set_column(self, column, value):
 
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
         cursor = conn.cursor()
 
         #Clean the values
@@ -85,7 +85,7 @@ class User:
         self.set_column("password", value)
 
     def request_friend(self, uid):
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
         cursor = conn.cursor()
 
         uid = bleach.clean(uid)
@@ -96,7 +96,7 @@ class User:
         conn.close()
 
     def reject_friend(self, uid):
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
         cursor = conn.cursor()
 
         uid = bleach.clean(uid)
@@ -107,7 +107,7 @@ class User:
         conn.close()
 
     def accept_friend(self, uid):
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')        
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')        
         cursor = conn.cursor()
 
         uid = bleach.clean(uid)
@@ -119,7 +119,7 @@ class User:
 
 
     def list_friends(self):
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
         cursor = conn.cursor()
 
         cursor.execute( "SELECT * FROM friends WHERE (acceptor='{}' OR initiator='{}') AND status=2;".format(self.uid, self.uid) )
@@ -132,7 +132,7 @@ class User:
         return friends
 
     def is_friend_with(self, uid):
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
         cursor = conn.cursor()
 
         uid = bleach.clean(uid)
@@ -152,7 +152,7 @@ class User:
 
     def flag(self, uid):
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
         cursor = conn.cursor()
 
         uid = bleach.clean(uid)
@@ -168,7 +168,7 @@ class User:
 
     def unflag(self, uid):
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
         cursor = conn.cursor()
 
         uid = bleach.clean(uid)
@@ -183,7 +183,7 @@ class User:
 
     def get_feed(self, limit, page):
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
         cursor = conn.cursor()
 
         limit = bleach.clean( str(limit) )
