@@ -99,7 +99,7 @@ class HighLow:
 
     def update_high(self, uid, text=None, image=None):
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
 
@@ -140,7 +140,7 @@ class HighLow:
 
     def update_low(self, uid, text=None, image=None):
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         if text != None:
@@ -364,7 +364,7 @@ class HighLowList:
 
     def get_today_for_user(self, uid):
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         uid = bleach.clean(uid)
