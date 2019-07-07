@@ -129,6 +129,8 @@ class HighLow:
         self.high = text
         self.high_image = image
 
+        print(text)
+
         #Update the data
         cursor.execute( "UPDATE highlows SET high={}, high_image={} WHERE highlowid='{}' AND uid='{}';".format(text, filename, self.high_low_id, uid) )
 
