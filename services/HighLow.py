@@ -19,7 +19,7 @@ class HighLow:
         if high_low_id != None:
             self.high_low_id = bleach.clean(high_low_id)
 
-            conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+            conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
             cursor = conn.cursor()
             cursor.execute( "SELECT id FROM highlows WHERE highlowid='{}';".format(self.high_low_id) )
             result = cursor.fetchone()
@@ -79,7 +79,7 @@ class HighLow:
             self.low_image = "NULL"
 
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         #Now, insert the data
@@ -180,7 +180,7 @@ class HighLow:
     def delete(self):
         ## Delete the HighLow database entry ##
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         #Delete the entry
@@ -192,7 +192,7 @@ class HighLow:
 
     def update_total_likes(self):
         ## Count the number of likes in the database that belong to the current high/low ##
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         cursor.execute( "SELECT id FROM likes WHERE highlowid='{}'".format(self.high_low_id) )
@@ -208,7 +208,7 @@ class HighLow:
     def like(self, uid):
         ## Add a new entry to the "Likes" table 
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         #Create the entry
@@ -221,7 +221,7 @@ class HighLow:
     def unlike(self, uid):
         ## Remove the entry in the "Likes" table that corresponds to the current user and this high/low ##
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         #Delete the entry, if it exists
@@ -233,7 +233,7 @@ class HighLow:
 
     def comment(self, uid, message):
         #Collect the specified data and add to the database
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         commentid = str( uuid.uuid1() )
@@ -248,7 +248,7 @@ class HighLow:
 
     def update_comment(self, uid, commentid, message):
         #Find the comment and udpate the database
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         cleaned_message = bleach.clean(message)
@@ -261,7 +261,7 @@ class HighLow:
 
     def delete_comment(self, uid, commentid):
         #Find the comment and udpate the database
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         cleaned_commentid = bleach.clean(commentid)
@@ -278,7 +278,7 @@ class HighLow:
         if column_name in self.protected_columns:
             return '{ "error": "column_unavailable" }'
 
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         cursor.execute( "SELECT {} FROM highlows WHERE highlowid='{}';".format(column_name, self.high_low_id) )
@@ -289,7 +289,7 @@ class HighLow:
 
     def flag(self, uid):
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         uid = bleach.clean(uid)
@@ -305,7 +305,7 @@ class HighLow:
 
     def unflag(self, uid):
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         uid = bleach.clean(uid)
@@ -327,7 +327,7 @@ class HighLowList:
 
     def get_highlows_for_user(self, uid, sortby=None, limit=None):
         #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8')
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         uid = bleach.clean(uid)
