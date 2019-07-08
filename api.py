@@ -474,16 +474,17 @@ def like(highlowid):
 
 	if 'error' in verification:
 		return json.dumps( verification )
+    else:
+        uid = verification["uid"]
 
-	else:
-		uid = verification["uid"]
+        try:
+            highlow = HighLow(host, username, password, database, highlowid)
 
-        highlow = HighLow(host, username, password, database, highlowid)
-        highlow.like(uid)
-        return '{"status": "success"}'
-        
-        #return '{"error":"invalid-highlowid"}'
-        
+            highlow.like(uid)
+
+            return '{"status":"success"}'
+        except:
+            return '{"error":"invalid-highlowid"}'  
     	
 
         
@@ -503,6 +504,15 @@ def comment(highlowid):
 		uid = verification["uid"]
 		message = request.form.get("message") or ""
 
+        try: 
+            highlow = HighLow(host, username, password, database, highlowid)
+            highlow.comment(uid, message)
+
+            return '{"status": "success"}'
+        except:
+            return json.dumps({'error':'invalid-highlowid'})
+
+"""
         try:
 			highlow = HighLow(host, username, password, database, highlowid)
 			highlow.comment(uid, message)
@@ -510,6 +520,7 @@ def comment(highlowid):
             return '{"status": "success"}'
 		except:
 			return json.dumps({'error':'invalid-highlowid'})
+            """
 
 
 #TODO: Add endpoints for getting specific highlows, getting all highlows for user and sorting, etc.
