@@ -243,7 +243,7 @@ def refresh_access():
 #######################
 @app.route("/email/send_email", methods=["POST"])
 def send_email():
-	return hlemail.send_email( request.form["email"], request.form["subject"], request.form["message"], request.form["password"] )
+    return hlemail.send_email( request.form["email"], request.form["subject"], request.form["message"], request.form["password"] )
 
 
 
@@ -468,88 +468,94 @@ def setlow():
 @app.route("/highlow/like/<string:highlowid>", methods=["POST"])
 def like(highlowid):
     #Verify auth token
-	token = request.headers["Authorization"].replace("Bearer ", "")
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
-	verification = serviceutils.verify_token(token)
+    verification = serviceutils.verify_token(token)
 
-	if 'error' in verification:
-		return json.dumps( verification )
+    if 'error' in verification:
+        return json.dumps( verification )
+    else:
+        uid = verification["uid"]
 
-	else:
-		uid = verification["uid"]
+        try:
+            highlow = HighLow(host, username, password, database, highlowid)
 
-		if 'highlowid' in request.form:
-			highlow = HighLow(host, username, password, database, request.form["highlowid"])
-			highlow.like(uid)
+            highlow.like(uid)
 
-		else:
-			return json.dumps({'error':'Must provide HighLow ID'})
+            return '{"status":"success"}'
+        except:
+            return '{"error":"invalid-highlowid"}'  
+        
+
+        
 
 
 @app.route("/highlow/comment/<string:highlowid>", methods=["POST"])
 def comment(highlowid):
     #Verify auth token
-	token = request.headers["Authorization"].replace("Bearer ", "")
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
-	verification = serviceutils.verify_token(token)
+    verification = serviceutils.verify_token(token)
 
-	if 'error' in verification:
-		return json.dumps( verification )
+    if 'error' in verification:
+        return json.dumps( verification )
 
-	else:
-		uid = verification["uid"]
-		message = request.form.get("message") or ""
+    else:
+        uid = verification["uid"]
 
-		if 'highlowid' in request.form:
-			highlow = HighLow(host, username, password, database, request.form["highlowid"])
-			highlow.comment(uid, message)
+        message = request.form.get("message") or ""
 
-		else:
-			return json.dumps({'error':'Must provide HighLow ID'})
+        try: 
+            highlow = HighLow(host, username, password, database, highlowid)
+            highlow.comment(uid, message)
+
+            return '{"status":"success"}'
+        except:
+            return json.dumps({'error': 'invalid-highlowid'})
 
 
 #TODO: Add endpoints for getting specific highlows, getting all highlows for user and sorting, etc.
 #Those endpoints will make use of the "HighLowList" class
 @app.route("/highlow/get/today", methods=["GET"])
 def get_today():
-	#Verify auth token
-	token = request.headers["Authorization"].replace("Bearer ", "")
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
-	verification = serviceutils.verify_token(token)
+    verification = serviceutils.verify_token(token)
 
-	if 'error' in verification:
-		return json.dumps( verification )
+    if 'error' in verification:
+        return json.dumps( verification )
 
-	else:
-		uid = verification["uid"]
+    else:
+        uid = verification["uid"]
 
-		#Now, we use `HighLowList` to get today's highlow
-		highlowlist = HighLowList(host, username, password, database)
+        #Now, we use `HighLowList` to get today's highlow
+        highlowlist = HighLowList(host, username, password, database)
 
-		today_highlow = highlowlist.get_today_for_user(uid)
+        today_highlow = highlowlist.get_today_for_user(uid)
 
-		return json.dumps(today_highlow)
+        return json.dumps(today_highlow)
 
 
 @app.route("/highlow/get/user", methods=["GET"])
 def get_user():
-	#Verify auth token
-	token = request.headers["Authorization"].replace("Bearer ", "")
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
-	verification = serviceutils.verify_token(token)
+    verification = serviceutils.verify_token(token)
 
-	if 'error' in verification:
-		return json.dumps( verification )
+    if 'error' in verification:
+        return json.dumps( verification )
 
-	else:
-		#Defaults to the current user
-		uid = request.args.get("uid") or verification["uid"]
+    else:
+        #Defaults to the current user
+        uid = request.args.get("uid") or verification["uid"]
 
-		highlowlist = HighLowList(host, username, password, database)
+        highlowlist = HighLowList(host, username, password, database)
 
-		highlows = highlowlist.get_highlows_for_user(uid, sortby=request.args.get("sortby"), limit=request.args.get("limit"))
+        highlows = highlowlist.get_highlows_for_user(uid, sortby=request.args.get("sortby"), limit=request.args.get("limit"))
 
-		return json.dumps(highlows)
+        return json.dumps(highlows)
 
 
 

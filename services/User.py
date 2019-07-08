@@ -7,7 +7,7 @@ class User:
 
     #Define initialization function
     def __init__(self, uid, host, username, password, database):
-        self.uid = bleach.clean(uid)
+        self.uid = pymysql.escape_string( bleach.clean(uid) )
         self.host = host
         self.username = username
         self.password = password
@@ -50,8 +50,8 @@ class User:
         cursor = conn.cursor()
 
         #Clean the values
-        column = bleach.clean(column)
-        value = bleach.clean(value)
+        column = pymysql.escape_string( bleach.clean(column) )
+        value = pymysql.escape_string( bleach.clean(value) )
 
         #Attempt to set the column
         cursor.execute("UPDATE users SET " + column + "'" + value + "' WHERE uid='" + self.uid + "';")
@@ -88,7 +88,7 @@ class User:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        uid = bleach.clean(uid)
+        uid = pymysql.escape_string( bleach.clean(uid) )
 
         cursor.execute("INSERT INTO friends(initiator, acceptor, status) VALUES(" + self.uid + ", " + uid + ", 1)")
 
@@ -99,7 +99,7 @@ class User:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        uid = bleach.clean(uid)
+        uid = pymysql.escape_string( bleach.clean(uid) )
 
         cursor.execute("UPDATE friends SET status=0 WHERE initiator=" + self.uid + " AND acceptor=" + uid + "")
 
@@ -110,7 +110,7 @@ class User:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')        
         cursor = conn.cursor()
 
-        uid = bleach.clean(uid)
+        uid = pymysql.escape_string( bleach.clean(uid) )
 
         cursor.execute("UPDATE friends SET status=2 WHERE initiator=" + self.uid + " AND acceptor=" + uid + "")
 
@@ -135,7 +135,7 @@ class User:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        uid = bleach.clean(uid)
+        uid = pymysql.escape_string( bleach.clean(uid) )
 
         cursor.execute( "SELECT status FROM friends WHERE (acceptor='{}' OR initiator='{}') AND (acceptor='{}' OR initiator='{}') AND status=2;".format(self.uid, self.uid, uid, uid) )
 
@@ -155,7 +155,7 @@ class User:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        uid = bleach.clean(uid)
+        uid = pymysql.escape_string( bleach.clean(uid) )
 
         _type = "user"
          
@@ -171,7 +171,7 @@ class User:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        uid = bleach.clean(uid)
+        uid = pymysql.escape_string( bleach.clean(uid) )
 
         cursor.execute( "DELETE FROM flags WHERE flagger='{}' AND uid='{}'".format(uid, self.uid) )
 
@@ -186,8 +186,8 @@ class User:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        limit = bleach.clean( str(limit) )
-        offset = bleach.clean( str(page) ) * limit
+        limit = pymysql.escape_string( bleach.clean( str(limit) ) )
+        offset = int( pymysql.escape_string( bleach.clean( str(page) ) ) ) * limit
 
         cursor.execute( """
 

@@ -22,8 +22,8 @@ class EventLogger:
             return '{"error": "not-authorized"}'
 
         #Clean the type and the data
-        event_type = bleach.clean(event_type)
-        data = bleach.clean( json.dumps(data) )
+        event_type = pymysql.escape_string( bleach.clean(event_type) )
+        data = pymysql.escape_string( bleach.clean( json.dumps(data) ) )
 
         #Connect to MySQL database
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
