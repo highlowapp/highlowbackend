@@ -17,7 +17,7 @@ class HighLow:
         self.high_low_id = ""
 
         if high_low_id != None:
-            self.high_low_id = bleach.clean(high_low_id)
+            self.high_low_id = pymysql.escape_string( bleach.clean(high_low_id) )
 
             conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
             cursor = conn.cursor()
@@ -43,13 +43,13 @@ class HighLow:
         self.high_low_id = str( uuid.uuid1() )
 
         if high != None:
-            self.high = bleach.clean(high)
+            self.high = pymysql.escape_string( bleach.clean(high) )
             self.high = "'{}'".format(self.high)
         else:
             self.high = "NULL"
 
         if low != None:
-            self.low = bleach.clean(low)
+            self.low = pymysql.escape_string( bleach.clean(low) )
             self.low = "'{}'".format(self.low)
         else:
             self.low = "NULL"
@@ -105,7 +105,7 @@ class HighLow:
 
 
         if text != None:
-            text = bleach.clean(text)
+            text = pymysql.escape_string( bleach.clean(text) )
             text = "'{}'".format(text)
         else:
             text = "NULL"
@@ -144,7 +144,7 @@ class HighLow:
         cursor = conn.cursor()
 
         if text != None:
-            text = bleach.clean(text)
+            text = pymysql.escape_string( bleach.clean(text) )
             text = "'{}'".format(text)
         else:
             text = "NULL"
@@ -239,7 +239,7 @@ class HighLow:
         commentid = str( uuid.uuid1() )
 
         #Clean the message
-        cleaned_message = bleach.clean(message)
+        cleaned_message = pymysql.escape_string( bleach.clean(message) )
 
         cursor.execute( "INSERT INTO comments(commentid, highlowid, uid, message) VALUES('{}', '{}', '{}', '{}');".format(commentid, self.high_low_id, uid, cleaned_message) )
 
@@ -251,8 +251,8 @@ class HighLow:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        cleaned_message = bleach.clean(message)
-        cleaned_commentid = bleach.clean(commentid)
+        cleaned_message = pymysql.escape_string( bleach.clean(message) )
+        cleaned_commentid = pymysql.escape_string( bleach.clean(commentid) )
         
         cursor.execute( "UPDATE comments SET message='{}' WHERE commentid='{}' AND highlowid='{}' AND uid='{}';".format(cleaned_message, cleaned_commentid, self.high_low_id, uid) )
 
@@ -264,7 +264,7 @@ class HighLow:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        cleaned_commentid = bleach.clean(commentid)
+        cleaned_commentid = pymysql.escape_string( bleach.clean(commentid) )
 
         cursor.execute( "DELETE FROM comments WHERE commentid='{}' AND uid='{}' AND highlowid='{}';".format(cleaned_commentid, uid, self.high_low_id) )
 
@@ -273,7 +273,7 @@ class HighLow:
 
     def get(self, uid, column_name):
 
-        column_name = bleach.clean(column_name)
+        column_name = pymysql.escape_string( bleach.clean(column_name) )
 
         if column_name in self.protected_columns:
             return '{ "error": "column_unavailable" }'
@@ -292,7 +292,7 @@ class HighLow:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        uid = bleach.clean(uid)
+        uid = pymysql.escape_string( bleach.clean(uid) )
 
         _type = "highlow"
          
@@ -308,7 +308,7 @@ class HighLow:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        uid = bleach.clean(uid)
+        uid = pymysql.escape_string( bleach.clean(uid) )
          
         cursor.execute( "DELETE FROM flags WHERE highlowid='{}' AND flagger='{}';".format(self.high_low_id, uid) )
 
@@ -330,10 +330,10 @@ class HighLowList:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        uid = bleach.clean(uid)
+        uid = pymysql.escape_string( bleach.clean(uid) )
 
         if limit != None:
-            limit = "LIMIT " + bleach.clean(limit)
+            limit = "LIMIT " + pymysql.escape_string( bleach.clean(limit) )
         else:
             limit = ""
 
@@ -367,7 +367,7 @@ class HighLowList:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        uid = bleach.clean(uid)
+        uid = pymysql.escape_string( bleach.clean(uid) )
 
         cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND DATE(_timestamp) = CURDATE();".format(uid) )
 

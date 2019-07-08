@@ -28,9 +28,9 @@ class Notifications:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        platform = bleach.clean(platform)
-        device_id = bleach.clean(device_id)
-        uid = bleach.clean(uid)
+        platform = pymysql.escape_string( bleach.clean(platform) )
+        device_id = pymysql.escape_string( bleach.clean(device_id) )
+        uid = pymysql.escape_string( bleach.clean(uid) )
 
         cursor.execute( "INSERT INTO devices(device_id, uid, platform) VALUES('{}', '{}', {});".format(device_id, uid, platform) )
 
@@ -42,7 +42,7 @@ class Notifications:
     def send_notification(self, title, message, device_filter=".", platform=0, random_drop=0, admin_password=""):
         device_list = []
 
-        platform = bleach.clean(platform)
+        platform = pymysql.escape_string( bleach.clean(platform) )
 
         query = "SELECT * FROM devices WHERE device_id REGEXP '{}'"
 

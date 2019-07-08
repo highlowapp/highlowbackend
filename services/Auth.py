@@ -64,11 +64,11 @@ class Auth:
         cursor = conn.cursor()
 
         #Get and sanitize the input
-        firstname = bleach.clean(firstname)
-        lastname = bleach.clean(lastname)
-        email = bleach.clean( email.lower() )
-        password = bleach.clean(password)
-        confirmpassword = bleach.clean(confirmpassword)
+        firstname = pymysql.escape_string( bleach.clean(firstname) )
+        lastname = pymysql.escape_string( bleach.clean(lastname) )
+        email = pymysql.escape_string( bleach.clean( email.lower() ) )
+        password = pymysql.escape_string( bleach.clean(password) )
+        confirmpassword = pymysql.escape_string( bleach.clean(confirmpassword) )
 
         #Keep track of errors
         error = ""
@@ -144,8 +144,8 @@ class Auth:
         cursor = conn.cursor()
 
         #Get and sanitize the input
-        email = bleach.clean(email.lower() )
-        password = bleach.clean(password)
+        email = pymysql.escape_string( bleach.clean(email.lower() ) )
+        password = pymysql.escape_string( bleach.clean(password) )
 
         #Keep track of errors
         error = ""
@@ -221,7 +221,7 @@ class Auth:
         status = "success"
 
         #Clean the email
-        email = bleach.clean(email)
+        email = pymysql.escape_string( bleach.clean(email) )
 
         ## Find user with that email ##
 
@@ -266,8 +266,8 @@ class Auth:
     def reset_password(self, token, password, confirmpassword):
 
         #Clean the passwords
-        password = bleach.clean(password)
-        confirmpassword = bleach.clean(confirmpassword)
+        password = pymysql.escape_string( bleach.clean(password) )
+        confirmpassword = pymysql.escape_string( bleach.clean(confirmpassword) )
 
         #Make sure the id token is valid
         uid = self.validate_token(token)
@@ -309,7 +309,7 @@ class Auth:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        token = bleach.clean(token)
+        token = pymysql.escape_string( bleach.clean(token) )
 
         cursor.execute("INSERT INTO blacklisted_tokens(token) VALUES('{}');".format(token))
 
