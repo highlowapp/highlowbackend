@@ -478,12 +478,11 @@ def like(highlowid):
 	else:
 		uid = verification["uid"]
 
-        try:
-            highlow = HighLow(host, username, password, database, highlowid)
-            highlow.like(uid)
-            return '{"status": "success"}'
-        except Exception as e:
-            return '{"error":"invalid-highlowid"}'
+        highlow = HighLow(host, username, password, database, highlowid)
+        highlow.like(uid)
+        return '{"status": "success"}'
+        
+        #return '{"error":"invalid-highlowid"}'
         
     	
 
