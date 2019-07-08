@@ -479,12 +479,15 @@ def like(highlowid):
 		uid = verification["uid"]
 
         try:
-    		highlow = HighLow(host, username, password, database, highlowid)
-    		highlow.like(uid)
-
+            highlow = HighLow(host, username, password, database, highlowid)
+            highlow.like(uid)
             return '{"status": "success"}'
-        except:
+        except Exception as e:
             return '{"error":"invalid-highlowid"}'
+        
+    	
+
+        
 
 
 @app.route("/highlow/comment/<string:highlowid>", methods=["POST"])
