@@ -243,7 +243,7 @@ def refresh_access():
 #######################
 @app.route("/email/send_email", methods=["POST"])
 def send_email():
-	return hlemail.send_email( request.form["email"], request.form["subject"], request.form["message"], request.form["password"] )
+    return hlemail.send_email( request.form["email"], request.form["subject"], request.form["message"], request.form["password"] )
 
 
 
@@ -468,12 +468,12 @@ def setlow():
 @app.route("/highlow/like/<string:highlowid>", methods=["POST"])
 def like(highlowid):
     #Verify auth token
-	token = request.headers["Authorization"].replace("Bearer ", "")
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
-	verification = serviceutils.verify_token(token)
+    verification = serviceutils.verify_token(token)
 
-	if 'error' in verification:
-		return json.dumps( verification )
+    if 'error' in verification:
+        return json.dumps( verification )
     else:
         uid = verification["uid"]
 
@@ -485,7 +485,7 @@ def like(highlowid):
             return '{"status":"success"}'
         except:
             return '{"error":"invalid-highlowid"}'  
-    	
+        
 
         
 
@@ -493,15 +493,16 @@ def like(highlowid):
 @app.route("/highlow/comment/<string:highlowid>", methods=["POST"])
 def comment(highlowid):
     #Verify auth token
-	token = request.headers["Authorization"].replace("Bearer ", "")
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
-	verification = serviceutils.verify_token(token)
+    verification = serviceutils.verify_token(token)
 
-	if 'error' in verification:
-		return json.dumps( verification )
+    if 'error' in verification:
+        return json.dumps( verification )
 
-	else:
-		uid = verification["uid"]
+    else:
+        uid = verification["uid"]
+
         message = request.form.get("message") or ""
 
         try: 
@@ -517,44 +518,44 @@ def comment(highlowid):
 #Those endpoints will make use of the "HighLowList" class
 @app.route("/highlow/get/today", methods=["GET"])
 def get_today():
-	#Verify auth token
-	token = request.headers["Authorization"].replace("Bearer ", "")
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
-	verification = serviceutils.verify_token(token)
+    verification = serviceutils.verify_token(token)
 
-	if 'error' in verification:
-		return json.dumps( verification )
+    if 'error' in verification:
+        return json.dumps( verification )
 
-	else:
-		uid = verification["uid"]
+    else:
+        uid = verification["uid"]
 
-		#Now, we use `HighLowList` to get today's highlow
-		highlowlist = HighLowList(host, username, password, database)
+        #Now, we use `HighLowList` to get today's highlow
+        highlowlist = HighLowList(host, username, password, database)
 
-		today_highlow = highlowlist.get_today_for_user(uid)
+        today_highlow = highlowlist.get_today_for_user(uid)
 
-		return json.dumps(today_highlow)
+        return json.dumps(today_highlow)
 
 
 @app.route("/highlow/get/user", methods=["GET"])
 def get_user():
-	#Verify auth token
-	token = request.headers["Authorization"].replace("Bearer ", "")
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
-	verification = serviceutils.verify_token(token)
+    verification = serviceutils.verify_token(token)
 
-	if 'error' in verification:
-		return json.dumps( verification )
+    if 'error' in verification:
+        return json.dumps( verification )
 
-	else:
-		#Defaults to the current user
-		uid = request.args.get("uid") or verification["uid"]
+    else:
+        #Defaults to the current user
+        uid = request.args.get("uid") or verification["uid"]
 
-		highlowlist = HighLowList(host, username, password, database)
+        highlowlist = HighLowList(host, username, password, database)
 
-		highlows = highlowlist.get_highlows_for_user(uid, sortby=request.args.get("sortby"), limit=request.args.get("limit"))
+        highlows = highlowlist.get_highlows_for_user(uid, sortby=request.args.get("sortby"), limit=request.args.get("limit"))
 
-		return json.dumps(highlows)
+        return json.dumps(highlows)
 
 
 
