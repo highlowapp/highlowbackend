@@ -502,25 +502,15 @@ def comment(highlowid):
 
 	else:
 		uid = verification["uid"]
-		message = request.form.get("message") or ""
+        message = request.form.get("message") or ""
 
         try: 
             highlow = HighLow(host, username, password, database, highlowid)
             highlow.comment(uid, message)
 
-            return '{"status": "success"}'
+            return '{"status":"success"}'
         except:
-            return json.dumps({'error':'invalid-highlowid'})
-
-"""
-        try:
-			highlow = HighLow(host, username, password, database, highlowid)
-			highlow.comment(uid, message)
-
-            return '{"status": "success"}'
-		except:
-			return json.dumps({'error':'invalid-highlowid'})
-            """
+            return json.dumps({'error': 'invalid-highlowid'})
 
 
 #TODO: Add endpoints for getting specific highlows, getting all highlows for user and sorting, etc.
