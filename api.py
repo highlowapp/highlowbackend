@@ -478,7 +478,7 @@ def like(highlowid):
 	else:
 		uid = verification["uid"]
 
-	    try:
+        try:
     		highlow = HighLow(host, username, password, database, highlowid)
     		highlow.like(uid)
 
@@ -501,7 +501,7 @@ def comment(highlowid):
 		uid = verification["uid"]
 		message = request.form.get("message") or ""
 
-		try:
+        try:
 			highlow = HighLow(host, username, password, database, highlowid)
 			highlow.comment(uid, message)
 
