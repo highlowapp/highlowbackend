@@ -478,12 +478,13 @@ def like(highlowid):
 	else:
 		uid = verification["uid"]
 
-		if 'highlowid' in request.form:
-			highlow = HighLow(host, username, password, database, request.form["highlowid"])
-			highlow.like(uid)
+	    try:
+    		highlow = HighLow(host, username, password, database, highlowid)
+    		highlow.like(uid)
 
-		else:
-			return json.dumps({'error':'Must provide HighLow ID'})
+            return '{"status": "success"}'
+        except:
+            return '{"error":"invalid-highlowid"}'
 
 
 @app.route("/highlow/comment/<string:highlowid>", methods=["POST"])
@@ -500,12 +501,13 @@ def comment(highlowid):
 		uid = verification["uid"]
 		message = request.form.get("message") or ""
 
-		if 'highlowid' in request.form:
-			highlow = HighLow(host, username, password, database, request.form["highlowid"])
+		try:
+			highlow = HighLow(host, username, password, database, highlowid)
 			highlow.comment(uid, message)
 
-		else:
-			return json.dumps({'error':'Must provide HighLow ID'})
+            return '{"status": "success"}'
+		except:
+			return json.dumps({'error':'invalid-highlowid'})
 
 
 #TODO: Add endpoints for getting specific highlows, getting all highlows for user and sorting, etc.
