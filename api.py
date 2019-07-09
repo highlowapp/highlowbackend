@@ -318,7 +318,7 @@ def set(property):
 
 
 @app.route("/user/flag/<string:_user>", methods=["POST"])
-def flag(_user):
+def doflag(_user):
 	#Get token from Authorization
 	token = request.headers["Authorization"].replace("Bearer ", "")
 
