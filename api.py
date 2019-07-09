@@ -488,7 +488,7 @@ def like(highlowid):
 
 
 @app.route("/highlow/unlike/<string:highlowid>", methods=["POST"])
-def like(highlowid):
+def unlike(highlowid):
 	#Verify auth token
 	token = request.headers["Authorization"].replace("Bearer ", "")
 
