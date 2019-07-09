@@ -595,7 +595,7 @@ def flaghighlow(highlowid):
 
 
 	#Obtain the result as JSON
-	result = token_verification_request.json()
+	result = token_verification_request
 
 	#If there was an error, return the error
 	if "error" in result:
@@ -621,7 +621,7 @@ def unflaghighlow(highlowid):
 
 
 	#Obtain the result as JSON
-	result = token_verification_request.json()
+	result = token_verification_request
 
 	#If there was an error, return the error
 	if "error" in result:
