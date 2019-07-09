@@ -211,12 +211,32 @@ class HighLow:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
+        #Make sure this user hasn't "liked" before
+        cursor.execute("SELECT * FROM likes WHERE highlowid='{}' AND uid='{}';".format(self.high_low_id, uid))
+
+        if cursor.fetchone() != None:
+            conn.commit()
+            conn.close()
+            return { 'error': 'already-liked' }
+
+        #Make sure the highlow does not belong to the user
+        cursor.execute("SELECT uid FROM highlows WHERE highlowid='{}'".format(self.high_low_id))
+
+        if cursor.fetchone() != None:
+            conn.commit()
+            conn.close()
+            return { 'error': 'not-allowed' }
+
         #Create the entry
         cursor.execute( "INSERT INTO likes(highlowid, uid) VALUES('{}', '{}');".format(self.high_low_id, uid) )
 
         #Commit and close the connection
         conn.commit()
         conn.close()
+
+        return { 'status': 'success'}
+
+
 
     def unlike(self, uid):
         ## Remove the entry in the "Likes" table that corresponds to the current user and this high/low ##
