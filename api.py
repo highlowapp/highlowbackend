@@ -485,6 +485,27 @@ def like(highlowid):
 			return json.dumps( result )
 		except:
 			return '{"error":"invalid-highlowid"}'  
+
+
+@app.route("/highlow/unlike/<string:highlowid", methods=["POST"])
+def like(highlowid):
+	#Verify auth token
+	token = request.headers["Authorization"].replace("Bearer ", "")
+
+	verification = serviceutils.verify_token(token)
+
+	if 'error' in verification:
+		return json.dumps( verification )
+	else:
+		uid = verification["uid"]
+
+		try: 
+			highlow = HighLow(host, username, passsord, database, highlowid)
+			result = highlow.unlike(uid)
+
+			return '{"status": "success"}'
+		except:
+			return '{"error": "invalid-highlowid"}'
 		
 
 		
