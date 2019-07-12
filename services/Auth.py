@@ -84,6 +84,7 @@ class Auth:
         if len(email) == 0:
             error = "empty-email"
 
+        print("Test")
 
         #Check for email duplicates
         cursor.execute("SELECT uid FROM users WHERE email='" + email + "';")
@@ -108,6 +109,8 @@ class Auth:
 
         if error == "":
 
+            print("No errors...")
+
             #Create a new user
 
             #Generate a uid
@@ -126,6 +129,8 @@ class Auth:
             #Create and return an auth token
             access_token = self.create_token(str(uid))
             refresh_token = self.create_refresh_token(str(uid))
+
+            print("Doing fine")
 
             return '{"access": "' + access_token + '", "refresh": "' + refresh_token + '", "uid": "' + str(uid) + '"}'
 
