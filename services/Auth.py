@@ -84,8 +84,6 @@ class Auth:
         if len(email) == 0:
             error = "empty-email"
 
-        print("Test")
-
         #Check for email duplicates
         cursor.execute("SELECT uid FROM users WHERE email='" + email + "';")
 
@@ -108,9 +106,6 @@ class Auth:
 
 
         if error == "":
-
-            print("No errors...")
-
             #Create a new user
 
             #Generate a uid
@@ -120,7 +115,7 @@ class Auth:
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
             #Insert into the database
-            cursor.execute("INSERT INTO users(uid, firstname, lastname, email, password, profileimage, streak) VALUES('" + str(uid) + "', '" + firstname + "', '" + lastname + "', '" + email + "', '" + hashed_password.decode('utf-8') + "', 'user/'" + str(uid) + "/profile/profile.png', 0);")
+            cursor.execute("INSERT INTO users(uid, firstname, lastname, email, password, profileimage, streak) VALUES('" + str(uid) + "', '" + firstname + "', '" + lastname + "', '" + email + "', '" + hashed_password.decode('utf-8') + "', 'user/" + str(uid) + "/profile/profile.png', 0);")
 
             #Commit and close
             conn.commit()
@@ -130,7 +125,6 @@ class Auth:
             access_token = self.create_token(str(uid))
             refresh_token = self.create_refresh_token(str(uid))
 
-            print("Doing fine")
 
             return '{"access": "' + access_token + '", "refresh": "' + refresh_token + '", "uid": "' + str(uid) + '"}'
 
