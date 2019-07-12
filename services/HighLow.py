@@ -145,6 +145,7 @@ class HighLow:
 
         if text != None:
             text = pymysql.escape_string( bleach.clean(text) )
+            print(text)
             text = "'{}'".format(text)
         else:
             text = "NULL"
