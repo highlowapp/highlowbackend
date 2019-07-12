@@ -199,6 +199,6 @@ class FileStorage:
 
         source_blob = bucket.blob("default_profile_image.png")
 
-        new_blob = bucket.copy_blob(source_blob, bucket, "user/{}/profile/profile.png")
+        new_blob = bucket.copy_blob(source_blob, bucket, "user/{}/profile/profile.png".format(uid))
 
         return '{"status": "success"}'
