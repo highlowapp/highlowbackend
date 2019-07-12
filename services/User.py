@@ -82,7 +82,7 @@ class User:
 
         fileStorage = FileStorage()
 
-        result = fileStorage.set_default_profile_image(uid)
+        result = fileStorage.set_default_profile_image(self.uid)
 
         return result
 
