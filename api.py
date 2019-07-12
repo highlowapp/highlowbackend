@@ -456,6 +456,8 @@ def setlow():
 
 	highlow = None
 
+	print(low)
+
 	if "highlowid" in request.form:
 		
 		highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
