@@ -1,6 +1,7 @@
 from services.Auth import Auth
 from services.HLEmail import HLEmail
 from services.EventLogger import EventLogger
+from services.User import User
 import json
 import Helpers
 
