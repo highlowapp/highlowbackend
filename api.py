@@ -639,8 +639,24 @@ def unflaghighlow(highlowid):
 
 
 
+@app.route("/highlow/get_comments/<string:highlowid>", methods=["POST"])
+def get_comments(highlowid):
+	#Get token from Authorization
+	token = request.headers["Authorization"].replace("Bearer ", "")
 
+	#Make a request to the Auth service
+	token_verification_request = serviceutils.verify_token(token)
 
+	#If there was an error, return the error
+	if "error" in result:
+		return '{ "error": "' + token_verification_request["error"] + '" }'
+
+	try: 
+		highlow = HighLow(host, username, password, database, high_low_id=highlowid)
+	except:
+		return '{ "error": "highlow-no-exist" }'
+
+	return json.dumps( highlow.get_comments() )
 
 
 

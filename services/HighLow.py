@@ -291,6 +291,21 @@ class HighLow:
         conn.commit()
         conn.close()
 
+
+    def get_comments(self):
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute( "SELECT * FROM comments WHERE highlowid='{}';".format(self.high_low_id) )
+
+        comments = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        return comments
+
+
     def get(self, uid, column_name):
 
         column_name = pymysql.escape_string( bleach.clean(column_name) )
