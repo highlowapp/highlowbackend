@@ -48,3 +48,11 @@ def send_email(recipient, subject, message):
 
 def log_event(type, data):
     event_logger.log_event(type, data, event_logger_config["admin_password"])
+
+
+def upload_default_profile_picture(uid):
+	#Copy the default profile image
+	user = User(uid, host, username, password, database)
+
+	user.set_default_profile_image()
+

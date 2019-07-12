@@ -113,6 +113,11 @@ def sign_up():
 						"uid": result["uid"]
 						})
 
+			#Upload profile picture...
+			serviceutils.upload_default_profile_picture(result["uid"])
+
+		
+
 		return json.dumps( result )
 
 	return sign_up_html
@@ -268,7 +273,7 @@ def get(property):
 	token_verification_request = serviceutils.verify_token(token)
 
 	#Obtain the result as JSON
-	result = token_verification_request.json()
+	result = token_verification_request
 
 	#If there was an error, return the error
 	if "error" in result:
@@ -293,7 +298,7 @@ def set(property):
 
 
 	#Obtain the result as JSON
-	result = token_verification_request.json()
+	result = token_verification_request
 
 	#If there was an error, return the error
 	if "error" in result:
@@ -327,7 +332,7 @@ def doflag(_user):
 
 
 	#Obtain the result as JSON
-	result = token_verification_request.json()
+	result = token_verification_request
 
 	#If there was an error, return the error
 	if "error" in result:
@@ -352,7 +357,7 @@ def unflag(_user):
 
 
 	#Obtain the result as JSON
-	result = token_verification_request.json()
+	result = token_verification_request
 
 	#If there was an error, return the error
 	if "error" in result:
@@ -377,7 +382,7 @@ def get_feed(page):
 
 
 	#Obtain the result as JSON
-	result = token_verification_request.json()
+	result = token_verification_request
 
 	#If there was an error, return the error
 	if "error" in result:

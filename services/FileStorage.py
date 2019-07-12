@@ -145,15 +145,31 @@ class FileStorage:
 
         #Make sure it's an image
         file_extension = image.filename.split(".")[-1]
-        if file_extension not in SUPPORTED_FILE_EXTENSIONS:
+        if file_extension.lower() not in SUPPORTED_FILE_EXTENSIONS:
             return '{"error": "Only PNG, JPG, and GIF formats are allowed"}'
 
 
         #Check MIME type
-        if image.mimetype not in SUPPORTED_MIMETYPES:
+        if image.mimetype.lower() not in SUPPORTED_MIMETYPES:
             return '{"error": "Unsupported MIMETYPE. Supported MIMETYPES are ' + ", ".join(SUPPORTED_MIMETYPES) + '"}'
 
 
+
+        img = Image.open( file_content )
+        img.resize(PROFILE_IMAGE_SIZES[0])
+        resized_img = BytesIO()
+        img.save(resized_img, format="PNG")
+
+        blob = bucket.blob( "user/{}/profile/profile.png".format(uid, str( uuid.uuid1() ) ) )
+
+        blob.upload_from_string(
+            resized_img.getvalue(),
+            content_type=image.content_type
+        )
+
+        #If you want to copy the image into multiple sizes, use the below code
+
+        """
 
         for size in PROFILE_IMAGE_SIZES:
             img = Image.open( file_content )
@@ -167,7 +183,22 @@ class FileStorage:
                 resized_img.getvalue(),
                 content_type=image.content_type
             )
-
+        """
         
 
         return '{"status":"success"}'
+
+
+
+
+    def set_default_profile_image(self, uid):
+
+        client = storage.Client()
+
+        bucket = client.lookup_bucket("highlowfiles")
+
+        source_blob = bucket.blob("default_profile_image.png")
+
+        new_blob = bucket.copy_blob(source_blob, bucket, "user/{}/profile/profile.png")
+
+        return '{"status": "success"}'
