@@ -29,11 +29,19 @@ class HighLow:
             if not result:
                 raise ValueError("highlow-no-exist")
 
+            self.high = result["high"]
+            self.low = result["low"]
+            self.high_image = result["high_image"]
+            self.low_image = result["low_image"]
+            self.timestamp = result["_timestamp"]
+            self.total_likes = result["total_likes"]
+
         self.high = ""
         self.low = ""
         self.high_image = ""
         self.low_image = ""
         self.timestamp = None
+        self.total_likes = 0
         self.protected_columns = []
 
     def create(self, uid, high=None, low=None, high_image=None, low_image=None):
@@ -91,6 +99,21 @@ class HighLow:
         
         #Return the HighLow ID
         return '{ "highlowid":"' + self.high_low_id + '" }'
+
+
+    def get_json(self):
+        json_object = {
+            "high": self.high,
+            "low": self.low, 
+            "high_image": self.high_image,
+            "low_image": self.low_image,
+            "total_likes": self.total_likes,
+            "highlowid": self.high_low_id,
+            "timestamp": self._timestamp
+        }
+
+        return json_object
+
 
     def update(self, uid, high=None, low=None, high_image=None, low_image=None):
         

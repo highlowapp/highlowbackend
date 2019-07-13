@@ -564,6 +564,23 @@ def get_today():
 
 		return json.dumps(today_highlow)
 
+@app.route("/highlow/<string:highlowid>", methods=["GET"])
+def get_arbitrary(highlowid):
+	#Verify auth token
+	token = request.headers["Authorization"].replace("Bearer ", "")
+	verification = serviceutils.verify_token(token)
+
+	if 'error' in verification:
+		return json.dumps( verification )
+	else: 
+		
+		try:
+			highlow = HighLow(host, username, password, database, highlowid)
+			return json.dumps( highlow.get_json() )
+		except:
+			return '{ "error": "invalid-highlowid" }' 
+
+
 
 @app.route("/highlow/get/user", methods=["GET"])
 def get_user():
