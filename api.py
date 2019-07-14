@@ -456,7 +456,6 @@ def setlow():
 
 	highlow = None
 
-	print(low)
 
 	if "highlowid" in request.form:
 		
@@ -491,7 +490,6 @@ def like(highlowid):
 
 			return json.dumps( result )
 		except Exception as e:
-			print(e)
 			return '{"error":"invalid-highlowid"}'  
 
 

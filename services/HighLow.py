@@ -434,8 +434,6 @@ class HighLowList:
         conn.commit()
         conn.close()
 
-        print(highlow)
-
         if highlow == None:
             return {
                 "high":"",
