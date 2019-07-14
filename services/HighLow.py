@@ -21,7 +21,7 @@ class HighLow:
 
             conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
             cursor = conn.cursor()
-            cursor.execute( "SELECT id FROM highlows WHERE highlowid='{}';".format(self.high_low_id) )
+            cursor.execute( "SELECT * FROM highlows WHERE highlowid='{}';".format(self.high_low_id) )
             result = cursor.fetchone()
             conn.commit()
             conn.close()
