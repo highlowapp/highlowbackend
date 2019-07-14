@@ -490,7 +490,8 @@ def like(highlowid):
 			result = highlow.like(uid)
 
 			return json.dumps( result )
-		except:
+		except Exception as e:
+			print(e)
 			return '{"error":"invalid-highlowid"}'  
 
 
