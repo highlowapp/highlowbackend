@@ -337,7 +337,7 @@ class HighLow:
         comments = cursor.fetchall()
 
         for i in range(len(comments)):
-            comments[i]["_timestamp"] = datetime.datetime.timestamp(comments[i]["_timestamp"])
+            comments[i]["_timestamp"] = comments[i]["_timestamp"].isoformat()
 
         conn.commit()
         conn.close()
@@ -459,7 +459,7 @@ class HighLowList:
                 "low_image": ""
             }
 
-        highlow["_timestamp"] = datetime.datetime.timestamp(highlow["_timestamp"])
+        highlow["_timestamp"] = highlow["_timestamp"].isoformat()
 
         return highlow
         
