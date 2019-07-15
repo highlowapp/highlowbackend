@@ -671,7 +671,7 @@ def get_comments(highlowid):
 	token_verification_request = serviceutils.verify_token(token)
 
 	#If there was an error, return the error
-	if "error" in result:
+	if "error" in token_verification_request:
 		return '{ "error": "' + token_verification_request["error"] + '" }'
 
 	try: 
