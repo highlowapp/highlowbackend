@@ -326,7 +326,7 @@ class HighLow:
         conn.commit()
         conn.close()
 
-        for i in comments:
+        for i in range(len(comments)):
             comments[i]["_timestamp"] = datetime.datetime.timestamp(comments[i]["_timestamp"])
 
         return comments
