@@ -662,7 +662,7 @@ def unflaghighlow(highlowid):
 
 
 
-@app.route("/highlow/get_comments/<string:highlowid>", methods=["POST"])
+@app.route("/highlow/get_comments/<string:highlowid>", methods=["GET"])
 def get_comments(highlowid):
 	#Get token from Authorization
 	token = request.headers["Authorization"].replace("Bearer ", "")
@@ -679,7 +679,7 @@ def get_comments(highlowid):
 	except:
 		return '{ "error": "highlow-no-exist" }'
 
-	return json.dumps( highlow.get_comments() )
+	return json.dumps( { "comments": highlow.get_comments() } )
 
 
 
