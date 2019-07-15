@@ -458,7 +458,7 @@ class HighLowList:
                 "high_image": "",
                 "low_image": ""
             }
-
+        print(highlow["_timestamp"])
         highlow["_timestamp"] = highlow["_timestamp"].isoformat()
 
         return highlow
