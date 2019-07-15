@@ -319,15 +319,25 @@ class HighLow:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        cursor.execute( "SELECT * FROM comments WHERE highlowid='{}';".format(self.high_low_id) )
+        cursor.execute( """
+            SELECT
+                commentid,
+                comments.uid,
+                message,
+                _timestamp,
+                users.firstname AS firstname,
+                users.lastname AS lastname,
+                users.profileimage AS profileimage
+            FROM
+                `comments`
+                JOIN users ON users.uid = comments.uid
+            WHERE comments.highlowid = '{}';
+    """.format(self.high_low_id) )
 
         comments = cursor.fetchall()
 
         conn.commit()
         conn.close()
-
-        for i in range(len(comments)):
-            comments[i]["_timestamp"] = datetime.datetime.timestamp(comments[i]["_timestamp"])
 
         return comments
 
