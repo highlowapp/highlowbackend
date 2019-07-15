@@ -78,6 +78,14 @@ class User:
 
         return result
 
+    def set_default_profile_image(self):
+
+        fileStorage = FileStorage()
+
+        result = fileStorage.set_default_profile_image(self.uid)
+
+        return result
+
 
 
     def set_password(self, value):

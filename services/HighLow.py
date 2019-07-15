@@ -21,7 +21,7 @@ class HighLow:
 
             conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
             cursor = conn.cursor()
-            cursor.execute( "SELECT id FROM highlows WHERE highlowid='{}';".format(self.high_low_id) )
+            cursor.execute( "SELECT * FROM highlows WHERE highlowid='{}';".format(self.high_low_id) )
             result = cursor.fetchone()
             conn.commit()
             conn.close()
@@ -29,11 +29,19 @@ class HighLow:
             if not result:
                 raise ValueError("highlow-no-exist")
 
+            self.high = result["high"]
+            self.low = result["low"]
+            self.high_image = result["high_image"]
+            self.low_image = result["low_image"]
+            self.timestamp = result["_timestamp"]
+            self.total_likes = result["total_likes"]
+
         self.high = ""
         self.low = ""
         self.high_image = ""
         self.low_image = ""
         self.timestamp = None
+        self.total_likes = 0
         self.protected_columns = []
 
     def create(self, uid, high=None, low=None, high_image=None, low_image=None):
@@ -91,6 +99,21 @@ class HighLow:
         
         #Return the HighLow ID
         return '{ "highlowid":"' + self.high_low_id + '" }'
+
+
+    def get_json(self):
+        json_object = {
+            "high": self.high,
+            "low": self.low, 
+            "high_image": self.high_image,
+            "low_image": self.low_image,
+            "total_likes": self.total_likes,
+            "highlowid": self.high_low_id,
+            "timestamp": self._timestamp
+        }
+
+        return json_object
+
 
     def update(self, uid, high=None, low=None, high_image=None, low_image=None):
         
@@ -291,6 +314,37 @@ class HighLow:
         conn.commit()
         conn.close()
 
+
+    def get_comments(self):
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute( """
+            SELECT
+                commentid,
+                comments.uid,
+                message,
+                _timestamp,
+                users.firstname AS firstname,
+                users.lastname AS lastname,
+                users.profileimage AS profileimage
+            FROM
+                `comments`
+                JOIN users ON users.uid = comments.uid
+            WHERE comments.highlowid = '{}';
+    """.format(self.high_low_id) )
+
+        comments = cursor.fetchall()
+
+        for i in range(len(comments)):
+            comments[i]["_timestamp"] = comments[i]["_timestamp"].isoformat()
+
+        conn.commit()
+        conn.close()
+
+        return comments
+
+
     def get(self, uid, column_name):
 
         column_name = pymysql.escape_string( bleach.clean(column_name) )
@@ -396,8 +450,6 @@ class HighLowList:
         conn.commit()
         conn.close()
 
-        print(highlow)
-
         if highlow == None:
             return {
                 "high":"",
@@ -406,8 +458,8 @@ class HighLowList:
                 "high_image": "",
                 "low_image": ""
             }
-
-        highlow["_timestamp"] = datetime.datetime.timestamp(highlow["_timestamp"])
+        print(highlow["_timestamp"])
+        highlow["_timestamp"] = highlow["_timestamp"].isoformat()
 
         return highlow
         

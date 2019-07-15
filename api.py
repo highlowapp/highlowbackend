@@ -113,6 +113,11 @@ def sign_up():
 						"uid": result["uid"]
 						})
 
+			#Upload profile picture...
+			serviceutils.upload_default_profile_picture(result["uid"])
+
+		
+
 		return json.dumps( result )
 
 	return sign_up_html
@@ -268,7 +273,7 @@ def get(property):
 	token_verification_request = serviceutils.verify_token(token)
 
 	#Obtain the result as JSON
-	result = token_verification_request.json()
+	result = token_verification_request
 
 	#If there was an error, return the error
 	if "error" in result:
@@ -293,7 +298,7 @@ def set(property):
 
 
 	#Obtain the result as JSON
-	result = token_verification_request.json()
+	result = token_verification_request
 
 	#If there was an error, return the error
 	if "error" in result:
@@ -327,7 +332,7 @@ def doflag(_user):
 
 
 	#Obtain the result as JSON
-	result = token_verification_request.json()
+	result = token_verification_request
 
 	#If there was an error, return the error
 	if "error" in result:
@@ -352,7 +357,7 @@ def unflag(_user):
 
 
 	#Obtain the result as JSON
-	result = token_verification_request.json()
+	result = token_verification_request
 
 	#If there was an error, return the error
 	if "error" in result:
@@ -377,7 +382,7 @@ def get_feed(page):
 
 
 	#Obtain the result as JSON
-	result = token_verification_request.json()
+	result = token_verification_request
 
 	#If there was an error, return the error
 	if "error" in result:
@@ -451,6 +456,7 @@ def setlow():
 
 	highlow = None
 
+
 	if "highlowid" in request.form:
 		
 		highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
@@ -483,7 +489,7 @@ def like(highlowid):
 			result = highlow.like(uid)
 
 			return json.dumps( result )
-		except:
+		except Exception as e:
 			return '{"error":"invalid-highlowid"}'  
 
 
@@ -556,6 +562,23 @@ def get_today():
 		today_highlow = highlowlist.get_today_for_user(uid)
 
 		return json.dumps(today_highlow)
+
+@app.route("/highlow/<string:highlowid>", methods=["GET"])
+def get_arbitrary(highlowid):
+	#Verify auth token
+	token = request.headers["Authorization"].replace("Bearer ", "")
+	verification = serviceutils.verify_token(token)
+
+	if 'error' in verification:
+		return json.dumps( verification )
+	else: 
+		
+		try:
+			highlow = HighLow(host, username, password, database, highlowid)
+			return json.dumps( highlow.get_json() )
+		except:
+			return '{ "error": "invalid-highlowid" }' 
+
 
 
 @app.route("/highlow/get/user", methods=["GET"])
@@ -639,8 +662,24 @@ def unflaghighlow(highlowid):
 
 
 
+@app.route("/highlow/get_comments/<string:highlowid>", methods=["GET"])
+def get_comments(highlowid):
+	#Get token from Authorization
+	token = request.headers["Authorization"].replace("Bearer ", "")
 
+	#Make a request to the Auth service
+	token_verification_request = serviceutils.verify_token(token)
 
+	#If there was an error, return the error
+	if "error" in token_verification_request:
+		return '{ "error": "' + token_verification_request["error"] + '" }'
+
+	try: 
+		highlow = HighLow(host, username, password, database, high_low_id=highlowid)
+	except:
+		return '{ "error": "highlow-no-exist" }'
+
+	return json.dumps( { "comments": highlow.get_comments() } )
 
 
 
