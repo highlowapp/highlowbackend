@@ -77,7 +77,7 @@ class HighLow:
         if low_image != None:
             fileStorage = FileStorage()
 
-            upload_result = json.loads( fileStorage.upload_to_high_images(low_image) )
+            upload_result = json.loads( fileStorage.upload_to_low_images(low_image) )
 
             if 'error' in upload_result:
                 return json.dumps( upload_result )
