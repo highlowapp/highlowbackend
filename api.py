@@ -5,7 +5,7 @@ import json
 from services.Auth import Auth
 from services.HLEmail import HLEmail
 from services.User import User
-from services.HighLow import HighLow, HighLowList
+from services.HighLow import HighLow, HighLowList, Comments
 from services.EventLogger import EventLogger
 from services.Notifications import Notifications
 import serviceutils
