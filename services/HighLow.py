@@ -467,4 +467,50 @@ class HighLowList:
         highlow["_timestamp"] = highlow["_timestamp"].isoformat()
 
         return highlow
+
+
+
+class Comments:
+
+    def __init__(self, host, username, password, database):
+        self.host = host
+        self.username = username
+        self.password = password
+        self.database = database
+
+    def delete_comment(self, uid, commentid):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        uid = pymysql.escape_string( bleach.clean(uid) )
+
+        commentid = pymysql.escape_string( bleach.clean(commentid) )
+
+        cursor.execute("DELETE FROM comments WHERE uid='{}' AND commentid='{}';".format(uid, commentid))
+
+        conn.commit()
+        conn.close()
+
+    def update_comment(self, uid, commentid, message):
+        if message == None or message == "":
+            return '{ "error": "no-message" }'
+
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        uid = pymysql.escape_string( bleach.clean(uid) )
+
+        commentid = pymysql.escape_string( bleach.clean(commentid) )
+
+        message = pymysql.escape_string( bleach.clean(message) )
+
+        cursor.execute("UPDATE comments SET message='{}' WHERE uid='{}' AND commentid='{}';".format(message, uid, commentid))
+
+        conn.commit()
+        conn.close()
+
+        return '{"status": "success"}'
         

@@ -30,6 +30,9 @@ auth_service = Helpers.service("auth")
 #Create an Auth instance
 auth = Auth(auth_service, host, username, password, database)
 
+#Create a comment instance
+_comments = Comments(host, username, password, database)
+
 #Instantiate HLEmail
 email_config = Helpers.read_json_from_file("config/email_config.json")
 hlemail = HLEmail(email_config["email"])
@@ -680,6 +683,41 @@ def get_comments(highlowid):
 		return '{ "error": "highlow-no-exist" }'
 
 	return json.dumps( { "comments": highlow.get_comments() } )
+
+
+
+@app.route("/comment/delete/<string:commentid>", methods=["POST"])
+def delete_comment(commentid):
+	#Get token from Authorization
+	token = request.headers["Authorization"].replace("Bearer ", "")
+
+	#Make a request to the Auth service
+	token_verification_request = serviceutils.verify_token(token)
+
+	#If there was an error, return the error
+	if "error" in token_verification_request:
+		return '{ "error": "' + token_verification_request["error"] + '" }'
+
+	_comments.delete_comment(token_verification_request["uid"], commentid)
+
+	return '{"status":"success"}'
+
+@app.route("/comment/update/<string:commentid>", methods=["POST"])
+def update_comment(commentid):
+	#Get token from Authorization
+	token = request.headers["Authorization"].replace("Bearer ", "")
+
+	#Make a request to the Auth service
+	token_verification_request = serviceutils.verify_token(token)
+
+	#If there was an error, return the error
+	if "error" in token_verification_request:
+		return '{ "error": "' + token_verification_request["error"] + '" }'
+
+	return _comments.update_comment(token_verification_request["uid"], commentid, request.form.get("message"))
+
+
+
 
 
 
