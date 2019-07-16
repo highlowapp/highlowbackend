@@ -327,7 +327,7 @@ class HighLow:
         cursor.execute( """
             SELECT
                 commentid,
-                comments.uid,
+                comments.uid AS uid,
                 message,
                 _timestamp,
                 users.firstname AS firstname,
