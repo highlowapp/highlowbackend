@@ -534,9 +534,9 @@ def comment(highlowid):
 
 		try: 
 			highlow = HighLow(host, username, password, database, highlowid)
-			highlow.comment(uid, message)
+			result = highlow.comment(uid, message)
 
-			return '{"status":"success"}'
+			return json.dumps( result )
 		except:
 			return json.dumps({'error': 'invalid-highlowid'})
 

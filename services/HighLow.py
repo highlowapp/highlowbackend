@@ -284,10 +284,15 @@ class HighLow:
         #Clean the message
         cleaned_message = pymysql.escape_string( bleach.clean(message) )
 
+        if len(cleaned_message) == 0:
+            return { "error": "no-comment" }
+
         cursor.execute( "INSERT INTO comments(commentid, highlowid, uid, message) VALUES('{}', '{}', '{}', '{}');".format(commentid, self.high_low_id, uid, cleaned_message) )
 
         conn.commit()
         conn.close()
+
+        return { "status": "success" }
 
     def update_comment(self, uid, commentid, message):
         #Find the comment and udpate the database
