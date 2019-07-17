@@ -437,7 +437,7 @@ def sethigh():
 
     else:
         highlow = HighLow(host, username, password, database)
-        return highlow.create(uid, high=high, low=None, high_image=high_image, low_image=None)
+        return highlow.create(uid, request.form["date"], high=high, low=None, high_image=high_image, low_image=None)
 
 
 
@@ -470,7 +470,7 @@ def setlow():
     else:
 
         highlow = HighLow(host, username, password, database)
-        return highlow.create(uid, high=None, low=low, high_image=None, low_image=low_image)
+        return highlow.create(uid, request.form["date"], high=None, low=low, high_image=None, low_image=low_image)
       
 
 
