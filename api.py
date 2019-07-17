@@ -615,10 +615,13 @@ def get_date():
     if 'error' in verification:
         return json.dumps( verification )
 
-    date = request.form.get("date")
+    date = request.form["date"]
 
-    if !date:
-        return '{ "error": "no-date" }'
+    highlowlist = HighLowList(host, username, password, database)
+
+    return json.dumps( highlowlist.get_day_for_user(verification["uid"], date) ) 
+
+
 
 
 
