@@ -605,6 +605,27 @@ def get_user():
 		return json.dumps(highlows)
 
 
+@app.route("/highlow/get/date", methods=["GET"])
+def get_date():
+	#Verify auth token
+	token = request.headers["Authorization"].replace("Bearer ", "")
+
+	verification = serviceutils.verify_token(token)
+
+	if 'error' in verification:
+		return json.dumps( verification )
+
+	date = request.form.get("date")
+
+	if !date:
+		return '{"error": "no-date"}'
+
+	
+	highlowlist = HighLowList(host, username, password, database)
+
+	return json.dumps( highlowlist.get_day_for_user(token_verification_request["uid"], date) )
+
+
 
 
 

@@ -463,7 +463,39 @@ class HighLowList:
                 "high_image": "",
                 "low_image": ""
             }
-        print(highlow["_timestamp"])
+
+        highlow["_timestamp"] = highlow["_timestamp"].isoformat()
+
+        return highlow
+
+    def get_day_for_user(self, uid, date):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        uid = pymysql.escape_string( bleach.clean(uid) )
+
+        date = pymysql.escape_string( bleach.clean(date) )
+
+        beginning = date + " 00:00:00"
+        end = date + " 23:59:59"
+
+        cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND _timestamp BETWEEN '{}' AND '{}';".format(uid, beginning, end) )
+
+        highlow = cursor.fetchone()
+
+        conn.commit()
+        conn.close()
+
+        if highlow == None:
+            return {
+                "high":"",
+                "low":"",
+                "total_likes": 0,
+                "high_image": "",
+                "low_image": ""
+            }
+
         highlow["_timestamp"] = highlow["_timestamp"].isoformat()
 
         return highlow
