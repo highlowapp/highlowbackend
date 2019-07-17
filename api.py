@@ -615,7 +615,10 @@ def get_date():
     if 'error' in verification:
         return json.dumps( verification )
 
-    return 'hi'
+    date = request.form.get("date")
+
+    if !date:
+        return '{ "error": "no-date" }'
 
 
 
