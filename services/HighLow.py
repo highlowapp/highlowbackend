@@ -45,7 +45,7 @@ class HighLow:
         self.total_likes = 0
         self.protected_columns = []
 
-    def create(self, uid, high=None, low=None, high_image=None, low_image=None):
+    def create(self, uid, _date, high=None, low=None, high_image=None, low_image=None):
         ## Create a new High/Low entry in the database ##
 
         #Create a High/Low ID
@@ -87,11 +87,10 @@ class HighLow:
         else:
             self.low_image = "NULL"
 
-        date = datetime.datetime.now()
-        datestr = date.strftime("%Y-%m-%d")
+        _date = pymysql.escape_string( bleach.clean(_date) )
 
-        self.date = datestr
-
+        self.date = _date
+        
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
