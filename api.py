@@ -604,7 +604,7 @@ def get_user():
 
         return json.dumps(highlows)
 
-
+"""
 @app.route("/highlow/get/date", methods=["GET"])
 def get_date():
     #Verify auth token
@@ -624,7 +624,7 @@ def get_date():
     highlowlist = HighLowList(host, username, password, database)
 
     return json.dumps( highlowlist.get_day_for_user(token_verification_request["uid"], date) )
-
+"""
 
 
 
