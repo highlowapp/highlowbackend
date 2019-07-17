@@ -457,7 +457,7 @@ class HighLowList:
         date = datetime.datetime.now()
         datestr = date.strftime("%Y-%m-%d")
 
-        cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND _date = '{}'}".format(uid, datestr) )
+        cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND _date = '{}';".format(uid, datestr) )
 
         highlow = cursor.fetchone()
 
