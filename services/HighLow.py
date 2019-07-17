@@ -35,6 +35,7 @@ class HighLow:
             self.low_image = result["low_image"]
             self.timestamp = result["_timestamp"]
             self.total_likes = result["total_likes"]
+            self.date = result["_date"]
 
         self.high = ""
         self.low = ""
@@ -86,12 +87,17 @@ class HighLow:
         else:
             self.low_image = "NULL"
 
+        date = datetime.datetime.now()
+        datestr = date.strftime("%Y-%m-%d")
+
+        self.date = datestr
+
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         #Now, insert the data
-        cursor.execute("INSERT INTO highlows(highlowid, uid, high, low, high_image, low_image, total_likes) VALUES('{}', '{}', {}, {}, {}, {}, 0);".format(self.high_low_id, uid, self.high, self.low, self.high_image, self.low_image) )
+        cursor.execute("INSERT INTO highlows(highlowid, uid, high, low, high_image, low_image, total_likes, _date) VALUES('{}', '{}', {}, {}, {}, {}, 0, '{}');".format(self.high_low_id, uid, self.high, self.low, self.high_image, self.low_image, self.date) )
 
         #Commit and close the connection
         conn.commit()
@@ -448,7 +454,10 @@ class HighLowList:
 
         uid = pymysql.escape_string( bleach.clean(uid) )
 
-        cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND DATE(_timestamp) = CURDATE();".format(uid) )
+        date = datetime.datetime.now()
+        datestr = date.strftime("%Y-%m-%d")
+
+        cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND _date = '{}'}".format(uid, datestr) )
 
         highlow = cursor.fetchone()
 
@@ -477,10 +486,8 @@ class HighLowList:
 
         date = pymysql.escape_string( bleach.clean(date) )
 
-        beginning = date + " 00:00:00"
-        end = date + " 23:59:59"
 
-        cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND _timestamp BETWEEN '{}' AND '{}';".format(uid, beginning, end) )
+        cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND _date = '{}';".format(uid, date) )
 
         highlow = cursor.fetchone()
 
@@ -493,7 +500,8 @@ class HighLowList:
                 "low":"",
                 "total_likes": 0,
                 "high_image": "",
-                "low_image": ""
+                "low_image": "",
+                "date": ""
             }
 
         highlow["_timestamp"] = highlow["_timestamp"].isoformat()
