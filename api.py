@@ -605,7 +605,7 @@ def get_user():
         return json.dumps(highlows)
 
 
-@app.route("/highlow/get/date", methods=["GET"])
+@app.route("/highlow/get/date", methods=["POST"])
 def get_date():
     #Verify auth token
     token = request.headers["Authorization"].replace("Bearer ", "")
