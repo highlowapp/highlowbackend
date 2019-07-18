@@ -267,6 +267,33 @@ def send_email():
 # User                #
 #######################
 
+@app.route("/user/get", methods=["GET"])
+def get_user():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in token_verification:
+        return token_verification
+    
+    #Otherwise, get the user
+    user = User(token_verification["uid"], host, username, password, database)
+
+    #Create user JSON description
+    user_json = {
+        "uid": user["uid"],
+        "firstname": user["firstname"],
+        "lastname": user["lastname"],
+        "profileimage": user["profileimage"],
+        "streak": user["streak"],
+        "bio": user["bio"]
+    }
+
+    return json.dumps( user_json )
+
 @app.route("/user/get/<string:property>", methods=["POST"])
 def get(property):
     #Get token from Authorization
