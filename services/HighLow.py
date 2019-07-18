@@ -35,6 +35,7 @@ class HighLow:
             self.low_image = result["low_image"]
             self.timestamp = result["_timestamp"]
             self.total_likes = result["total_likes"]
+            self.date = result["_date"]
 
         self.high = ""
         self.low = ""
@@ -44,7 +45,7 @@ class HighLow:
         self.total_likes = 0
         self.protected_columns = []
 
-    def create(self, uid, high=None, low=None, high_image=None, low_image=None):
+    def create(self, uid, _date, high=None, low=None, high_image=None, low_image=None):
         ## Create a new High/Low entry in the database ##
 
         #Create a High/Low ID
@@ -77,7 +78,7 @@ class HighLow:
         if low_image != None:
             fileStorage = FileStorage()
 
-            upload_result = json.loads( fileStorage.upload_to_high_images(low_image) )
+            upload_result = json.loads( fileStorage.upload_to_low_images(low_image) )
 
             if 'error' in upload_result:
                 return json.dumps( upload_result )
@@ -86,12 +87,16 @@ class HighLow:
         else:
             self.low_image = "NULL"
 
+        _date = pymysql.escape_string( bleach.clean(_date) )
+
+        self.date = _date
+        
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         #Now, insert the data
-        cursor.execute("INSERT INTO highlows(highlowid, uid, high, low, high_image, low_image, total_likes) VALUES('{}', '{}', {}, {}, {}, {}, 0);".format(self.high_low_id, uid, self.high, self.low, self.high_image, self.low_image) )
+        cursor.execute("INSERT INTO highlows(highlowid, uid, high, low, high_image, low_image, total_likes, _date) VALUES('{}', '{}', {}, {}, {}, {}, 0, '{}');".format(self.high_low_id, uid, self.high, self.low, self.high_image, self.low_image, self.date) )
 
         #Commit and close the connection
         conn.commit()
@@ -284,10 +289,15 @@ class HighLow:
         #Clean the message
         cleaned_message = pymysql.escape_string( bleach.clean(message) )
 
+        if len(cleaned_message) == 0:
+            return { "error": "no-comment" }
+
         cursor.execute( "INSERT INTO comments(commentid, highlowid, uid, message) VALUES('{}', '{}', '{}', '{}');".format(commentid, self.high_low_id, uid, cleaned_message) )
 
         conn.commit()
         conn.close()
+
+        return { "status": "success" }
 
     def update_comment(self, uid, commentid, message):
         #Find the comment and udpate the database
@@ -322,7 +332,7 @@ class HighLow:
         cursor.execute( """
             SELECT
                 commentid,
-                comments.uid,
+                comments.uid AS uid,
                 message,
                 _timestamp,
                 users.firstname AS firstname,
@@ -443,7 +453,10 @@ class HighLowList:
 
         uid = pymysql.escape_string( bleach.clean(uid) )
 
-        cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND DATE(_timestamp) = CURDATE();".format(uid) )
+        date = datetime.datetime.now()
+        datestr = date.strftime("%Y-%m-%d")
+
+        cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND _date = '{}';".format(uid, datestr) )
 
         highlow = cursor.fetchone()
 
@@ -458,8 +471,85 @@ class HighLowList:
                 "high_image": "",
                 "low_image": ""
             }
-        print(highlow["_timestamp"])
+
         highlow["_timestamp"] = highlow["_timestamp"].isoformat()
 
         return highlow
+
+    def get_day_for_user(self, uid, date):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        uid = pymysql.escape_string( bleach.clean(uid) )
+
+        date = pymysql.escape_string( bleach.clean(date) )
+
+
+        cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND _date = '{}';".format(uid, date) )
+
+        highlow = cursor.fetchone()
+
+        conn.commit()
+        conn.close()
+
+        if highlow == None:
+            return {
+                "high":"",
+                "low":"",
+                "total_likes": 0,
+                "high_image": "",
+                "low_image": "",
+                "date": ""
+            }
+
+        highlow["_timestamp"] = highlow["_timestamp"].isoformat()
+
+        return highlow
+
+
+
+class Comments:
+
+    def __init__(self, host, username, password, database):
+        self.host = host
+        self.username = username
+        self.password = password
+        self.database = database
+
+    def delete_comment(self, uid, commentid):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        uid = pymysql.escape_string( bleach.clean(uid) )
+
+        commentid = pymysql.escape_string( bleach.clean(commentid) )
+
+        cursor.execute("DELETE FROM comments WHERE uid='{}' AND commentid='{}';".format(uid, commentid))
+
+        conn.commit()
+        conn.close()
+
+    def update_comment(self, uid, commentid, message):
+        if message == None or message == "":
+            return '{ "error": "no-message" }'
+
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        uid = pymysql.escape_string( bleach.clean(uid) )
+
+        commentid = pymysql.escape_string( bleach.clean(commentid) )
+
+        message = pymysql.escape_string( bleach.clean(message) )
+
+        cursor.execute("UPDATE comments SET message='{}' WHERE uid='{}' AND commentid='{}';".format(message, uid, commentid))
+
+        conn.commit()
+        conn.close()
+
+        return '{"status": "success"}'
         
