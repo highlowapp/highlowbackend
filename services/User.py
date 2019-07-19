@@ -39,6 +39,8 @@ class User:
         self.password = user["password"]
         self.email = user["email"]
         self.profileimage = user["profileimage"]
+        self.bio = user["bio"]
+        self.streak = user["streak"]
     
     ## Setters ##
 
