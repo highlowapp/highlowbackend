@@ -267,7 +267,7 @@ def send_email():
 # User                #
 #######################
 
-@app.route("/user/get", methods=["GET"])
+@app.route("/user/get", methods=["POST"])
 def get_complete_user():
     #Get token from Authorization
     token = request.headers["Authorization"].replace("Bearer ", "")
