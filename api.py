@@ -280,13 +280,8 @@ def get_complete_user():
         return token_verification
     
     #Otherwise, get the user
-    user = None
-
-    if !request.args.get("uid"):
-        user = User(token_verification["uid"], host, username, password, database)
-    else:
-        user = User(request.args.get("uid"), host, username, password, database)
-    
+    user = User(request.args.get("uid") or token_verification["uid"], host, username, password, database)
+   
 
     #Create user JSON description
     user_json = {
