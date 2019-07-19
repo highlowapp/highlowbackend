@@ -285,12 +285,12 @@ def get_complete_user():
 
     #Create user JSON description
     user_json = {
-        "uid": user["uid"],
-        "firstname": user["firstname"],
-        "lastname": user["lastname"],
-        "profileimage": user["profileimage"],
-        "streak": user["streak"],
-        "bio": user["bio"]
+        "uid": user.uid,
+        "firstname": user.firstname,
+        "lastname": user.lastname,
+        "profileimage": user.profileimage,
+        "streak": user.streak,
+        "bio": user.bio
     }
 
     return json.dumps( user_json )
