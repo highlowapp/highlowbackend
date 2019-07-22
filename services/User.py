@@ -242,4 +242,4 @@ class User:
         conn.commit()
         conn.close()
 
-        return json.dumps( feed )
+        return '{ "feed": ' + json.dumps( feed ) ' }'

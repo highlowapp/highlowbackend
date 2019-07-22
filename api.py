@@ -630,7 +630,7 @@ def get_user():
 
         highlows = highlowlist.get_highlows_for_user(uid, sortby=request.args.get("sortby"), limit=request.args.get("limit"))
 
-        return json.dumps(highlows)
+        return json.dumps('{ "highlows": ' + json.dumps( highlows ) + ' }')
 
 
 @app.route("/highlow/get/date", methods=["POST"])
