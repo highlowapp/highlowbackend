@@ -440,6 +440,11 @@ class HighLowList:
             else:
                 highlows = sorted(highlows, key=lambda a: a[ options[sortby][0] ], reverse=options[sortby][1])
 
+
+        for highlow in highlows:
+            highlow["_timestamp"] = highlow["_timestamp"].isoformat()
+
+
         #Commit and close connection
         conn.commit()
         conn.close()
