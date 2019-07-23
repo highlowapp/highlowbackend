@@ -339,7 +339,7 @@ def set(property):
     #Otherwise, get the user
     user = User(result["uid"], host, username, password, database)
 
-    if property != "profileimage":
+    if property not in ["profileimage", "streak", "password"] :
         #Set the specified property
         user.set_column(property, request.form["value"])
     else:
@@ -352,6 +352,48 @@ def set(property):
 
     return '{ "status": "success" }'
 
+@app.route("/user/set_profile", methods=["POST"])
+def set_user_profile():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
+
+
+    #Obtain the result as JSON
+    result = token_verification_request
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+
+    try:
+        user = User(result["uid"], host, username, password, database)
+    except:
+        return '{"error": "user-no-exist"}'
+
+    #Set all items
+    profileimage = request.files.get("file")
+
+    if profileimage:
+        user.set_profileimage(profileimage, result["uid"])
+    
+    firstname = request.form.get("firstname")
+    lastname = request.form.get("lastname")
+    email = request.form.get("email")
+    bio = request.form.get("bio")
+
+    if firstname:
+        user.set_column("firstname", firstname)
+    if lastname:
+        user.set_column("firstname", lastname)
+    if email:
+        user.set_column("firstname", email)
+    if bio:
+        user.set_column("firstname", bio)
+    
+    return '{"status": "success"}'
 
 @app.route("/user/flag/<string:_user>", methods=["POST"])
 def doflag(_user):
