@@ -36,7 +36,7 @@ class User:
         #Otherwise, get all the data and store it
         self.firstname = user["firstname"]
         self.lastname = user["lastname"]
-        self.password = user["password"]
+        self.userPassword = user["password"]
         self.email = user["email"]
         self.profileimage = user["profileimage"]
         self.bio = user["bio"]
