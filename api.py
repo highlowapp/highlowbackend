@@ -388,11 +388,11 @@ def set_user_profile():
     if firstname:
         user.set_column("firstname", firstname)
     if lastname:
-        user.set_column("firstname", lastname)
+        user.set_column("lastname", lastname)
     if email:
-        user.set_column("firstname", email)
+        user.set_column("email", email)
     if bio:
-        user.set_column("firstname", bio)
+        user.set_column("bio", bio)
     
     return '{"status": "success"}'
 
