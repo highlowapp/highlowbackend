@@ -290,6 +290,7 @@ def get_complete_user():
         "lastname": user.lastname,
         "profileimage": user.profileimage,
         "streak": user.streak,
+        "email": user.email,
         "bio": user.bio
     }
 
