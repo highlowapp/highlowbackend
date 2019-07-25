@@ -25,10 +25,10 @@ class HighLow:
             result = cursor.fetchone()
             conn.commit()
             conn.close()
-
+            print("Result:" + str(result))
             if not result:
                 raise ValueError("highlow-no-exist")
-            print("Testing.............")
+            
             self.high = result["high"]
             self.low = result["low"]
             self.high_image = result["high_image"]
