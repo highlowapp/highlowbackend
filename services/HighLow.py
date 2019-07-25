@@ -36,13 +36,13 @@ class HighLow:
             self.timestamp = result["_timestamp"]
             self.total_likes = result["total_likes"]
             self.date = result["_date"]
-
-        self.high = ""
-        self.low = ""
-        self.high_image = ""
-        self.low_image = ""
-        self.timestamp = None
-        self.total_likes = 0
+        else:
+            self.high = ""
+            self.low = ""
+            self.high_image = ""
+            self.low_image = ""
+            self.timestamp = None
+            self.total_likes = 0
         self.protected_columns = []
 
     def create(self, uid, _date, high=None, low=None, high_image=None, low_image=None):
