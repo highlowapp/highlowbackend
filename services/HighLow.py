@@ -17,7 +17,6 @@ class HighLow:
         self.high_low_id = ""
 
         if high_low_id != None:
-            print(high_low_id)
             self.high_low_id = pymysql.escape_string( bleach.clean(high_low_id) )
 
             conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
@@ -29,7 +28,7 @@ class HighLow:
 
             if not result:
                 raise ValueError("highlow-no-exist")
-
+            print("Testing.............")
             self.high = result["high"]
             self.low = result["low"]
             self.high_image = result["high_image"]
