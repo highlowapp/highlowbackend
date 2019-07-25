@@ -17,6 +17,7 @@ class HighLow:
         self.high_low_id = ""
 
         if high_low_id != None:
+            print(high_low_id)
             self.high_low_id = pymysql.escape_string( bleach.clean(high_low_id) )
 
             conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
