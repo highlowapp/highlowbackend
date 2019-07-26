@@ -421,7 +421,7 @@ class HighLowList:
         else:
             limit = ""
 
-        cursor.execute("SELECT * FROM highlows WHERE uid='{}' {} ORDER BY _timestamp DESC;".format(uid, limit))
+        cursor.execute("SELECT * FROM highlows WHERE uid='{}' {} ORDER BY _date DESC;".format(uid, limit))
 
         highlows = cursor.fetchall()
 
