@@ -25,10 +25,10 @@ class HighLow:
             result = cursor.fetchone()
             conn.commit()
             conn.close()
-
+            print("Result:" + str(result))
             if not result:
                 raise ValueError("highlow-no-exist")
-
+            
             self.high = result["high"]
             self.low = result["low"]
             self.high_image = result["high_image"]
@@ -36,13 +36,13 @@ class HighLow:
             self.timestamp = result["_timestamp"]
             self.total_likes = result["total_likes"]
             self.date = result["_date"]
-
-        self.high = ""
-        self.low = ""
-        self.high_image = ""
-        self.low_image = ""
-        self.timestamp = None
-        self.total_likes = 0
+        else:
+            self.high = ""
+            self.low = ""
+            self.high_image = ""
+            self.low_image = ""
+            self.timestamp = None
+            self.total_likes = 0
         self.protected_columns = []
 
     def create(self, uid, _date, high=None, low=None, high_image=None, low_image=None):
@@ -421,7 +421,7 @@ class HighLowList:
         else:
             limit = ""
 
-        cursor.execute("SELECT * FROM highlows WHERE uid='{}' {} ORDER BY _timestamp DESC;".format(uid, limit))
+        cursor.execute("SELECT * FROM highlows WHERE uid='{}' {} ORDER BY _date DESC;".format(uid, limit))
 
         highlows = cursor.fetchall()
 
@@ -439,6 +439,11 @@ class HighLowList:
                 highlows = sorted(highlows, reverse=options[sortby][1])
             else:
                 highlows = sorted(highlows, key=lambda a: a[ options[sortby][0] ], reverse=options[sortby][1])
+
+
+        for highlow in highlows:
+            highlow["_timestamp"] = highlow["_timestamp"].isoformat()
+
 
         #Commit and close connection
         conn.commit()

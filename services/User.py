@@ -36,7 +36,7 @@ class User:
         #Otherwise, get all the data and store it
         self.firstname = user["firstname"]
         self.lastname = user["lastname"]
-        self.password = user["password"]
+        self.userPassword = user["password"]
         self.email = user["email"]
         self.profileimage = user["profileimage"]
         self.bio = user["bio"]
@@ -56,7 +56,7 @@ class User:
         value = pymysql.escape_string( bleach.clean(value) )
 
         #Attempt to set the column
-        cursor.execute("UPDATE users SET " + column + "'" + value + "' WHERE uid='" + self.uid + "';")
+        cursor.execute("UPDATE users SET " + column + "='" + value + "' WHERE uid='" + self.uid + "';")
 
         #Commit and close the connection
         conn.commit()
@@ -242,4 +242,4 @@ class User:
         conn.commit()
         conn.close()
 
-        return json.dumps( feed )
+        return '{ "feed": ' + json.dumps( feed ) + ' }'
