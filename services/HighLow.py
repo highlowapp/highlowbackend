@@ -463,6 +463,9 @@ class HighLowList:
 
             highlow["comments"] = cursor.fetchall()
 
+            for i in highlow["comments"]:
+                i["_timestamp"] = i["_timestamp"].isoformat()
+
 
         #Commit and close connection
         conn.commit()
