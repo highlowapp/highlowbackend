@@ -114,8 +114,23 @@ class HighLow:
             "low_image": self.low_image,
             "total_likes": self.total_likes,
             "highlowid": self.high_low_id,
-            "timestamp": self._timestamp
+            "timestamp": self._timestamp,
+            "comments": []
         }
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute( "SELECT * FROM comments WHERE highlowid='{}'".format(self.high_low_id) )
+
+        comments = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        for i in range( len(comments) ):
+            json_object["comments"].append(comments[i])
 
         return json_object
 
@@ -443,6 +458,10 @@ class HighLowList:
 
         for highlow in highlows:
             highlow["_timestamp"] = highlow["_timestamp"].isoformat()
+
+            cursor.execute( "SELECT * FROM comments WHERE highlowid='{}'".format( highlow["highlowid"] ) )
+
+            highlow["comments"] = cursor.fetchall()
 
 
         #Commit and close connection
