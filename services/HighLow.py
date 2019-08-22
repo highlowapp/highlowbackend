@@ -114,7 +114,7 @@ class HighLow:
             "low_image": self.low_image,
             "total_likes": self.total_likes,
             "highlowid": self.high_low_id,
-            "timestamp": self._timestamp,
+            "timestamp": self.timestamp,
             "comments": []
         }
 
