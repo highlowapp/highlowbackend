@@ -341,7 +341,7 @@ class HighLow:
             FROM
                 `comments`
                 JOIN users ON users.uid = comments.uid
-            WHERE comments.highlowid = '{}';
+            WHERE comments.highlowid = '{}' ORDER BY _timestamp;
     """.format(self.high_low_id) )
 
         comments = cursor.fetchall()
