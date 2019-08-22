@@ -122,7 +122,20 @@ class HighLow:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        cursor.execute( "SELECT * FROM comments WHERE highlowid='{}'".format(self.high_low_id) )
+        cursor.execute( """
+            SELECT
+                commentid,
+                comments.uid AS uid,
+                message,
+                _timestamp,
+                users.firstname AS firstname,
+                users.lastname AS lastname,
+                users.profileimage AS profileimage
+            FROM
+                `comments`
+                JOIN users ON users.uid = comments.uid
+            WHERE comments.highlowid = '{}' ORDER BY _timestamp;
+            """.format(self.high_low_id) )
 
         comments = cursor.fetchall()
 
@@ -131,7 +144,7 @@ class HighLow:
 
         for i in range( len(comments) ):
             json_object["comments"].append(comments[i])
-            json_object["comments"][i] = json_object["comments"][i].isoformat()
+            json_object["comments"][i]["_timestamp"] = json_object["comments"][i]["_timestamp"].isoformat()
 
         return json_object
 
