@@ -131,6 +131,7 @@ class HighLow:
 
         for i in range( len(comments) ):
             json_object["comments"].append(comments[i])
+            json_object["comments"][i] = json_object["comments"][i].isoformat()
 
         return json_object
 
