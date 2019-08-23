@@ -650,8 +650,9 @@ def get_arbitrary(highlowid):
         try:
             highlow = HighLow(host, username, password, database, highlowid)
             return json.dumps( highlow.get_json() )
-        except:
-            return '{ "error": "invalid-highlowid" }' 
+        except Exception as e:
+            print(e)
+            return '{ "error": "invalid-highlowid"  }' 
 
 
 
