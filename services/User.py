@@ -156,8 +156,8 @@ class User:
 
             JOIN users ON users.uid = frnds.friend_id;
         
-        """.format(self.uid) )
-        
+        """.format(self.uid, self.uid, self.uid, self.uid) )
+
 
         friends = cursor.fetchall()
 
