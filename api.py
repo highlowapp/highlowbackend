@@ -489,14 +489,11 @@ def get_friends():
 
 
     uid = result["uid"]
-    print(uid)
-    try:
-        user = User(uid, host, username, password, database)
-        return json.dumps( user.list_friends() )
-    except:
-        return '{ "error": "invalid-uid" }'
-
-
+    
+    
+    user = User(uid, host, username, password, database)
+    return json.dumps( user.list_friends() )
+    
 
 
 
