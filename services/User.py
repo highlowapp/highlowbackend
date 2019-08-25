@@ -132,14 +132,39 @@ class User:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        cursor.execute( "SELECT * FROM friends WHERE (acceptor='{}' OR initiator='{}') AND status=2;".format(self.uid, self.uid) )
+        cursor.execute( """
+        
+            SELECT
+                frnds.friend_id,
+                users.firstname,
+                users.lastname,
+                users.profileimage,
+                users.streak,
+                users.bio
+
+            FROM
+
+            (
+                SELECT CASE
+                    WHEN friends.initiator = '{}' THEN friends.acceptor
+                    WHEN friends.acceptor = '{}' THEN friends.initiator
+                END AS friend_id,
+                friends.status AS status
+                FROM friends
+                WHERE (friends.initiator = '{}' OR friends.acceptor = '{}') AND friends.status = 2
+            ) AS frnds
+
+            JOIN users ON users.uid = frnds.friend_id;
+        
+        """.format(self.uid) )
+        
 
         friends = cursor.fetchall()
 
         conn.commit()
         conn.close()
 
-        return friends
+        return { "friends": friends }
 
     def is_friend_with(self, uid):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')

@@ -467,11 +467,34 @@ def get_feed(page):
 
     try:
         user = User(uid, host, username, password, database)
-
-    except:
         return user.get_feed(FEED_LIMIT, page)
+    except:
+        return '{ "error": "invalid-uid" }'
+
+@app.route("/user/friends", methods=["GET"])
+def get_friends():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
 
 
+    #Obtain the result as JSON
+    result = token_verification_request
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+
+
+    uid = result["uid"]
+
+    try:
+        user = User(uid, host, username, password, database)
+        return json.dumps( user.list_friends() )
+    except:
+        return '{ "error": "invalid-uid" }'
 
 
 
