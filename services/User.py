@@ -135,12 +135,12 @@ class User:
         cursor.execute( """
         
             SELECT
-                frnds.friend_id,
-                users.firstname,
-                users.lastname,
-                users.profileimage,
-                users.streak,
-                users.bio
+                frnds.friend_id AS uid,
+                users.firstname AS firstname,
+                users.lastname AS lastname,
+                users.profileimage AS profileimage,
+                users.streak AS streak,
+                users.bio AS bio
 
             FROM
 
