@@ -488,7 +488,7 @@ def get_friends():
         return '{ "error": "' + result["error"] + '" }'
 
 
-    uid = result["uid"]
+    uid = request.args.get("uid") or result["uid"]
     
     
     user = User(uid, host, username, password, database)
