@@ -131,7 +131,7 @@ class User:
 
         uid = pymysql.escape_string( bleach.clean(uid) )
 
-        cursor.execute("UPDATE friends SET status=2 WHERE initiator=" + uid + " AND acceptor=" + self.uid + "")
+        cursor.execute("UPDATE friends SET status=2 WHERE initiator='" + uid + "' AND acceptor='" + self.uid + "';")
 
         conn.commit()
         conn.close()
