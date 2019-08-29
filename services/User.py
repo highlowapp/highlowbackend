@@ -202,6 +202,41 @@ class User:
 
         return '{ "users": ' + json.dumps(results) + ' }'
 
+    def list_pending_requests(self):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        
+            SELECT
+                frnds.friend_id AS uid,
+                users.firstname AS firstname,
+                users.lastname AS lastname,
+                users.profileimage AS profileimage,
+                users.streak AS streak,
+                users.bio AS bio
+
+            FROM
+
+            (
+                SELECT CASE
+                    WHEN friends.initiator = '{}' THEN friends.acceptor
+                    WHEN friends.acceptor = '{}' THEN friends.initiator
+                END AS friend_id,
+                friends.status AS status
+                FROM friends
+                WHERE (friends.acceptor = '{}') AND friends.status = 1
+            ) AS frnds
+
+            JOIN users ON users.uid = frnds.friend_id;
+
+        """.format(self.uid, self.uid, self.uid) ) 
+
+        pending = cursor.fetchall()
+
+        return '{ "requests": ' + json.dumps( pending ) + ' }' 
+
 
     def is_friend_with(self, uid):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')

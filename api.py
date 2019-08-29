@@ -550,7 +550,24 @@ def search_users():
     user = User(uid, host, username, password, database)
     return json.dumps( user.search_friends(search) )
 
+@app.route("/user/get_pending_friendships", methods=["GET"])
+def get_pending():
+    ##Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    search = request.form["search"]
+
+    user = User(uid, host, username, password, database)
+    return user.list_pending_requests()
     
 
 
