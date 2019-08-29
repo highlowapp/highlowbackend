@@ -100,10 +100,15 @@ class User:
 
         uid = pymysql.escape_string( bleach.clean(uid) )
 
-        cursor.execute("INSERT INTO friends(initiator, acceptor, status) VALUES(" + self.uid + ", " + uid + ", 1)")
+        cursor.execute("SELECT id FROM friends WHERE status!=0 AND ( (initiator='" + self.uid + "' AND acceptor='" + uid + "') OR (initiator='" + uid + "' AND acceptor='" + self.uid + "') );")
+
+        if !cursor.fetchone():
+            cursor.execute("INSERT INTO friends(initiator, acceptor, status) VALUES('" + self.uid + "', '" + uid + "', 1)")
 
         conn.commit()
         conn.close()
+
+        return { "status": "success" }
 
     def reject_friend(self, uid):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
@@ -111,7 +116,7 @@ class User:
 
         uid = pymysql.escape_string( bleach.clean(uid) )
 
-        cursor.execute("UPDATE friends SET status=0 WHERE initiator=" + self.uid + " AND acceptor=" + uid + "")
+        cursor.execute("UPDATE friends SET status=0 WHERE (initiator='" + self.uid + "' AND acceptor='" + uid + "') OR (initiator='" + uid + "' AND acceptor='" + self.uid + "');")
 
         conn.commit()
         conn.close()
@@ -122,10 +127,12 @@ class User:
 
         uid = pymysql.escape_string( bleach.clean(uid) )
 
-        cursor.execute("UPDATE friends SET status=2 WHERE initiator=" + self.uid + " AND acceptor=" + uid + "")
+        cursor.execute("UPDATE friends SET status=2 WHERE initiator=" + uid + " AND acceptor=" + self.uid + "")
 
         conn.commit()
         conn.close()
+
+        return { "status": "success" }
 
 
     def list_friends(self):
@@ -165,6 +172,32 @@ class User:
         conn.close()
 
         return { "friends": friends }
+
+    
+    def search_friends(self, search):
+        #Clean the search
+        search = pymysql.escape_string( bleach.clean(search) )
+
+        #Separate into words (just using spaces currently)
+        words = search.split(" ")
+        
+        #Create string
+        word_list = "'" + "', '".join(words) + "'"
+
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM users WHERE LOWER(firstname) IN({}) OR LOWER(lastname) IN({});".format(word_list, word_list))
+
+        results = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        return '{ "users": ' + json.dumps(results) + ' }'
+
 
     def is_friend_with(self, uid):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')

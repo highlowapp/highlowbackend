@@ -493,6 +493,64 @@ def get_friends():
     
     user = User(uid, host, username, password, database)
     return json.dumps( user.list_friends() )
+
+@app.route("/user/friends/<string:friend>/unfriend", methods=["POST"])
+def unfriend(friend):
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    user = User(uid, host, username, password, database)
+
+    return json.dumps( user.reject_friend(friend) )
+
+
+@app.route("/user/<string:user_id>/request_friend", methods=["POST"])
+def request_friend(user_id):
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    user = User(uid, host, username, password, database)
+    return json.dumps( user.request_friend(user_id) )
+
+
+@app.route("/user/search", methods=["POST"])
+def search_users():
+    ##Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    search = request.form["search"]
+
+    user = User(uid, host, username, password, database)
+    return json.dumps( user.search_friends(search) )
+
+
     
 
 
