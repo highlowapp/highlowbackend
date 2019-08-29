@@ -102,7 +102,9 @@ class User:
 
         cursor.execute("SELECT id FROM friends WHERE status!=0 AND ( (initiator='" + self.uid + "' AND acceptor='" + uid + "') OR (initiator='" + uid + "' AND acceptor='" + self.uid + "') );")
 
-        if !cursor.fetchone():
+        duplicate = cursor.fetchone()
+
+        if duplicate == None:
             cursor.execute("INSERT INTO friends(initiator, acceptor, status) VALUES('" + self.uid + "', '" + uid + "', 1)")
 
         conn.commit()
