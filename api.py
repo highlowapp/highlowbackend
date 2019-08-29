@@ -693,7 +693,7 @@ def unlike(highlowid):
         try: 
             highlow = HighLow(host, username, passsord, database, highlowid)
             result = highlow.unlike(uid)
-
+ 
             return '{"status": "success"}'
         except:
             return '{"error": "invalid-highlowid"}'
@@ -932,7 +932,7 @@ def update_comment(commentid):
 @app.route("/eventlogger/log_event", methods=["POST"])
 def log_event():
 
-    if request.form.get(admin_password) != eventlogger_config["admin_password"]:
+    if request.form.get("admin_password") != eventlogger_config["admin_password"]:
         serviceutils.log_event("eventlogger_failed_attempt", {
             "ip": get_remote_addr(request)
             })
@@ -954,7 +954,7 @@ def query():
 
         conditions = json.loads( conditions_json_str )
 
-    if request.args.get(admin_password) != eventlogger_config["admin_password"]:
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
         serviceutils.log_event("eventlogger_failed_attempt", {
             "ip": get_remote_addr(request)
             })

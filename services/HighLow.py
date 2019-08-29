@@ -308,6 +308,8 @@ class HighLow:
         conn.commit()
         conn.close()
 
+        return '{ "status": "success" }'
+
     def comment(self, uid, message):
         #Collect the specified data and add to the database
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
