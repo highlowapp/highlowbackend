@@ -494,7 +494,7 @@ def get_friends():
     user = User(uid, host, username, password, database)
     return json.dumps( user.list_friends() )
 
-@app.route("/user/friends/<string:friend>/unfriend", methods=["POST"])
+@app.route("/user/<string:friend>/unfriend", methods=["POST"])
 def unfriend(friend):
     #Get token from Authorization
     token = request.headers["Authorization"].replace("Bearer ", "")
