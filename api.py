@@ -564,8 +564,6 @@ def get_pending():
     
     uid = result["uid"]
 
-    search = request.form["search"]
-
     user = User(uid, host, username, password, database)
     return user.list_pending_requests()
     
