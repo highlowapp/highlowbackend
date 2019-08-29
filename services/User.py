@@ -123,6 +123,8 @@ class User:
         conn.commit()
         conn.close()
 
+        return { "status": "success" }
+
     def accept_friend(self, uid):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')        
         cursor = conn.cursor()
