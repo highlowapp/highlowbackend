@@ -180,7 +180,7 @@ class User:
     
     def search_friends(self, search):
         #Clean the search
-        search = pymysql.escape_string( bleach.clean(search) )
+        search = pymysql.escape_string( bleach.clean(search) ).lower()
 
         #Separate into words (just using spaces currently)
         words = search.split(" ")

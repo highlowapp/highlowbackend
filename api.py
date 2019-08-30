@@ -548,7 +548,7 @@ def search_users():
     search = request.form["search"]
 
     user = User(uid, host, username, password, database)
-    return json.dumps( user.search_friends(search) )
+    return user.search_friends(search)
 
 @app.route("/user/get_pending_friendships", methods=["GET"])
 def get_pending():
