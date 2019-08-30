@@ -191,8 +191,8 @@ class User:
 
         users = cursor.fetchall()
 
-        cursor.commit()
-        cursor.close()
+        conn.commit()
+        conn.close()
 
         ranked_users = []
 
