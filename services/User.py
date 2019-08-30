@@ -189,7 +189,7 @@ class User:
 
         cursor.execute("SELECT * FROM users;")
 
-        users = cursor.fetchall()
+        users = cursor.fetchall() 
 
         conn.commit()
         conn.close()
