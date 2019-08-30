@@ -200,6 +200,8 @@ class User:
         conn.commit()
         conn.close()
 
+        print(results)
+
         return '{ "users": ' + json.dumps(results) + ' }'
 
     def list_pending_requests(self):
