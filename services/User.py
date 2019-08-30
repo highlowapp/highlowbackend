@@ -182,25 +182,17 @@ class User:
         #Clean the search
         search = pymysql.escape_string( bleach.clean(search) ).lower()
 
-        #Separate into words (just using spaces currently)
-        words = search.split(" ")
-        
-        #Create string
-        word_list = "'" + "', '".join(words) + "'"
-
 
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM users WHERE LOWER(firstname) IN({}) OR LOWER(lastname) IN({});".format(word_list, word_list))
+        cursor.execute("SELECT * FROM users WHERE LOWER(firstname + ' ' + lastname) LIKE '%{}%'".format(search))
 
         results = cursor.fetchall()
 
         conn.commit()
         conn.close()
-
-        print(results)
 
         return '{ "users": ' + json.dumps(results) + ' }'
 
