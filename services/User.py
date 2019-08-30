@@ -187,15 +187,38 @@ class User:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        print("SELECT * FROM users WHERE LOWER(firstname + ' ' + lastname) LIKE '%{}%';".format(search))
-        cursor.execute("SELECT * FROM users WHERE LOWER(firstname + ' ' + lastname) LIKE '%{}%';".format(search))
+        cursor.execute("SELECT * FROM users;")
 
-        results = cursor.fetchall()
+        users = cursor.fetchall()
 
-        conn.commit()
-        conn.close()
+        cursor.commit()
+        cursor.close()
 
-        return '{ "users": ' + json.dumps(results) + ' }'
+        ranked_users = []
+
+        for i in range( len(users) ):
+            name = users[i].firstname + " " + users[i].lastname
+            rank = 0
+
+            for j in range( len(name) ):
+
+                if name[j] in search:
+                    
+                    if j < len(search):
+                        if name[j] == search[j]:
+                            rank += 2
+                        else:
+                            rank += 1
+                    else:
+                        rank += 1
+            
+            if rank > round( len(search) / 4):
+                ranked_users.append( { "user": users[i], "rank": rank} )
+            
+
+
+
+        return '{ "users": ' + json.dumps(ranked_users) + ' }'
 
     def list_pending_requests(self):
         #Connect to MySQL
