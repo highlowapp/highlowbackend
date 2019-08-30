@@ -197,7 +197,7 @@ class User:
         ranked_users = []
 
         for i in range( len(users) ):
-            name = users[i].firstname + " " + users[i].lastname
+            name = users[i]["firstname"] + " " + users[i]["lastname"]
             rank = 0
 
             for j in range( len(name) ):
