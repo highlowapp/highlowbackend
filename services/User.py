@@ -187,6 +187,7 @@ class User:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
+        print("SELECT * FROM users WHERE LOWER(firstname + ' ' + lastname) LIKE '%{}%';".format(search))
         cursor.execute("SELECT * FROM users WHERE LOWER(firstname + ' ' + lastname) LIKE '%{}%';".format(search))
 
         results = cursor.fetchall()
