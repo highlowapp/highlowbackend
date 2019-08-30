@@ -215,7 +215,7 @@ class User:
             if rank > round( len(search) / 4):
                 ranked_users.append( { "user": users[i], "rank": rank} )
             
-
+        ranked_users = sorted(ranked_users, key = lambda i:i["rank"], reverse=True)
 
 
         return '{ "users": ' + json.dumps(ranked_users) + ' }'
