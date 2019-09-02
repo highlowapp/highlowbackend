@@ -100,10 +100,17 @@ class User:
 
         uid = pymysql.escape_string( bleach.clean(uid) )
 
-        cursor.execute("INSERT INTO friends(initiator, acceptor, status) VALUES(" + self.uid + ", " + uid + ", 1)")
+        cursor.execute("SELECT id FROM friends WHERE status!=0 AND ( (initiator='" + self.uid + "' AND acceptor='" + uid + "') OR (initiator='" + uid + "' AND acceptor='" + self.uid + "') );")
+
+        duplicate = cursor.fetchone()
+
+        if duplicate == None:
+            cursor.execute("INSERT INTO friends(initiator, acceptor, status) VALUES('" + self.uid + "', '" + uid + "', 1)")
 
         conn.commit()
         conn.close()
+
+        return { "status": "success" }
 
     def reject_friend(self, uid):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
@@ -111,10 +118,12 @@ class User:
 
         uid = pymysql.escape_string( bleach.clean(uid) )
 
-        cursor.execute("UPDATE friends SET status=0 WHERE initiator=" + self.uid + " AND acceptor=" + uid + "")
+        cursor.execute("UPDATE friends SET status=0 WHERE (initiator='" + self.uid + "' AND acceptor='" + uid + "') OR (initiator='" + uid + "' AND acceptor='" + self.uid + "');")
 
         conn.commit()
         conn.close()
+
+        return { "status": "success" }
 
     def accept_friend(self, uid):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')        
@@ -122,24 +131,130 @@ class User:
 
         uid = pymysql.escape_string( bleach.clean(uid) )
 
-        cursor.execute("UPDATE friends SET status=2 WHERE initiator=" + self.uid + " AND acceptor=" + uid + "")
+        cursor.execute("UPDATE friends SET status=2 WHERE initiator='" + uid + "' AND acceptor='" + self.uid + "';")
 
         conn.commit()
         conn.close()
+
+        return { "status": "success" }
 
 
     def list_friends(self):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        cursor.execute( "SELECT * FROM friends WHERE (acceptor='{}' OR initiator='{}') AND status=2;".format(self.uid, self.uid) )
+        cursor.execute( """
+        
+            SELECT
+                frnds.friend_id AS uid,
+                users.firstname AS firstname,
+                users.lastname AS lastname,
+                users.profileimage AS profileimage,
+                users.streak AS streak,
+                users.bio AS bio
+
+            FROM
+
+            (
+                SELECT CASE
+                    WHEN friends.initiator = '{}' THEN friends.acceptor
+                    WHEN friends.acceptor = '{}' THEN friends.initiator
+                END AS friend_id,
+                friends.status AS status
+                FROM friends
+                WHERE (friends.initiator = '{}' OR friends.acceptor = '{}') AND friends.status = 2
+            ) AS frnds
+
+            JOIN users ON users.uid = frnds.friend_id;
+        
+        """.format(self.uid, self.uid, self.uid, self.uid) )
+
 
         friends = cursor.fetchall()
 
         conn.commit()
         conn.close()
 
-        return friends
+        return { "friends": friends }
+
+    
+    def search_friends(self, search):
+        #Clean the search
+        search = pymysql.escape_string( bleach.clean(search) ).lower()
+
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM users;")
+
+        users = cursor.fetchall() 
+
+        conn.commit()
+        conn.close()
+
+        ranked_users = []
+
+        for i in range( len(users) ):
+            name = users[i]["firstname"] + " " + users[i]["lastname"]
+            rank = 0
+
+            for j in range( len(name) ):
+
+                if name[j] in search:
+                    
+                    if j < len(search):
+                        if name[j] == search[j]:
+                            rank += 2
+                        else:
+                            rank += 1
+                    else:
+                        rank += 1
+            
+            if rank > round( len(search) / 4):
+                ranked_users.append( { "user": users[i], "rank": rank} )
+            
+        ranked_users = sorted(ranked_users, key = lambda i:i["rank"], reverse=True)
+
+
+        return '{ "users": ' + json.dumps(ranked_users) + ' }'
+
+    def list_pending_requests(self):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        
+            SELECT
+                frnds.friend_id AS uid,
+                users.firstname AS firstname,
+                users.lastname AS lastname,
+                users.profileimage AS profileimage,
+                users.streak AS streak,
+                users.bio AS bio
+
+            FROM
+
+            (
+                SELECT CASE
+                    WHEN friends.initiator = '{}' THEN friends.acceptor
+                    WHEN friends.acceptor = '{}' THEN friends.initiator
+                END AS friend_id,
+                friends.status AS status
+                FROM friends
+                WHERE (friends.acceptor = '{}') AND friends.status = 1
+            ) AS frnds
+
+            JOIN users ON users.uid = frnds.friend_id;
+
+        """.format(self.uid, self.uid, self.uid) ) 
+
+        pending = cursor.fetchall()
+
+        return '{ "requests": ' + json.dumps( pending ) + ' }' 
+
 
     def is_friend_with(self, uid):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')

@@ -467,14 +467,125 @@ def get_feed(page):
 
     try:
         user = User(uid, host, username, password, database)
-
-    except:
         return user.get_feed(FEED_LIMIT, page)
+    except:
+        return '{ "error": "invalid-uid" }'
+
+@app.route("/user/friends", methods=["GET"])
+def get_friends():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
 
 
+    #Obtain the result as JSON
+    result = token_verification_request
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
 
 
+    uid = request.args.get("uid") or result["uid"]
+    
+    
+    user = User(uid, host, username, password, database)
+    return json.dumps( user.list_friends() )
 
+@app.route("/user/<string:friend>/unfriend", methods=["POST"])
+def unfriend(friend):
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    user = User(uid, host, username, password, database)
+
+    return json.dumps( user.reject_friend(friend) )
+
+
+@app.route("/user/<string:user_id>/request_friend", methods=["POST"])
+def request_friend(user_id):
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    user = User(uid, host, username, password, database)
+    return json.dumps( user.request_friend(user_id) )
+
+
+@app.route("/user/search", methods=["POST"])
+def search_users():
+    ##Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    search = request.form["search"]
+
+    user = User(uid, host, username, password, database)
+    return user.search_friends(search)
+
+@app.route("/user/get_pending_friendships", methods=["GET"])
+def get_pending():
+    ##Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    user = User(uid, host, username, password, database)
+    return user.list_pending_requests()
+    
+
+
+@app.route("/user/accept_friend/<string:friend>", methods=["POST"])
+def accept_friendship(friend):
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    user = User(uid, host, username, password, database)
+
+    return json.dumps( user.accept_friend(friend) )
 
 
 
@@ -582,7 +693,7 @@ def unlike(highlowid):
         try: 
             highlow = HighLow(host, username, passsord, database, highlowid)
             result = highlow.unlike(uid)
-
+ 
             return '{"status": "success"}'
         except:
             return '{"error": "invalid-highlowid"}'
@@ -821,7 +932,7 @@ def update_comment(commentid):
 @app.route("/eventlogger/log_event", methods=["POST"])
 def log_event():
 
-    if request.form.get(admin_password) != eventlogger_config["admin_password"]:
+    if request.form.get("admin_password") != eventlogger_config["admin_password"]:
         serviceutils.log_event("eventlogger_failed_attempt", {
             "ip": get_remote_addr(request)
             })
@@ -843,7 +954,7 @@ def query():
 
         conditions = json.loads( conditions_json_str )
 
-    if request.args.get(admin_password) != eventlogger_config["admin_password"]:
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
         serviceutils.log_event("eventlogger_failed_attempt", {
             "ip": get_remote_addr(request)
             })
