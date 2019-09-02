@@ -289,7 +289,7 @@ def get_complete_user():
         "firstname": user.firstname,
         "lastname": user.lastname,
         "profileimage": user.profileimage,
-        "streak": user.streak,
+        "streak": user.calculate_streak(),
         "email": user.email,
         "bio": user.bio
     }
@@ -315,7 +315,11 @@ def get(property):
     user = User(result["uid"], host, username, password, database)
 
     #Get the specified property
-    prprty = getattr(user, property)
+    prprty = None
+    if property == "streak":
+        prprty = user.calculate_streak()
+    else:
+        prprty = getattr(user, property)
 
     return '{ "' + property + '": "' + prprty + '"}'
 
