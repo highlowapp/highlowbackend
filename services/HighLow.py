@@ -118,6 +118,7 @@ class HighLow:
             "total_likes": self.total_likes,
             "highlowid": self.high_low_id,
             "_timestamp": self.timestamp.isoformat(),
+            "_date": self.date,
             "comments": []
         }
 
