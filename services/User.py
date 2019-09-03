@@ -392,8 +392,8 @@ class User:
             """.format(raw_feed[i]["highlowid"]) )
 
             comments = cursor.fetchall()
-            for i in comments:
-                i["_timestamp"] = i["_timestamp"].isoformat()
+            for j in comments:
+                j["_timestamp"] = j["_timestamp"].isoformat()
 
             feed_item = {
                 "user": {
