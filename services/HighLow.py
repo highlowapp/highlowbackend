@@ -519,6 +519,26 @@ class HighLowList:
 
         highlow = cursor.fetchone()
 
+        cursor.execute( """
+            SELECT
+                commentid,
+                comments.uid AS uid,
+                message,
+                _timestamp,
+                users.firstname AS firstname,
+                users.lastname AS lastname,
+                users.profileimage AS profileimage
+            FROM
+                `comments`
+                JOIN users ON users.uid = comments.uid
+            WHERE comments.highlowid = '{}' ORDER BY _timestamp;
+        """.format(highlow["highlowid"]) )
+
+        highlow["comments"] = cursor.fetchall()
+
+        for i in highlow["comments"]:
+            i["_timestamp"] = i["_timestamp"].isoformat()
+
         conn.commit()
         conn.close()
 
@@ -548,6 +568,26 @@ class HighLowList:
         cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND _date = '{}';".format(uid, date) )
 
         highlow = cursor.fetchone()
+
+        cursor.execute( """
+            SELECT
+                commentid,
+                comments.uid AS uid,
+                message,
+                _timestamp,
+                users.firstname AS firstname,
+                users.lastname AS lastname,
+                users.profileimage AS profileimage
+            FROM
+                `comments`
+                JOIN users ON users.uid = comments.uid
+            WHERE comments.highlowid = '{}' ORDER BY _timestamp;
+        """.format(highlow["highlowid"]) )
+
+        highlow["comments"] = cursor.fetchall()
+
+        for i in highlow["comments"]:
+            i["_timestamp"] = i["_timestamp"].isoformat()
 
         conn.commit()
         conn.close()
