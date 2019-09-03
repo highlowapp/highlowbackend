@@ -377,7 +377,7 @@ class User:
         for i in range(len(raw_feed)):
             feed_item = {
                 "user": {
-                    "uid": raw_feed[i]["friend_id"]
+                    "uid": raw_feed[i]["friend_id"],
                     "firstname": raw_feed[i]["firstname"],
                     "lastname": raw_feed[i]["lastname"],
                     "profileimage": raw_feed[i]["profileimage"],
