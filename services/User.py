@@ -188,7 +188,7 @@ class User:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM users LIMIT 70;")
+        cursor.execute("SELECT * FROM users;")
 
         users = cursor.fetchall() 
 
