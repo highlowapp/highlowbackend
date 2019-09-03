@@ -519,6 +519,20 @@ class HighLowList:
 
         highlow = cursor.fetchone()
 
+        if highlow == None:
+            conn.commit()
+            conn.close()
+            
+            return {
+                "high":"",
+                "low":"",
+                "total_likes": 0,
+                "high_image": "",
+                "low_image": "",
+                "date": "",
+                "comments": []
+            }
+
         cursor.execute( """
             SELECT
                 commentid,
@@ -541,15 +555,6 @@ class HighLowList:
 
         conn.commit()
         conn.close()
-
-        if highlow == None:
-            return {
-                "high":"",
-                "low":"",
-                "total_likes": 0,
-                "high_image": "",
-                "low_image": ""
-            }
 
         highlow["_timestamp"] = highlow["_timestamp"].isoformat()
 
@@ -569,6 +574,21 @@ class HighLowList:
 
         highlow = cursor.fetchone()
 
+        
+        if highlow == None:
+            conn.commit()
+            conn.close()
+
+            return {
+                "high":"",
+                "low":"",
+                "total_likes": 0,
+                "high_image": "",
+                "low_image": "",
+                "date": "",
+                "comments": []
+            }
+
         cursor.execute( """
             SELECT
                 commentid,
@@ -592,15 +612,6 @@ class HighLowList:
         conn.commit()
         conn.close()
 
-        if highlow == None:
-            return {
-                "high":"",
-                "low":"",
-                "total_likes": 0,
-                "high_image": "",
-                "low_image": "",
-                "date": ""
-            }
 
         highlow["_timestamp"] = highlow["_timestamp"].isoformat()
 
