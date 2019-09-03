@@ -391,7 +391,7 @@ class User:
                     "high_image": raw_feed[i]["high_image"],
                     "low_image": raw_feed[i]["low_image"],
                     "_date": raw_feed[i]["_date"],
-                    "_timestamp": raw_feed[i]["_timestamp"],
+                    "_timestamp": raw_feed[i]["_timestamp"].isoformat(),
                     "total_likes": raw_feed[i]["total_likes"]
                 }
             }
