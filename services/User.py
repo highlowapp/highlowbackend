@@ -368,13 +368,33 @@ class User:
 
         raw_feed = cursor.fetchall()
 
-        conn.commit()
-        conn.close()
+        
 
         #Format the feed JSON (Normally I would say this wasn't a good idea, but in this case the size of the array is limited, so I think we'll be fine)
         feed = []
 
         for i in range(len(raw_feed)):
+
+            #Get the comments
+            cursor.execute( """
+            SELECT
+                commentid,
+                comments.uid AS uid,
+                message,
+                _timestamp,
+                users.firstname AS firstname,
+                users.lastname AS lastname,
+                users.profileimage AS profileimage
+            FROM
+                `comments`
+                JOIN users ON users.uid = comments.uid
+            WHERE comments.highlowid = '{}' ORDER BY _timestamp;
+            """.format(raw_feed[i]["highlowid"]) )
+
+            comments = cursor.fetchall()
+            for i in comments:
+                i["_timestamp"] = i["_timestamp"].isoformat()
+
             feed_item = {
                 "user": {
                     "uid": raw_feed[i]["friend_id"],
@@ -392,11 +412,15 @@ class User:
                     "low_image": raw_feed[i]["low_image"],
                     "_date": raw_feed[i]["_date"],
                     "_timestamp": raw_feed[i]["_timestamp"].isoformat(),
-                    "total_likes": raw_feed[i]["total_likes"]
+                    "total_likes": raw_feed[i]["total_likes"],
+                    "comments": comments
                 }
             }
 
             feed.append(feed_item)
+
+        conn.commit()
+        conn.close()
 
         return '{ "feed": ' + json.dumps( feed ) + ' }'
 
