@@ -1,6 +1,7 @@
 import pymysql
 import bleach
 import json
+import datetime
 from services.FileStorage import FileStorage
 
 class User:
@@ -358,3 +359,29 @@ class User:
         conn.close()
 
         return '{ "feed": ' + json.dumps( feed ) + ' }'
+
+
+    def calculate_streak(self):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT _date FROM highlows WHERE uid='{}' ORDER BY _date DESC LIMIT 1;".format(self.uid))
+
+        most_recent_highlow = cursor.fetchone()
+
+        most_recent_highlow_datetime = datetime.datetime.strptime(most_recent_highlow["_date"], "%Y-%m-%d") 
+
+        diff = datetime.datetime.now() - most_recent_highlow_datetime
+
+        value = self.streak
+        if diff.days > 1:
+            cursor.execute("UPDATE users SET streak=0 WHERE uid='{}';".format(self.uid))
+            value = 0
+        
+        conn.commit()
+        conn.close()
+
+        return value
+
+        

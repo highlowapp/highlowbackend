@@ -98,6 +98,9 @@ class HighLow:
         #Now, insert the data
         cursor.execute("INSERT INTO highlows(highlowid, uid, high, low, high_image, low_image, total_likes, _date) VALUES('{}', '{}', {}, {}, {}, {}, 0, '{}');".format(self.high_low_id, uid, self.high, self.low, self.high_image, self.low_image, self.date) )
 
+        #...and update the streak
+        cursor.execute("UPDATE users SET streak = streak + 1 WHERE uid='{}';".format(uid))
+
         #Commit and close the connection
         conn.commit()
         conn.close()
