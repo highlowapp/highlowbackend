@@ -312,7 +312,7 @@ class User:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        limit = pymysql.escape_string( bleach.clean( str(limit) ) )
+        limit = int(pymysql.escape_string( bleach.clean( str(limit) ) ))
         offset = int( pymysql.escape_string( bleach.clean( str(page) ) ) ) * limit
 
         cursor.execute( """
