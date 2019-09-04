@@ -29,6 +29,7 @@ class HighLow:
             if not result:
                 raise ValueError("highlow-no-exist")
             
+            self.uid = result["uid"]
             self.high = result["high"]
             self.low = result["low"]
             self.high_image = result["high_image"]
@@ -111,6 +112,7 @@ class HighLow:
 
     def get_json(self):
         json_object = {
+            "uid": self.uid,
             "high": self.high,
             "low": self.low, 
             "high_image": self.high_image,
@@ -527,6 +529,7 @@ class HighLowList:
             return {
                 "high":"",
                 "low":"",
+                "uid":"",
                 "total_likes": 0,
                 "high_image": "",
                 "low_image": "",
@@ -582,6 +585,7 @@ class HighLowList:
 
             return {
                 "high":"",
+                "uid": "",
                 "low":"",
                 "total_likes": 0,
                 "high_image": "",
