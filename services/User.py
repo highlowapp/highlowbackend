@@ -413,6 +413,7 @@ class User:
                     "_date": raw_feed[i]["_date"],
                     "_timestamp": raw_feed[i]["_timestamp"].isoformat(),
                     "total_likes": raw_feed[i]["total_likes"],
+                    "uid": raw_feed[i]["friend_id"],
                     "comments": comments
                 }
             }
