@@ -105,7 +105,7 @@ class User:
 
         duplicate = cursor.fetchone()
 
-        if duplicate == None:
+        if duplicate == None and self.uid != uid:
             cursor.execute("INSERT INTO friends(initiator, acceptor, status) VALUES('" + self.uid + "', '" + uid + "', 1)")
 
         conn.commit()
