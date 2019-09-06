@@ -529,7 +529,7 @@ class HighLowList:
             return {
                 "high":"",
                 "low":"",
-                "uid":"",
+                "uid": uid,
                 "total_likes": 0,
                 "high_image": "",
                 "low_image": "",
@@ -585,7 +585,7 @@ class HighLowList:
 
             return {
                 "high":"",
-                "uid": "",
+                "uid": uid,
                 "low":"",
                 "total_likes": 0,
                 "high_image": "",
