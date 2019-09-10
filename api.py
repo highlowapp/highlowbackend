@@ -676,7 +676,7 @@ def like(highlowid):
             result = highlow.like(uid)
 
             return json.dumps( result )
-        except Exception as e:
+        except Exception:
             return '{"error":"invalid-highlowid"}'  
 
 
@@ -692,13 +692,11 @@ def unlike(highlowid):
     else:
         uid = verification["uid"]
 
-        try: 
-            highlow = HighLow(host, username, passsord, database, highlowid)
-            result = highlow.unlike(uid)
- 
-            return '{"status": "success"}'
-        except:
-            return '{"error": "invalid-highlowid"}'
+        highlow = HighLow(host, username, password, database, highlowid)
+        result = highlow.unlike(uid)
+
+        return result
+        
         
 
         

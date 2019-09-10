@@ -266,12 +266,12 @@ class HighLow:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        cursor.execute( "SELECT id FROM likes WHERE highlowid='{}'".format(self.high_low_id) )
+        cursor.execute( "SELECT id FROM likes WHERE highlowid='{}';".format(self.high_low_id) )
 
         likes = cursor.fetchall()
         total_likes = len(likes)
 
-        cursor.execute( "UPDATE highlows SET total_likes={} WHERE highlowid='{}'".format(total_likes, self.high_low_id) )
+        cursor.execute( "UPDATE highlows SET total_likes={} WHERE highlowid='{}';".format(total_likes, self.high_low_id) )
 
         conn.commit()
         conn.close()
@@ -291,7 +291,7 @@ class HighLow:
             return { 'error': 'already-liked' }
 
         #Make sure the highlow does not belong to the user
-        cursor.execute("SELECT uid FROM highlows WHERE highlowid='{}' AND uid='{}'".format(self.high_low_id, uid))
+        cursor.execute("SELECT uid FROM highlows WHERE highlowid='{}' AND uid='{}';".format(self.high_low_id, uid))
 
         if cursor.fetchone() != None:
             conn.commit()
@@ -302,7 +302,7 @@ class HighLow:
         cursor.execute( "INSERT INTO likes(highlowid, uid) VALUES('{}', '{}');".format(self.high_low_id, uid) )
 
         #Update the HighLow's total_likes
-        cursor.execute( "UPDATE highlows SET total_likes = total_likes + 1 WHERE highlowid='{}'".format(self.high_low_id) )
+        cursor.execute( "UPDATE highlows SET total_likes = total_likes + 1 WHERE highlowid='{}';".format(self.high_low_id) )
 
         #Commit and close the connection
         conn.commit()
@@ -319,7 +319,7 @@ class HighLow:
         cursor = conn.cursor()
 
         #Update the High/Low's total likes
-        cursor.execute( "SELECT * FROM likes WHERE highlowid='{}' AND uid='{}'".format(self.high_low_id, uid) )
+        cursor.execute( "SELECT * FROM likes WHERE highlowid='{}' AND uid='{};".format(self.high_low_id, uid) )
         if cursor.fetchone() != None:
             cursor.execute( "UPDATE highlows SET total_likes = total_likes - 1 WHERE highlowid='{}'".format(self.high_low_id) )
 
