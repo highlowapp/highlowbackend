@@ -319,7 +319,7 @@ class HighLow:
         cursor = conn.cursor()
 
         #Update the High/Low's total likes
-        cursor.execute( "SELECT * FROM likes WHERE highlowid='{}' AND uid='{};".format(self.high_low_id, uid) )
+        cursor.execute( "SELECT * FROM likes WHERE highlowid='{}' AND uid='{}';".format(self.high_low_id, uid) )
         if cursor.fetchone() != None:
             cursor.execute( "UPDATE highlows SET total_likes = total_likes - 1 WHERE highlowid='{}'".format(self.high_low_id) )
 
