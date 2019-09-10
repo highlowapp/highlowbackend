@@ -469,6 +469,7 @@ class HighLowList:
         cursor.execute("""
         
         SELECT
+            highlows.uid AS uid,
             highlows.highlowid   AS highlowid,
             highlows.high        AS high,
             highlows.low         AS low,
