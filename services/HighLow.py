@@ -301,6 +301,9 @@ class HighLow:
         #Create the entry
         cursor.execute( "INSERT INTO likes(highlowid, uid) VALUES('{}', '{}');".format(self.high_low_id, uid) )
 
+        #Update the HighLow's total_likes
+        cursor.execute( "UPDATE highlows SET total_likes = total_likes + 1 WHERE highlowid='{}'".format(self.high_low_id) )
+
         #Commit and close the connection
         conn.commit()
         conn.close()
@@ -314,6 +317,11 @@ class HighLow:
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
+
+        #Update the High/Low's total likes
+        cursor.execute( "SELECT * FROM likes WHERE highlowid='{}' AND uid='{}'".format(self.high_low_id, uid) )
+        if cursor.fetchone() != None:
+            cursor.execute( "UPDATE highlows SET total_likes = total_likes - 1 WHERE highlowid='{}'".format(self.high_low_id) )
 
         #Delete the entry, if it exists
         cursor.execute( "DELETE FROM likes WHERE highlowid='{}' AND uid='{}';".format(self.high_low_id, uid) )
