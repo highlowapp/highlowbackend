@@ -635,10 +635,10 @@ class HighLowList:
                 "comments": []
             }
 
-        cursor.execute( "SELECT * FROM likes WHERE uid='{}' AND highlowid='{}'".format(viewer, self.high_low_id) )
+        cursor.execute( "SELECT * FROM likes WHERE uid='{}' AND highlowid='{}'".format(viewer, highlow["highlowid"]) )
         if cursor.fetchone() != None:
             highlow["liked"] = True
-        cursor.execute("SELECT * FROM flags WHERE uid='{}' AND highlowid='{}'".format(viewer, self.high_low_id))
+        cursor.execute("SELECT * FROM flags WHERE uid='{}' AND highlowid='{}'".format(viewer, highlow["highlowid"]))
         if cursor.fetchone() != None:
             highlow["flagged"] = True
 
