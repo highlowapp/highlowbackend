@@ -105,7 +105,7 @@ class User:
 
         duplicate = cursor.fetchone()
 
-        if duplicate == None:
+        if duplicate == None and self.uid != uid:
             cursor.execute("INSERT INTO friends(initiator, acceptor, status) VALUES('" + self.uid + "', '" + uid + "', 1)")
 
         conn.commit()
@@ -312,48 +312,113 @@ class User:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        limit = pymysql.escape_string( bleach.clean( str(limit) ) )
+        limit = int(pymysql.escape_string( bleach.clean( str(limit) ) ))
         offset = int( pymysql.escape_string( bleach.clean( str(page) ) ) ) * limit
 
         cursor.execute( """
 
 
-            SELECT 
+            SELECT
+                frnds.friend_id AS friend_id,
+                highlows.highlowid   AS highlowid,
+                highlows.high        AS high,
+                highlows.low         AS low,
+                highlows.low_image   AS low_image,
+                highlows.high_image  AS high_image,
+                highlows._timestamp  AS _timestamp,
+                highlows._date AS _date,
+                highlows.total_likes AS total_likes,
+                users.firstname,
+                users.lastname,
+                users.profileimage,
+                users.streak,
+                users.bio,
 
-            CASE 
-                WHEN friends.initiator = '{}' THEN friends.acceptor
-                WHEN friends.acceptor = '{}' THEN friends.initiator
-            END AS friend_id,
-
-            highlows.highlowid AS highlowid,
-            highlows.high AS high,
-            highlows.low AS low, 
-            highlows.low_image AS low_image,
-            highlows.high_image AS high_image, 
-            highlows._timestamp AS _timestamp,
-            highlows.total_likes AS total_likes,
-
-            CASE
+                CASE
                 WHEN flags.id IS NULL THEN 0
                 ELSE 1
-            END AS flagged,
+                END              AS flagged,
 
-            CASE 
+                CASE
                 WHEN likes.id IS NULL THEN 0
                 ELSE 1
-            END AS liked
-             
-            FROM friends
+                END              AS liked
 
-            JOIN highlows ON highlows.uid = friend_id
-            LEFT OUTER JOIN flags ON flags.flagger = '{}' AND flags.highlowid = highlows.highlowid
-            LEFT OUTER JOIN likes ON likes.uid = '{}' AND likes.highlowid = highlows.highlowid
+            FROM
+                (
+                    SELECT
+                    CASE
+                    WHEN friends.initiator = '{}' THEN friends.acceptor
+                    WHEN friends.acceptor = '{}' THEN friends.initiator
+                    END
+                    AS friend_id
+                    FROM friends WHERE (friends.acceptor = '{}' OR friends.initiator = '{}') AND friends.status = 2
 
-            WHERE (friends.initiator = '{}' OR friends.acceptor = '{}') AND friends.status = 2 ORDER BY highlows._timestamp DESC LIMIT {} OFFSET {};
+                ) AS frnds
+
+                JOIN highlows ON highlows.uid = friend_id
+                JOIN users ON users.uid = frnds.friend_id
+                LEFT OUTER JOIN flags ON flags.flagger = '{}' AND flags.highlowid = highlows.highlowid
+                LEFT OUTER JOIN likes ON likes.uid = '{}' AND likes.highlowid = highlows.highlowid
+
+            ORDER BY highlows._timestamp DESC
+            LIMIT {} OFFSET {};
 
             """.format(self.uid, self.uid, self.uid, self.uid, self.uid, self.uid, limit, offset) )
 
-        feed = cursor.fetchall()
+        raw_feed = cursor.fetchall()
+
+        
+
+        #Format the feed JSON (Normally I would say this wasn't a good idea, but in this case the size of the array is limited, so I think we'll be fine)
+        feed = []
+
+        for i in range(len(raw_feed)):
+
+            #Get the comments
+            cursor.execute( """
+            SELECT
+                commentid,
+                comments.uid AS uid,
+                message,
+                _timestamp,
+                users.firstname AS firstname,
+                users.lastname AS lastname,
+                users.profileimage AS profileimage
+            FROM
+                `comments`
+                JOIN users ON users.uid = comments.uid
+            WHERE comments.highlowid = '{}' ORDER BY _timestamp;
+            """.format(raw_feed[i]["highlowid"]) )
+
+            comments = cursor.fetchall()
+            for j in comments:
+                j["_timestamp"] = j["_timestamp"].isoformat()
+
+            feed_item = {
+                "user": {
+                    "uid": raw_feed[i]["friend_id"],
+                    "firstname": raw_feed[i]["firstname"],
+                    "lastname": raw_feed[i]["lastname"],
+                    "profileimage": raw_feed[i]["profileimage"],
+                    "streak": raw_feed[i]["streak"],
+                    "bio": raw_feed[i]["bio"]
+                },
+                "highlow": {
+                    "highlowid": raw_feed[i]["highlowid"],
+                    "high": raw_feed[i]["high"],
+                    "low": raw_feed[i]["low"],
+                    "high_image": raw_feed[i]["high_image"],
+                    "low_image": raw_feed[i]["low_image"],
+                    "_date": raw_feed[i]["_date"],
+                    "_timestamp": raw_feed[i]["_timestamp"].isoformat(),
+                    "total_likes": raw_feed[i]["total_likes"],
+                    "uid": raw_feed[i]["friend_id"],
+                    "comments": comments
+                }
+            }
+
+            feed.append(feed_item)
 
         conn.commit()
         conn.close()

@@ -29,6 +29,7 @@ class HighLow:
             if not result:
                 raise ValueError("highlow-no-exist")
             
+            self.uid = result["uid"]
             self.high = result["high"]
             self.low = result["low"]
             self.high_image = result["high_image"]
@@ -111,13 +112,15 @@ class HighLow:
 
     def get_json(self):
         json_object = {
+            "uid": self.uid,
             "high": self.high,
             "low": self.low, 
             "high_image": self.high_image,
             "low_image": self.low_image,
             "total_likes": self.total_likes,
             "highlowid": self.high_low_id,
-            "timestamp": self.timestamp.isoformat(),
+            "_timestamp": self.timestamp.isoformat(),
+            "_date": self.date,
             "comments": []
         }
 
@@ -519,17 +522,43 @@ class HighLowList:
 
         highlow = cursor.fetchone()
 
-        conn.commit()
-        conn.close()
-
         if highlow == None:
+            conn.commit()
+            conn.close()
+            
             return {
                 "high":"",
                 "low":"",
+                "uid": uid,
                 "total_likes": 0,
                 "high_image": "",
-                "low_image": ""
+                "low_image": "",
+                "date": "",
+                "comments": []
             }
+
+        cursor.execute( """
+            SELECT
+                commentid,
+                comments.uid AS uid,
+                message,
+                _timestamp,
+                users.firstname AS firstname,
+                users.lastname AS lastname,
+                users.profileimage AS profileimage
+            FROM
+                `comments`
+                JOIN users ON users.uid = comments.uid
+            WHERE comments.highlowid = '{}' ORDER BY _timestamp;
+        """.format(highlow["highlowid"]) )
+
+        highlow["comments"] = cursor.fetchall()
+
+        for i in highlow["comments"]:
+            i["_timestamp"] = i["_timestamp"].isoformat()
+
+        conn.commit()
+        conn.close()
 
         highlow["_timestamp"] = highlow["_timestamp"].isoformat()
 
@@ -549,18 +578,45 @@ class HighLowList:
 
         highlow = cursor.fetchone()
 
-        conn.commit()
-        conn.close()
-
+        
         if highlow == None:
+            conn.commit()
+            conn.close()
+
             return {
                 "high":"",
+                "uid": uid,
                 "low":"",
                 "total_likes": 0,
                 "high_image": "",
                 "low_image": "",
-                "date": ""
+                "date": "",
+                "comments": []
             }
+
+        cursor.execute( """
+            SELECT
+                commentid,
+                comments.uid AS uid,
+                message,
+                _timestamp,
+                users.firstname AS firstname,
+                users.lastname AS lastname,
+                users.profileimage AS profileimage
+            FROM
+                `comments`
+                JOIN users ON users.uid = comments.uid
+            WHERE comments.highlowid = '{}' ORDER BY _timestamp;
+        """.format(highlow["highlowid"]) )
+
+        highlow["comments"] = cursor.fetchall()
+
+        for i in highlow["comments"]:
+            i["_timestamp"] = i["_timestamp"].isoformat()
+
+        conn.commit()
+        conn.close()
+
 
         highlow["_timestamp"] = highlow["_timestamp"].isoformat()
 

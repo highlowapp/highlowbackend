@@ -469,11 +469,9 @@ def get_feed(page):
 
     uid = result["uid"]
 
-    try:
-        user = User(uid, host, username, password, database)
-        return user.get_feed(FEED_LIMIT, page)
-    except:
-        return '{ "error": "invalid-uid" }'
+    user = User(uid, host, username, password, database)
+    return user.get_feed(FEED_LIMIT, page)
+
 
 @app.route("/user/friends", methods=["GET"])
 def get_friends():
