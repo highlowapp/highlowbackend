@@ -762,7 +762,7 @@ def get_arbitrary(highlowid):
         
         try:
             highlow = HighLow(host, username, password, database, highlowid)
-            return json.dumps( highlow.get_json() )
+            return json.dumps( highlow.get_json(verification["uid"]) )
         except Exception as e:
             print(e)
             return '{ "error": "invalid-highlowid"  }' 
@@ -785,7 +785,7 @@ def get_user():
 
         highlowlist = HighLowList(host, username, password, database)
 
-        highlows = highlowlist.get_highlows_for_user(uid, sortby=request.args.get("sortby"), limit=request.args.get("limit"))
+        highlows = highlowlist.get_highlows_for_user(uid, verification["uid"], sortby=request.args.get("sortby"), limit=request.args.get("limit"))
 
         return '{ "highlows": ' + json.dumps( highlows ) + ' }'
 
@@ -804,7 +804,7 @@ def get_date():
 
     highlowlist = HighLowList(host, username, password, database)
 
-    return json.dumps( highlowlist.get_day_for_user(verification["uid"], date) ) 
+    return json.dumps( highlowlist.get_day_for_user(verification["uid"], date, verification["uid"]) ) 
 
 
 

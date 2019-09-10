@@ -110,7 +110,7 @@ class HighLow:
         return '{ "highlowid":"' + self.high_low_id + '" }'
 
 
-    def get_json(self):
+    def get_json(self, uid=None):
         json_object = {
             "uid": self.uid,
             "high": self.high,
@@ -127,6 +127,14 @@ class HighLow:
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
+
+        if uid != None:
+            cursor.execute( "SELECT * FROM likes WHERE uid='{}' AND highlowid='{}'".format(uid, self.high_low_id) )
+            if cursor.fetchone() != None:
+                json_object["liked"] = True
+            cursor.execute("SELECT * FROM flags WHERE uid='{}' AND highlowid='{}'".format(uid, self.high_low_id))
+            if cursor.fetchone() != None:
+                json_object["flagged"] = True
 
         cursor.execute( """
             SELECT
@@ -283,7 +291,7 @@ class HighLow:
             return { 'error': 'already-liked' }
 
         #Make sure the highlow does not belong to the user
-        cursor.execute("SELECT uid FROM highlows WHERE highlowid='{}'".format(self.high_low_id))
+        cursor.execute("SELECT uid FROM highlows WHERE highlowid='{}' AND uid='{}'".format(self.high_low_id, uid))
 
         if cursor.fetchone() != None:
             conn.commit()
@@ -446,7 +454,7 @@ class HighLowList:
         self.password = password
         self.database = database
 
-    def get_highlows_for_user(self, uid, sortby=None, limit=None):
+    def get_highlows_for_user(self, uid, current_user, sortby=None, limit=None):
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
@@ -458,7 +466,36 @@ class HighLowList:
         else:
             limit = ""
 
-        cursor.execute("SELECT * FROM highlows WHERE uid='{}' {} ORDER BY _date DESC;".format(uid, limit))
+        cursor.execute("""
+        
+        SELECT
+            highlows.highlowid   AS highlowid,
+            highlows.high        AS high,
+            highlows.low         AS low,
+            highlows.low_image   AS low_image,
+            highlows.high_image  AS high_image,
+            highlows._timestamp  AS _timestamp,
+            highlows._date AS _date,
+            highlows.total_likes AS total_likes,
+
+            CASE
+            WHEN flags.id IS NULL THEN 0
+            ELSE 1
+            END              AS flagged,
+
+            CASE
+            WHEN likes.id IS NULL THEN 0
+            ELSE 1
+            END              AS liked
+
+        FROM
+            highlows
+            LEFT OUTER JOIN flags ON flags.flagger = '{}' AND flags.highlowid = highlows.highlowid
+            LEFT OUTER JOIN likes ON likes.uid = '{}' AND likes.highlowid = highlows.highlowid
+        WHERE highlows.uid = '{}'
+        ORDER BY highlows._timestamp DESC {};
+        
+        """.format(current_user, current_user, uid, limit))
 
         highlows = cursor.fetchall()
 
@@ -534,6 +571,8 @@ class HighLowList:
                 "high_image": "",
                 "low_image": "",
                 "date": "",
+                "liked": "",
+                "flagged": "",
                 "comments": []
             }
 
@@ -564,7 +603,7 @@ class HighLowList:
 
         return highlow
 
-    def get_day_for_user(self, uid, date):
+    def get_day_for_user(self, uid, date, viewer):
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
@@ -590,9 +629,19 @@ class HighLowList:
                 "total_likes": 0,
                 "high_image": "",
                 "low_image": "",
+                "flagged": 0,
+                "liked": 0,
                 "date": "",
                 "comments": []
             }
+
+        cursor.execute( "SELECT * FROM likes WHERE uid='{}' AND highlowid='{}'".format(viewer, self.high_low_id) )
+        if cursor.fetchone() != None:
+            highlow["liked"] = True
+        cursor.execute("SELECT * FROM flags WHERE uid='{}' AND highlowid='{}'".format(viewer, self.high_low_id))
+        if cursor.fetchone() != None:
+            highlow["flagged"] = True
+
 
         cursor.execute( """
             SELECT
