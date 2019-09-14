@@ -432,8 +432,16 @@ class HighLow:
         uid = pymysql.escape_string( bleach.clean(uid) )
 
         _type = "highlow"
-         
-        cursor.execute( "INSERT INTO flags(flagger, highlowid, _type) VALUES('{}', '{}', '{}');".format(uid, self.high_low_id, _type) )
+
+        #Check for duplicates
+        cursor.execute( "SELECT * FROM flags WHERE flagger='{}' AND highlowid='{}' AND _type='highlow';".format(uid, self.high_low_id))
+
+        if not cursor.fetchone():
+            cursor.execute( "INSERT INTO flags(flagger, highlowid, _type) VALUES('{}', '{}', '{}');".format(uid, self.high_low_id, _type) )
+        else:
+            conn.commit()
+            conn.close()
+            return '{ "error": "already-flagged" }'
 
         conn.commit()
         conn.close()
