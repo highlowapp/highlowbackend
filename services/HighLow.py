@@ -446,7 +446,7 @@ class HighLow:
         cursor = conn.cursor()
 
         uid = pymysql.escape_string( bleach.clean(uid) )
-         
+        
         cursor.execute( "DELETE FROM flags WHERE highlowid='{}' AND flagger='{}';".format(self.high_low_id, uid) )
 
         conn.commit()

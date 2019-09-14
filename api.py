@@ -854,10 +854,7 @@ def unflaghighlow(highlowid):
 
     flagger = result["uid"]
 
-    try:
-        highlow = HighLow(host, username, password, database, high_low_id=highlowid)
-    except:
-        return '{ "error": "highlow-no-exist" }'
+    highlow = HighLow(host, username, password, database, high_low_id=highlowid)
 
     return highlow.unflag(flagger)
 
