@@ -372,7 +372,7 @@ class User:
 
         #Format the feed JSON (Normally I would say this wasn't a good idea, but in this case the size of the array is limited, so I think we'll be fine)
         feed = []
-
+        print(raw_feed)
         for i in range(len(raw_feed)):
 
             #Get the comments
