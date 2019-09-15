@@ -304,11 +304,15 @@ class HighLow:
         #Update the HighLow's total_likes
         cursor.execute( "UPDATE highlows SET total_likes = total_likes + 1 WHERE highlowid='{}';".format(self.high_low_id) )
 
+        cursor.execute( "SELECT total_likes FROM highlows WHERE highlowid='{}';".format(self.high_low_id) )
+
+        highlow = cursor.fetchone()
+
         #Commit and close the connection
         conn.commit()
         conn.close()
 
-        return { 'status': 'success'}
+        return { 'status': 'success', 'total_likes': highlow["total_likes"] }
 
 
 
@@ -326,11 +330,15 @@ class HighLow:
         #Delete the entry, if it exists
         cursor.execute( "DELETE FROM likes WHERE highlowid='{}' AND uid='{}';".format(self.high_low_id, uid) )
 
+        cursor.execute( "SELECT total_likes FROM highlows WHERE highlowid='{}';".format(self.high_low_id) )
+
+        highlow = cursor.fetchone()
+
         #Commit and close the connection
         conn.commit()
         conn.close()
 
-        return '{ "status": "success" }'
+        return json.dumps({ 'status': 'success', 'total_likes': highlow["total_likes"] })
 
     def comment(self, uid, message):
         #Collect the specified data and add to the database
