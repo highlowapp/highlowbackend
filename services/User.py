@@ -192,6 +192,18 @@ class User:
 
         users = cursor.fetchall() 
 
+        cursor.execute("""
+            SELECT 
+                CASE
+                    WHEN friends.initiator = '{}' THEN friends.acceptor
+                    WHEN friends.acceptor = '{}' THEN friends.initiator
+                END AS friend_id 
+            FROM friends WHERE (friends.initiator = '{}' OR friends.acceptor = '{}') AND friends.status = 2;
+            
+        """.format(self.uid, self.uid, self.uid, self.uid) )
+
+        friends = cursor.fetchall()
+
         conn.commit()
         conn.close()
 
@@ -199,6 +211,21 @@ class User:
 
         for i in range( len(users) ):
             name = users[i]["firstname"] + " " + users[i]["lastname"]
+            uid = users[i]["uid"]
+
+            if uid == self.uid:
+                continue
+
+            shouldContinue = False
+
+            for j in friends:
+                if friends["friend_id"] == self.uid:
+                    shouldContinue = True
+                    break
+            
+            if shouldContinue:
+                continue
+
             rank = 0
 
             for j in range( len(name) ):
