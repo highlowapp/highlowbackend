@@ -676,7 +676,7 @@ def like(highlowid):
             result = highlow.like(uid)
 
             return json.dumps( result )
-        except Exception as e:
+        except Exception:
             return '{"error":"invalid-highlowid"}'  
 
 
@@ -692,13 +692,11 @@ def unlike(highlowid):
     else:
         uid = verification["uid"]
 
-        try: 
-            highlow = HighLow(host, username, passsord, database, highlowid)
-            result = highlow.unlike(uid)
- 
-            return '{"status": "success"}'
-        except:
-            return '{"error": "invalid-highlowid"}'
+        highlow = HighLow(host, username, password, database, highlowid)
+        result = highlow.unlike(uid)
+
+        return result
+        
         
 
         
@@ -762,7 +760,7 @@ def get_arbitrary(highlowid):
         
         try:
             highlow = HighLow(host, username, password, database, highlowid)
-            return json.dumps( highlow.get_json() )
+            return json.dumps( highlow.get_json(verification["uid"]) )
         except Exception as e:
             print(e)
             return '{ "error": "invalid-highlowid"  }' 
@@ -785,7 +783,7 @@ def get_user():
 
         highlowlist = HighLowList(host, username, password, database)
 
-        highlows = highlowlist.get_highlows_for_user(uid, sortby=request.args.get("sortby"), limit=request.args.get("limit"))
+        highlows = highlowlist.get_highlows_for_user(uid, verification["uid"], sortby=request.args.get("sortby"), limit=request.args.get("limit"))
 
         return '{ "highlows": ' + json.dumps( highlows ) + ' }'
 
@@ -804,7 +802,7 @@ def get_date():
 
     highlowlist = HighLowList(host, username, password, database)
 
-    return json.dumps( highlowlist.get_day_for_user(verification["uid"], date) ) 
+    return json.dumps( highlowlist.get_day_for_user(verification["uid"], date, verification["uid"]) ) 
 
 
 
@@ -856,10 +854,7 @@ def unflaghighlow(highlowid):
 
     flagger = result["uid"]
 
-    try:
-        highlow = HighLow(host, username, password, database, high_low_id=highlowid)
-    except:
-        return '{ "error": "highlow-no-exist" }'
+    highlow = HighLow(host, username, password, database, high_low_id=highlowid)
 
     return highlow.unflag(flagger)
 
