@@ -218,7 +218,7 @@ class User:
 
             shouldContinue = False
 
-            for j in friends:
+            for j in range( len(friends) ):
                 if friends[j]["friend_id"] == self.uid:
                     shouldContinue = True
                     break
