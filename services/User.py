@@ -209,8 +209,6 @@ class User:
 
         ranked_users = []
 
-        print(friends)
-
         for i in range( len(users) ):
             name = users[i]["firstname"] + " " + users[i]["lastname"]
             uid = users[i]["uid"]
@@ -221,7 +219,7 @@ class User:
             shouldContinue = False
 
             for j in range( len(friends) ):
-                if friends[j]["friend_id"] == self.uid:
+                if friends[j]["friend_id"] == uid:
                     shouldContinue = True
                     break
             
