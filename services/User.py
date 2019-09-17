@@ -219,7 +219,7 @@ class User:
             shouldContinue = False
 
             for j in friends:
-                if friends["friend_id"] == self.uid:
+                if friends[j]["friend_id"] == self.uid:
                     shouldContinue = True
                     break
             
