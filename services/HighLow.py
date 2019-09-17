@@ -478,17 +478,15 @@ class HighLowList:
         self.password = password
         self.database = database
 
-    def get_highlows_for_user(self, uid, current_user, sortby=None, limit=None):
+    def get_highlows_for_user(self, uid, current_user, limit, page, sortby=None):
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
         uid = pymysql.escape_string( bleach.clean(uid) )
 
-        if limit != None:
-            limit = "LIMIT " + pymysql.escape_string( bleach.clean(limit) )
-        else:
-            limit = ""
+        limit = int( pymysql.escape_string( bleach.clean( str(limit) ) ) )
+        offset = int( pymysql.escape_string( bleach.clean( str(page) ) ) ) * limit
 
         cursor.execute("""
         
@@ -518,9 +516,9 @@ class HighLowList:
             LEFT OUTER JOIN flags ON flags.flagger = '{}' AND flags.highlowid = highlows.highlowid
             LEFT OUTER JOIN likes ON likes.uid = '{}' AND likes.highlowid = highlows.highlowid
         WHERE highlows.uid = '{}'
-        ORDER BY highlows._timestamp DESC {};
+        ORDER BY highlows._timestamp DESC LIMIT {} OFFSET {};
         
-        """.format(current_user, current_user, uid, limit))
+        """.format(current_user, current_user, uid, limit, offset))
 
         highlows = cursor.fetchall()
 

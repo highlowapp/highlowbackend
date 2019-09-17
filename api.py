@@ -767,8 +767,8 @@ def get_arbitrary(highlowid):
 
 
 
-@app.route("/highlow/get/user", methods=["GET"])
-def get_user():
+@app.route("/highlow/get/user/page/<int:page>", methods=["GET"])
+def get_user(page):
     #Verify auth token
     token = request.headers["Authorization"].replace("Bearer ", "")
 
@@ -783,7 +783,7 @@ def get_user():
 
         highlowlist = HighLowList(host, username, password, database)
 
-        highlows = highlowlist.get_highlows_for_user(uid, verification["uid"], sortby=request.args.get("sortby"), limit=request.args.get("limit"))
+        highlows = highlowlist.get_highlows_for_user(uid, verification["uid"], FEED_LIMIT, page, sortby=request.args.get("sortby") )
 
         return '{ "highlows": ' + json.dumps( highlows ) + ' }'
 
