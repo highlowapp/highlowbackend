@@ -209,6 +209,8 @@ class User:
 
         ranked_users = []
 
+        print(friends)
+
         for i in range( len(users) ):
             name = users[i]["firstname"] + " " + users[i]["lastname"]
             uid = users[i]["uid"]
