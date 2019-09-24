@@ -589,6 +589,25 @@ def accept_friendship(friend):
 
     return json.dumps( user.accept_friend(friend) )
 
+@app.route("/user/calendar", methods=["GET"])
+def get_calendar():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    user = User(uid, host, username, password, database)
+    
+    return json.dumps( user.get_calendar() )
+
+
 
 
 

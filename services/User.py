@@ -478,4 +478,16 @@ class User:
 
         return value
 
-        
+    def get_calendar(self):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute( "SELECT highlowid, _date FROM highlows WHERE uid='{}';".format(self.uid) )
+
+        calendar = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        return { "calendar": calendar }
