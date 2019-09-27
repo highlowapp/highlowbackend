@@ -9,6 +9,7 @@ from services.HighLow import HighLow, HighLowList, Comments
 from services.EventLogger import EventLogger
 from services.Notifications import Notifications
 from services.Admin import Admin
+from services.BugReports import BugReports
 import serviceutils
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
@@ -50,6 +51,10 @@ event_logger = EventLogger(host, username, password, database)
 
 #Create and admin instance
 admin = Admin(host, username, password, database)
+
+#Create a bug reports instance
+bug_reports = BugReports(host, username, password, database)
+
 
 #Create a Notifications instance
 notifs = Notifications(host, username, password, database)
@@ -1118,6 +1123,50 @@ def dismissFlag(flag_id):
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
 
     return response
+
+@app.route("/admin/dismiss_bug/<int:bug_id", methods=["GET"])
+def dismiss_bug(bug_id):
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    result = bug_reports.dismiss(bug_id) 
+
+    response = jsonify(result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+@app.route("/admin/list_bug_reports", methods=["GET"])
+def list_bug_reports():
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    result = bug_reports.list_bugs()
+
+    response = jsonify(result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+
+
+
+
+@app.route("/bug_reports/submit", methods=["POST"])
+def report_bug():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in token_verification_request:
+        return '{ "error": "' + token_verification_request["error"] + '" }'
+
+    return bug_reports.report_bug(token_verification_request["uid"], request.form["message"])
 
 
 
