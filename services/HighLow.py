@@ -445,7 +445,7 @@ class HighLow:
         cursor.execute( "SELECT * FROM flags WHERE flagger='{}' AND highlowid='{}' AND _type='highlow';".format(uid, self.high_low_id))
 
         if not cursor.fetchone():
-            cursor.execute( "INSERT INTO flags(flagger, highlowid, _type) VALUES('{}', '{}', '{}');".format(uid, self.high_low_id, _type) )
+            cursor.execute( "INSERT INTO flags(flagger, highlowid, uid, _type) VALUES('{}', '{}', '{}', '{}');".format(uid, self.high_low_id, self.uid, _type) )
             cursor.execute( "UPDATE users SET times_flagged = times_flagged + 1 WHERE uid='{}';".format(self.uid) )
         else:
             conn.commit()
