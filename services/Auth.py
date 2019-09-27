@@ -150,7 +150,7 @@ class Auth:
         error = ""
 
         #Does a user exist with that email?
-        cursor.execute("SELECT uid, password FROM users WHERE email='" + email + "';")
+        cursor.execute("SELECT uid, password, banned FROM users WHERE email='" + email + "';")
 
         existingUser = cursor.fetchone()
 
@@ -158,7 +158,7 @@ class Auth:
         if existingUser != None:
 
             #If the password is correct...
-            if bcrypt.checkpw(password.encode('utf-8'), existingUser["password"].encode('utf-8')):
+            if existingUser["banned"] != True and bcrypt.checkpw(password.encode('utf-8'), existingUser["password"].encode('utf-8')):
 
                 #The user is authenticated; create and return a token
                 access_token = self.create_token( existingUser["uid"] )
