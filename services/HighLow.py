@@ -446,6 +446,7 @@ class HighLow:
 
         if not cursor.fetchone():
             cursor.execute( "INSERT INTO flags(flagger, highlowid, _type) VALUES('{}', '{}', '{}');".format(uid, self.high_low_id, _type) )
+            cursor.execute( "UPDATE users SET times_flagged = times_flagged + 1 WHERE uid='{}';".format(self.uid) )
         else:
             conn.commit()
             conn.close()
