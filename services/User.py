@@ -505,3 +505,15 @@ class User:
         conn.close()
 
         return { "status": "success" }
+
+    def unban(self):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE users SET banned=FALSE WHERE uid='{}'".format(self.uid))
+
+        conn.commit()
+        conn.close()
+
+        return { "status": "success" }
