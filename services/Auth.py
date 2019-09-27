@@ -365,7 +365,7 @@ class Auth:
             cursor.execute("SELECT banned FROM users WHERE uid='{}';".format(payload["sub"]))
 
             user = cursor.fetchone()
-            if user != None && user["banned"]:
+            if user != None and user["banned"]:
                 return "ERROR-INVALID-REFRESH-TOKEN"
 
             #Create a new token and return it
