@@ -1050,6 +1050,24 @@ def inspect_user(uid):
 
     return response
 
+@app.route("/admin/ban/<string:uid>", methods=["GET"])
+def ban_user(uid):
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        serviceutils.log_event("eventlogger_failed_attempt", {
+            "ip": get_remote_addr(request)
+            })
+
+    #Otherwise, get the user
+    user = User(uid, host, username, password, database)
+   
+    result = user.ban() 
+    
+    response = jsonify(result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
 
 
 
