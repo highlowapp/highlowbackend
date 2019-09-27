@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import Helpers
 import requests
 import json
@@ -975,8 +975,12 @@ def query():
             "ip": get_remote_addr(request)
             })
 
-    return event_logger.query( _type=_type, min_time=min_time, max_time=max_time, conditions=conditions or [], admin_password=request.args["admin_password"] )
+    query_result = event_logger.query( _type=_type, min_time=min_time, max_time=max_time, conditions=conditions or [], admin_password=request.args["admin_password"] )
 
+    response = jsonify(query_result)
+
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
 
 
 

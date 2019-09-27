@@ -69,7 +69,7 @@ class EventLogger:
 
         #Password check
         if admin_password != _admin_password:
-            return '{"error":"not-authorized"}'
+            return json.loads('{"error":"not-authorized"}')
 
 
         sql_statement = "SELECT * FROM events WHERE 1=1 {} {} {} ORDER BY _timestamp DESC;".format(condition_str, time_constraint_str, type_str)
@@ -92,4 +92,4 @@ class EventLogger:
             i["_timestamp"] = i["_timestamp"].isoformat()
 
         #Return the data
-        return json.dumps(data)
+        return data
