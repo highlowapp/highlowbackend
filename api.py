@@ -1124,7 +1124,7 @@ def dismissFlag(flag_id):
 
     return response
 
-@app.route("/admin/dismiss_bug/<int:bug_id", methods=["GET"])
+@app.route("/admin/dismiss_bug/<int:bug_id>", methods=["GET"])
 def dismiss_bug(bug_id):
     if request.args.get("admin_password") != eventlogger_config["admin_password"]:
         return "error"
