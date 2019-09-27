@@ -42,6 +42,8 @@ class User:
         self.profileimage = user["profileimage"]
         self.bio = user["bio"]
         self.streak = user["streak"]
+        self.times_flagged = user["times_flagged"]
+        self.banned = user["banned"]
     
     ## Setters ##
 

@@ -1020,6 +1020,35 @@ def get_flags():
 
     return response
 
+@app.route("/admin/inspect_user/<string:uid>", methods=["GET"])
+def inspect_user(uid):
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        serviceutils.log_event("eventlogger_failed_attempt", {
+            "ip": get_remote_addr(request)
+            })
+
+    #Otherwise, get the user
+    user = User(uid, host, username, password, database)
+   
+
+    #Create user JSON description
+    user_json = {
+        "uid": user.uid,
+        "firstname": user.firstname,
+        "lastname": user.lastname,
+        "profileimage": user.profileimage,
+        "streak": user.calculate_streak(),
+        "email": user.email,
+        "bio": user.bio,
+        "times_flagged": user.times_flagged,
+        "banned": user.banned 
+    }
+    
+    response = jsonify(user_json)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
 
 
 
