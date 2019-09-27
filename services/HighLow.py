@@ -463,8 +463,8 @@ class HighLow:
         cursor = conn.cursor()
 
         uid = pymysql.escape_string( bleach.clean(uid) )
-        print(uid)
-        cursor.execute("SELECT FROM flags WHERE highlowid='{}' AND flagger='{}';".format(self.high_low_id, uid))
+
+        cursor.execute("SELECT id FROM flags WHERE highlowid='{}' AND flagger='{}';".format(self.high_low_id, uid))
 
         if cursor.fetchone() != None:
             cursor.execute( """
