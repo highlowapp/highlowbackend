@@ -74,8 +74,6 @@ class EventLogger:
 
         sql_statement = "SELECT * FROM events WHERE 1=1 {} {} {} ORDER BY _timestamp DESC;".format(condition_str, time_constraint_str, type_str)
 
-        print(sql_statement)
-
         #Connect to MySQL database
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
@@ -89,6 +87,9 @@ class EventLogger:
         #Commit and close the connection
         conn.commit()
         conn.close()
+
+        for i in data:
+            i["_timestamp"] = i["_timestamp"].isoformat()
 
         #Return the data
         return json.dumps(data)
