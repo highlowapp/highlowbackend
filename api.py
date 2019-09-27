@@ -993,9 +993,7 @@ def query():
 @app.route("/admin/total_users", methods=["GET"])
 def total_users():
     if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        serviceutils.log_event("eventlogger_failed_attempt", {
-            "ip": get_remote_addr(request)
-            })
+        return "error"
 
     query_result = admin.total_users()
 
@@ -1008,9 +1006,7 @@ def total_users():
 @app.route("/admin/list_flags", methods=["GET"])
 def get_flags():
     if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        serviceutils.log_event("eventlogger_failed_attempt", {
-            "ip": get_remote_addr(request)
-            })
+        return "error"
 
     query_result = admin.get_flags() 
 
@@ -1023,9 +1019,7 @@ def get_flags():
 @app.route("/admin/inspect_user/<string:uid>", methods=["GET"])
 def inspect_user(uid):
     if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        serviceutils.log_event("eventlogger_failed_attempt", {
-            "ip": get_remote_addr(request)
-            })
+        return "error"
 
     #Otherwise, get the user
     user = User(uid, host, username, password, database)
@@ -1053,9 +1047,7 @@ def inspect_user(uid):
 @app.route("/admin/ban/<string:uid>", methods=["GET"])
 def ban_user(uid):
     if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        serviceutils.log_event("eventlogger_failed_attempt", {
-            "ip": get_remote_addr(request)
-            })
+        return "error"
 
     #Otherwise, get the user
     user = User(uid, host, username, password, database)
@@ -1072,9 +1064,7 @@ def ban_user(uid):
 @app.route("/admin/unban/<string:uid>", methods=["GET"])
 def unban_user(uid):
     if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        serviceutils.log_event("eventlogger_failed_attempt", {
-            "ip": get_remote_addr(request)
-            })
+        return "error"
 
     #Otherwise, get the user
     user = User(uid, host, username, password, database)
@@ -1082,6 +1072,35 @@ def unban_user(uid):
     result = user.unban() 
     
     response = jsonify(result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+
+@app.route("/admin/inspect_highlow/<string:highlowid>", methods=["GET"])
+def inspect_highlow(highlowid):
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    highlow = HighLow(host, username, password, database, highlowid)
+    result = highlow.get_json()
+
+    response = jsonify(result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+@app.route("/admin/delete_highlow/<string:highlowid>", methods=["GET"])
+def delete_highlow(highlowid):
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    highlow = HighLow(host, username, password, database, highlowid)
+    highlow.delete()
+
+    response = jsonify({ "status": "success" })
     response.headers.set('Access-Control-Allow-Origin', '*')
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
 
