@@ -63,7 +63,7 @@ class EventLogger:
 
         #Type constraint
         type_str = ""
-
+        print(_type)
         if _type != None:
             type_str += " AND type='{}'".format(_type)
 
