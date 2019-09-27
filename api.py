@@ -1106,6 +1106,20 @@ def delete_highlow(highlowid):
 
     return response
 
+@app.route("/admin/dismiss_flag/<int:flag_id>", methods=["GET"])
+def dismissFlag(flag_id):
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    result = admin.dismiss_flag(flag_id)
+
+    response = jsonify(result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+
 
 
 

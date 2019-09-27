@@ -1,5 +1,6 @@
 import pymysql
 import datetime
+import bleach
 
 class Admin:
     def __init__(self, host, username, password, database):
@@ -38,4 +39,20 @@ class Admin:
 
         return {
             "flags": flags
+        }
+
+    def dismiss_flag(self, flag_id):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        flag_id_str = pymysql.escape_string( bleach.clean(flag_id) )
+
+        cursor.execute("DELETE FROM flags WHERE id={};".format(flag_id_str))
+
+        conn.commit()
+        conn.close()
+
+        return {
+            "status": "success"
         }
