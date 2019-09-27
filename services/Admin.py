@@ -30,7 +30,7 @@ class Admin:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM flags;")
+        cursor.execute("SELECT * FROM flags WHERE open=TRUE;")
 
         flags = cursor.fetchall()
 
@@ -48,7 +48,7 @@ class Admin:
 
         flag_id_str = pymysql.escape_string( bleach.clean(str(flag_id)) )
 
-        cursor.execute("DELETE FROM flags WHERE id={};".format(flag_id_str))
+        cursor.execute("UPDATE flags SET open=false WHERE id={}".format(flag_id_str))
 
         conn.commit()
         conn.close()
