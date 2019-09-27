@@ -401,7 +401,7 @@ class User:
 
         #Format the feed JSON (Normally I would say this wasn't a good idea, but in this case the size of the array is limited, so I think we'll be fine)
         feed = []
-        print(raw_feed)
+
         for i in range(len(raw_feed)):
 
             #Get the comments
@@ -493,3 +493,15 @@ class User:
         conn.close()
 
         return { "calendar": calendar }
+
+    def ban(self):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE users SET banned=TRUE WHERE uid='{}'".format(self.uid))
+
+        conn.commit()
+        conn.close()
+
+        return { "status": "success" }
