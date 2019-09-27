@@ -46,7 +46,7 @@ class Admin:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        flag_id_str = pymysql.escape_string( bleach.clean(flag_id) )
+        flag_id_str = pymysql.escape_string( bleach.clean(str(flag_id)) )
 
         cursor.execute("DELETE FROM flags WHERE id={};".format(flag_id_str))
 
