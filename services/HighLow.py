@@ -257,6 +257,10 @@ class HighLow:
         #Delete the entry
         cursor.execute("DELETE FROM highlows WHERE highlowid='" + self.high_low_id + "';")
 
+        cursor.execute("DELETE FROM flags WHERE highlowid='{}';".format(self.high_low_id))
+
+        cursor.execute("DELETE FROM likes WHERE highlowid='{}';".format(self.high_low_id))
+
         #Commit and close the connection
         conn.commit()
         conn.close()
