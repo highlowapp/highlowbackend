@@ -463,6 +463,11 @@ class HighLow:
         cursor = conn.cursor()
 
         uid = pymysql.escape_string( bleach.clean(uid) )
+
+        cursor.execute("SELECT FROM flags WHERE highlowid='{}' AND flagger='{}';".format(self.high_low_id, uid))
+
+        if cursor.fetchone() != None:
+            cursor.execute( "UPDATE users SET times_flagged = CASE WHEN times_flagged > 0 THEN times_flagged - 1 ELSE 0 END WHERE uid='{}';".format(self.uid) )
         
         cursor.execute( "DELETE FROM flags WHERE highlowid='{}' AND flagger='{}';".format(self.high_low_id, uid) )
 
