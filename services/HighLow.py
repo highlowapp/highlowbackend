@@ -467,7 +467,10 @@ class HighLow:
         cursor.execute("SELECT FROM flags WHERE highlowid='{}' AND flagger='{}';".format(self.high_low_id, uid))
 
         if cursor.fetchone() != None:
-            cursor.execute( "UPDATE users SET times_flagged = CASE WHEN times_flagged > 0 THEN times_flagged - 1 ELSE 0 END WHERE uid='{}';".format(self.uid) )
+            cursor.execute( """
+            UPDATE users
+            SET times_flagged = IF(times_flagged > 0, times_flagged - 1, 0)
+            WHERE uid = '{}';""".format(self.uid) )
         
         cursor.execute( "DELETE FROM flags WHERE highlowid='{}' AND flagger='{}';".format(self.high_low_id, uid) )
 
