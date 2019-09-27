@@ -8,6 +8,7 @@ from services.User import User
 from services.HighLow import HighLow, HighLowList, Comments
 from services.EventLogger import EventLogger
 from services.Notifications import Notifications
+from services.Admin import Admin
 import serviceutils
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
@@ -46,6 +47,9 @@ eventlogger_config = Helpers.read_json_from_file("config/eventlogger_config.json
 
 #Create an event logger instance
 event_logger = EventLogger(host, username, password, database)
+
+#Create and admin instance
+admin = Admin(host, username, password, database)
 
 #Create a Notifications instance
 notifs = Notifications(host, username, password, database)
@@ -974,6 +978,7 @@ def query():
         serviceutils.log_event("eventlogger_failed_attempt", {
             "ip": get_remote_addr(request)
             })
+        return '{ "error": "Unauthorized" }'
 
     query_result = event_logger.query( _type=_type, min_time=min_time, max_time=max_time, conditions=conditions or [], admin_password=request.args["admin_password"] )
 
@@ -983,6 +988,38 @@ def query():
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
 
     return response
+
+
+@app.route("/admin/total_users", methods=["GET"])
+def total_users():
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        serviceutils.log_event("eventlogger_failed_attempt", {
+            "ip": get_remote_addr(request)
+            })
+
+    query_result = admin.total_users()
+
+    response = jsonify(query_result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+@app.route("/admin/list_flags", methods=["GET"])
+def get_flags():
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        serviceutils.log_event("eventlogger_failed_attempt", {
+            "ip": get_remote_addr(request)
+            })
+
+    query_result = admin.get_flags() 
+
+    response = jsonify(query_result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
 
 
 
