@@ -347,6 +347,12 @@ class Auth:
         return token
 
     def refresh_access(self, refresh_token):
+        #Make sure the user is already deleted
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        
+
         try:
             payload = jwt.decode(refresh_token, self.SECRET_KEY, algorithms=["HS256"])
         except:
@@ -355,6 +361,13 @@ class Auth:
         current_timestamp = time.mktime( datetime.datetime.now().timetuple() )
 
         if payload["exp"] > current_timestamp and refresh_token not in self.blacklisted_tokens and payload["typ"] == "refresh":
+
+            cursor.execute("SELECT banned FROM users WHERE uid='{}';".format(payload["sub"]))
+
+            user = cursor.fetchone()
+            if user != None && user["banned"]:
+                return "ERROR-INVALID-REFRESH-TOKEN"
+
             #Create a new token and return it
             new_access_token = self.create_token(payload["sub"])
             return new_access_token
