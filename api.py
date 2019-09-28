@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import Helpers
 import requests
 import json
@@ -8,6 +8,8 @@ from services.User import User
 from services.HighLow import HighLow, HighLowList, Comments
 from services.EventLogger import EventLogger
 from services.Notifications import Notifications
+from services.Admin import Admin
+from services.BugReports import BugReports
 import serviceutils
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
@@ -46,6 +48,13 @@ eventlogger_config = Helpers.read_json_from_file("config/eventlogger_config.json
 
 #Create an event logger instance
 event_logger = EventLogger(host, username, password, database)
+
+#Create and admin instance
+admin = Admin(host, username, password, database)
+
+#Create a bug reports instance
+bug_reports = BugReports(host, username, password, database)
+
 
 #Create a Notifications instance
 notifs = Notifications(host, username, password, database)
@@ -589,6 +598,25 @@ def accept_friendship(friend):
 
     return json.dumps( user.accept_friend(friend) )
 
+@app.route("/user/calendar", methods=["GET"])
+def get_calendar():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    user = User(uid, host, username, password, database)
+    
+    return json.dumps( user.get_calendar() )
+
+
 
 
 
@@ -955,8 +983,190 @@ def query():
         serviceutils.log_event("eventlogger_failed_attempt", {
             "ip": get_remote_addr(request)
             })
+        return '{ "error": "Unauthorized" }'
 
-    return event_logger.query( _type=_type, min_time=min_time, max_time=max_time, conditions=conditions, admin_password=request.args["admin_password"] )
+    query_result = event_logger.query( _type=_type, min_time=min_time, max_time=max_time, conditions=conditions or [], admin_password=request.args["admin_password"] )
+
+    response = jsonify(query_result)
+
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+
+@app.route("/admin/total_users", methods=["GET"])
+def total_users():
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    query_result = admin.total_users()
+
+    response = jsonify(query_result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+@app.route("/admin/list_flags", methods=["GET"])
+def get_flags():
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    query_result = admin.get_flags() 
+
+    response = jsonify(query_result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+@app.route("/admin/inspect_user/<string:uid>", methods=["GET"])
+def inspect_user(uid):
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    #Otherwise, get the user
+    user = User(uid, host, username, password, database)
+   
+
+    #Create user JSON description
+    user_json = {
+        "uid": user.uid,
+        "firstname": user.firstname,
+        "lastname": user.lastname,
+        "profileimage": user.profileimage,
+        "streak": user.calculate_streak(),
+        "email": user.email,
+        "bio": user.bio,
+        "times_flagged": user.times_flagged,
+        "banned": user.banned 
+    }
+    
+    response = jsonify(user_json)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+@app.route("/admin/ban/<string:uid>", methods=["GET"])
+def ban_user(uid):
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    #Otherwise, get the user
+    user = User(uid, host, username, password, database)
+   
+    result = user.ban() 
+    
+    response = jsonify(result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+
+@app.route("/admin/unban/<string:uid>", methods=["GET"])
+def unban_user(uid):
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    #Otherwise, get the user
+    user = User(uid, host, username, password, database)
+   
+    result = user.unban() 
+    
+    response = jsonify(result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+
+@app.route("/admin/inspect_highlow/<string:highlowid>", methods=["GET"])
+def inspect_highlow(highlowid):
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    highlow = HighLow(host, username, password, database, highlowid)
+    result = highlow.get_json()
+
+    response = jsonify(result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+@app.route("/admin/delete_highlow/<string:highlowid>", methods=["GET"])
+def delete_highlow(highlowid):
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    highlow = HighLow(host, username, password, database, highlowid)
+    highlow.delete()
+
+    response = jsonify({ "status": "success" })
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+@app.route("/admin/dismiss_flag/<int:flag_id>", methods=["GET"])
+def dismissFlag(flag_id):
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    result = admin.dismiss_flag(flag_id)
+
+    response = jsonify(result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+@app.route("/admin/dismiss_bug/<int:bug_id>", methods=["GET"])
+def dismiss_bug(bug_id):
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    result = bug_reports.dismiss(bug_id) 
+
+    response = jsonify(result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+@app.route("/admin/list_bug_reports", methods=["GET"])
+def list_bug_reports():
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    result = bug_reports.list_bugs()
+
+    response = jsonify(result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+
+
+
+
+@app.route("/bug_reports/submit", methods=["POST"])
+def report_bug():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in token_verification_request:
+        return '{ "error": "' + token_verification_request["error"] + '" }'
+
+    return bug_reports.report_bug(token_verification_request["uid"], request.form["message"])
 
 
 

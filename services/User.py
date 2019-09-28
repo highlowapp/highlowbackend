@@ -42,6 +42,8 @@ class User:
         self.profileimage = user["profileimage"]
         self.bio = user["bio"]
         self.streak = user["streak"]
+        self.times_flagged = user["times_flagged"]
+        self.banned = user["banned"]
     
     ## Setters ##
 
@@ -399,7 +401,7 @@ class User:
 
         #Format the feed JSON (Normally I would say this wasn't a good idea, but in this case the size of the array is limited, so I think we'll be fine)
         feed = []
-        print(raw_feed)
+
         for i in range(len(raw_feed)):
 
             #Get the comments
@@ -478,4 +480,40 @@ class User:
 
         return value
 
-        
+    def get_calendar(self):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute( "SELECT highlowid, _date FROM highlows WHERE uid='{}';".format(self.uid) )
+
+        calendar = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        return { "calendar": calendar }
+
+    def ban(self):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE users SET banned=TRUE WHERE uid='{}'".format(self.uid))
+
+        conn.commit()
+        conn.close()
+
+        return { "status": "success" }
+
+    def unban(self):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE users SET banned=FALSE WHERE uid='{}'".format(self.uid))
+
+        conn.commit()
+        conn.close()
+
+        return { "status": "success" }

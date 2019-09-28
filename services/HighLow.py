@@ -257,6 +257,10 @@ class HighLow:
         #Delete the entry
         cursor.execute("DELETE FROM highlows WHERE highlowid='" + self.high_low_id + "';")
 
+        cursor.execute("DELETE FROM flags WHERE highlowid='{}';".format(self.high_low_id))
+
+        cursor.execute("DELETE FROM likes WHERE highlowid='{}';".format(self.high_low_id))
+
         #Commit and close the connection
         conn.commit()
         conn.close()
@@ -445,7 +449,8 @@ class HighLow:
         cursor.execute( "SELECT * FROM flags WHERE flagger='{}' AND highlowid='{}' AND _type='highlow';".format(uid, self.high_low_id))
 
         if not cursor.fetchone():
-            cursor.execute( "INSERT INTO flags(flagger, highlowid, _type) VALUES('{}', '{}', '{}');".format(uid, self.high_low_id, _type) )
+            cursor.execute( "INSERT INTO flags(flagger, highlowid, uid, _type) VALUES('{}', '{}', '{}', '{}');".format(uid, self.high_low_id, self.uid, _type) )
+            cursor.execute( "UPDATE users SET times_flagged = times_flagged + 1 WHERE uid='{}';".format(self.uid) )
         else:
             conn.commit()
             conn.close()
@@ -462,6 +467,14 @@ class HighLow:
         cursor = conn.cursor()
 
         uid = pymysql.escape_string( bleach.clean(uid) )
+
+        cursor.execute("SELECT id FROM flags WHERE highlowid='{}' AND flagger='{}';".format(self.high_low_id, uid))
+
+        if cursor.fetchone() != None:
+            cursor.execute( """
+            UPDATE users
+            SET times_flagged = IF(times_flagged > 0, times_flagged - 1, 0)
+            WHERE uid = '{}';""".format(self.uid) )
         
         cursor.execute( "DELETE FROM flags WHERE highlowid='{}' AND flagger='{}';".format(self.high_low_id, uid) )
 
