@@ -190,7 +190,7 @@ class User:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM users;")
+        cursor.execute("SELECT uid, firstname, lastname, email, profileimage, streak, bio FROM users WHERE banned=FALSE;")
 
         users = cursor.fetchall() 
 
