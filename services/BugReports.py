@@ -8,15 +8,16 @@ class BugReports:
         self.username = username
         self.password = password
         self.database = database
-    def report_bug(self, uid, message):
+    def report_bug(self, uid, title, message):
         uid = pymysql.escape_string( bleach.clean(uid) )
+        title = pymysql.escape_string( bleach.clean(title) )
         message = pymysql.escape_string( bleach.clean(message) )
 
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        cursor.execute("INSERT INTO bug_reports(uid, message) VALUES('{}', '{}');".format(uid, message))
+        cursor.execute("INSERT INTO bug_reports(uid, title, message) VALUES('{}', '{}', '{}');".format(uid, title, message))
 
         conn.commit()
         conn.close()

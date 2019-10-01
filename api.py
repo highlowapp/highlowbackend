@@ -1166,7 +1166,7 @@ def report_bug():
     if "error" in token_verification_request:
         return '{ "error": "' + token_verification_request["error"] + '" }'
 
-    return bug_reports.report_bug(token_verification_request["uid"], request.form["message"])
+    return bug_reports.report_bug(token_verification_request["uid"], request.form["title"], request.form["message"])
 
 
 
