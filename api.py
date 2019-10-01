@@ -997,8 +997,6 @@ def query():
 
 @app.route("/admin/total_users", methods=["GET"])
 def total_users():
-    print("Provided: " + request.args.get("admin_password"))
-    print("Correct: " + eventlogger_config["admin_password"])
     if request.args.get("admin_password") != eventlogger_config["admin_password"]:
         return "error"
 
