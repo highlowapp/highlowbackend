@@ -611,6 +611,15 @@ class HighLowList:
                 "flagged": "",
                 "comments": []
             }
+        
+
+        cursor.execute( "SELECT * FROM likes WHERE uid='{}' AND _date='{}';".format(uid, datestr) )
+        if cursor.fetchone() != None:
+            highlow["liked"] = True
+        cursor.execute("SELECT * FROM flags WHERE uid='{}' AND _date='{}';".format(uid, datestr))
+        if cursor.fetchone() != None:
+            highlow["flagged"] = True
+
 
         cursor.execute( """
             SELECT
