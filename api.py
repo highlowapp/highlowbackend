@@ -353,17 +353,18 @@ def set(property):
     #Otherwise, get the user
     user = User(result["uid"], host, username, password, database)
 
-    if property not in ["profileimage", "streak", "password"] :
+    if property not in ["profileimage", "streak", "password", "email"] :
         #Set the specified property
         user.set_column(property, request.form["value"])
-    else:
+    elif property == "profileimage":
         image = request.files.get("file")
 
         if not image:
             return '{"error":"no-file-uploaded"}'
 
         user.set_profileimage(image, result["uid"])
-
+    else:
+        return '{ "error": "not-allowed" }'
     return '{ "status": "success" }'
 
 @app.route("/user/set_profile", methods=["POST"])
@@ -395,15 +396,12 @@ def set_user_profile():
     
     firstname = request.form.get("firstname")
     lastname = request.form.get("lastname")
-    email = request.form.get("email")
     bio = request.form.get("bio")
 
     if firstname:
         user.set_column("firstname", firstname)
     if lastname:
         user.set_column("lastname", lastname)
-    if email:
-        user.set_column("email", email)
     if bio:
         user.set_column("bio", bio)
     
