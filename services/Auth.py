@@ -7,6 +7,7 @@ import random
 import datetime
 import time
 import requests
+import json
 import Helpers
 from services.HLEmail import HLEmail
 
@@ -54,6 +55,102 @@ class Auth:
 
         conn.commit()
         conn.close()
+
+    def sign_in_with_oauth(self, provider_key, provider_name, firstname, lastname, email, profileimage):
+         #Make a MySQL connection
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+
+        cursor = conn.cursor()
+
+        #Sanitize input 
+        provider_key = pymysql.escape_string( bleach.clean(provider_key) )
+        
+        if provider_name not in ('apple', 'google'):
+            conn.close()
+            return '{ "error": "invalid-provider" }'
+        
+
+        #First check if the user exists. If not, create one
+        cursor.execute("SELECT uid FROM oauth_accounts WHERE provider_key='{}' AND provider_name='{}';".format(provider_key, provider_name))
+
+        user = cursor.fetchone()
+
+        if user != None:
+            conn.close()
+            return json.dumps({
+                "uid": user["uid"]
+            })
+        
+
+        #Check if email address has been used before
+        cursor.execute("SELECT uid FROM users WHERE email='{}';".format(email))
+
+        user = cursor.fetchone()
+
+        if user is not None:
+            uid = user['uid']
+            
+            if profileimage is None:
+                profileimage = 'user/' + uid + '/profile/profile.png' 
+
+
+            cursor.execute( "UPDATE users SET firstname='{}', lastname='{}', profileimage='{}' WHERE uid='{}'".format(firstname, lastname, profileimage, uid) )
+
+            cursor.execute( "INSERT INTO oauth_accounts(provider_key, uid, provider_name) VALUES('{}', '{}', '{}');".format(provider_key, uid, provider_name) )
+
+            conn.commit()
+            conn.close()
+            return json.dumps({
+                "uid": uid
+            })
+        
+        if firstname is None or lastname is None or email is None:
+            return '{"error": "missing-information"}'
+
+        firstname = pymysql.escape_string( bleach.clean(firstname) )
+        lastname = pymysql.escape_string( bleach.clean(lastname) )
+        email = pymysql.escape_string( bleach.clean(email) )
+       
+
+        #Create a new user
+        error = ""
+
+        if len(firstname) == 0:
+            error = "empty-firstname"
+        if len(lastname) == 0:
+            error = "empty-lastname"
+        if len(email) == 0:
+            error = "empty-email"
+        
+        if not (('@' in email) and ('.' in email)):
+            error = "invalid-email"
+        
+        if error == "":
+            #Go ahead and make an entry in the database
+            uid = uuid.uuid1()
+
+            if profileimage is None:
+                profileimage = 'user/' + uid + '/profile/profile.png' 
+
+
+            cursor.execute( "INSERT INTO users(uid, firstname, lastname, email, profileimage) VALUES('{}', '{}', '{}', '{}', '{}');".format(uid, firstname, lastname, email, profileimage) ) 
+            
+            #Now, make an entry in the oauth_accounts table
+            cursor.execute( "INSERT INTO oauth_accounts(provider_key, uid, provider_name) VALUES('{}', '{}', '{}');".format(provider_key, uid, provider_name) )
+
+            conn.commit()
+            conn.close()
+
+            #We don't have to issue any access or refresh tokens, because the OAuth provider handles that. We can just return the information we have
+            return json.dumps({
+                "uid": uid
+            })
+        else:
+            conn.close()
+            return '{"error": "' + error + '"}'
+    
+
+        
 
     #Sign up
     def sign_up(self, firstname, lastname, email, password, confirmpassword):
