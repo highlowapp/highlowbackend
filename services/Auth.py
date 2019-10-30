@@ -62,6 +62,9 @@ class Auth:
 
         cursor = conn.cursor()
 
+        if provider_key is None or provider_name is None:
+            return '{ "error": "missing-provider" }'
+
         #Sanitize input 
         provider_key = pymysql.escape_string( bleach.clean(provider_key) )
         

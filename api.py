@@ -162,6 +162,19 @@ def sign_in():
     return sign_in_html
 
 
+@app.route("/auth/oauth/sign_in", methods=["POST"])
+def oauth_signin():
+    provider_key = request.form.get('provider_key')
+    provider_name = request.form.get('provider_name')
+    firstname = request.form.get('firstname')
+    lastname = request.form.get('lastname')
+    email = request.form.get('email')
+    profileimage = request.form.get('profileimage')
+
+    return auth.sign_in_with_oauth(provider_key, provider_name, firstname, lastname, email, profileimage)
+
+
+
 #Reset password
 @app.route("/auth/password_reset/<string:reset_id>", methods=["GET", "POST"])
 def password_reset(reset_id):
