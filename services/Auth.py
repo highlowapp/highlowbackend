@@ -85,7 +85,7 @@ class Auth:
                 "access": self.create_token(user["uid"]),
                 "refresh": self.create_refresh_token(user["uid"])
             })
-        
+        print("Key: " + provider_key) 
 
         #Check if email address has been used before
         cursor.execute("SELECT uid FROM users WHERE email='{}';".format(email))
