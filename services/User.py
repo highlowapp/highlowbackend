@@ -466,6 +466,9 @@ class User:
 
         most_recent_highlow = cursor.fetchone()
 
+        if most_recent_highlow is None:
+            return 0
+
         most_recent_highlow_datetime = datetime.datetime.strptime(most_recent_highlow["_date"], "%Y-%m-%d") 
 
         diff = datetime.datetime.now() - most_recent_highlow_datetime
