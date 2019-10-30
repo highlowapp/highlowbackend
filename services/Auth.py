@@ -140,18 +140,18 @@ class Auth:
                 profileimage = 'user/' + uid + '/profile/profile.png' 
 
 
-            cursor.execute( "INSERT INTO users(uid, firstname, lastname, email, profileimage) VALUES('{}', '{}', '{}', '{}', '{}');".format(uid, firstname, lastname, email, profileimage) ) 
+            cursor.execute( "INSERT INTO users(uid, firstname, lastname, email, profileimage) VALUES('{}', '{}', '{}', '{}', '{}');".format(str(uid), firstname, lastname, email, profileimage) ) 
             
             #Now, make an entry in the oauth_accounts table
-            cursor.execute( "INSERT INTO oauth_accounts(provider_key, uid, provider_name) VALUES('{}', '{}', '{}');".format(provider_key, uid, provider_name) )
+            cursor.execute( "INSERT INTO oauth_accounts(provider_key, uid, provider_name) VALUES('{}', '{}', '{}');".format(provider_key, str(uid), provider_name) )
 
             conn.commit()
             conn.close()
 
             return json.dumps({
-                "uid": uid, 
-                "access": self.create_token(uid),
-                "refresh": self.create_refresh_token(uid)
+                "uid": str(uid), 
+                "access": self.create_token(str(uid)),
+                "refresh": self.create_refresh_token(str(uid))
             })
         else:
             conn.close()
