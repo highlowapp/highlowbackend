@@ -81,7 +81,9 @@ class Auth:
         if user != None:
             conn.close()
             return json.dumps({
-                "uid": user["uid"]
+                "uid": user["uid"],
+                "access": self.create_token(user["uid"]),
+                "refresh": self.create_refresh_token(user["uid"])
             })
         
 
@@ -104,7 +106,9 @@ class Auth:
             conn.commit()
             conn.close()
             return json.dumps({
-                "uid": uid
+                "uid": uid,
+                "access": self.create_token(user["uid"]),
+                "refresh": self.create_refresh_token(user["uid"])
             })
         
         if firstname is None or lastname is None or email is None:
@@ -144,9 +148,10 @@ class Auth:
             conn.commit()
             conn.close()
 
-            #We don't have to issue any access or refresh tokens, because the OAuth provider handles that. We can just return the information we have
             return json.dumps({
-                "uid": uid
+                "uid": uid, 
+                "access": self.create_token(uid),
+                "refresh": self.create_refresh_token(uid)
             })
         else:
             conn.close()
@@ -281,7 +286,7 @@ class Auth:
 
         #Calculate time half a year in the future (approximately)
         current_time = datetime.datetime.now()
-        expiration = current_time + datetime.timedelta( minutes=expiration_minutes ) #Defaults to six months in the future
+        expiration = current_time + datetime.timedelta( minutes=expiration_minutes ) #Defaults to six minutes in the future
 
 
         token_payload = {
@@ -329,7 +334,7 @@ class Auth:
         cursor = conn.cursor()
 
         #Get the relevant user(s)
-        cursor.execute("SELECT firstname, lastname, uid, email FROM users WHERE email='" + email + "';")
+        cursor.execute("SELECT firstname, lastname, uid, email FROM users WHERE email='" + email + "' AND password != NULL;")
         user = cursor.fetchone()
 
         #Commit and close the connection
