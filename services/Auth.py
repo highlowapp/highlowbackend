@@ -10,7 +10,7 @@ import requests
 import json
 import Helpers
 from services.HLEmail import HLEmail
-from services.User import User
+from services.FileStorage import FileStorage
 
 #Email Config
 email_config = Helpers.read_json_from_file("config/email_config.json")
@@ -150,9 +150,10 @@ class Auth:
             conn.commit()
             conn.close()
 
-            user = User(str(uid), self.host, self.username, self.password, self.database)
+            fileStorage = FileStorage()
 
-            user.set_default_profile_image()
+            fileStorage.set_default_profile_image(str(uid))
+
 
             return json.dumps({
                 "uid": str(uid), 
