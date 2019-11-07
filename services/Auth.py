@@ -137,7 +137,7 @@ class Auth:
             uid = uuid.uuid1()
 
             if profileimage is None:
-                profileimage = 'user/' + uid + '/profile/profile.png' 
+                profileimage = 'user/' + str(uid) + '/profile/profile.png' 
 
 
             cursor.execute( "INSERT INTO users(uid, firstname, lastname, email, profileimage) VALUES('{}', '{}', '{}', '{}', '{}');".format(str(uid), firstname, lastname, email, profileimage) ) 
