@@ -10,6 +10,7 @@ import requests
 import json
 import Helpers
 from services.HLEmail import HLEmail
+from services.User import User
 
 #Email Config
 email_config = Helpers.read_json_from_file("config/email_config.json")
@@ -85,7 +86,7 @@ class Auth:
                 "access": self.create_token(user["uid"]),
                 "refresh": self.create_refresh_token(user["uid"])
             })
-        print("Key: " + provider_key) 
+ 
 
         #Check if email address has been used before
         cursor.execute("SELECT uid FROM users WHERE email='{}';".format(email))
@@ -105,6 +106,7 @@ class Auth:
 
             conn.commit()
             conn.close()
+            
             return json.dumps({
                 "uid": uid,
                 "access": self.create_token(user["uid"]),
@@ -147,6 +149,10 @@ class Auth:
 
             conn.commit()
             conn.close()
+
+            user = User(str(uid), self.host, self.username, self.password, self.database)
+
+            user.set_default_profile_image()
 
             return json.dumps({
                 "uid": str(uid), 
