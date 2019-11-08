@@ -39,6 +39,19 @@ class Notifications:
 
         return json.dumps( { "device_id": device_id, "uid": uid, "platform": platform } )
 
+    def deregister_device(self, device_id, uid):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        device_id = pymysql.escape_string( bleach.clean(device_id) )
+        uid = pymysql.escape_string( bleach.clean(uid) )
+
+        cursor.execute("DELETE FROM devices WHERE device_id='{}' AND uid='{}';".format(device_id, uid))
+
+        conn.commit()
+        conn.close()
+
     def send_notification_to_user(self, title, message, uid):
         title = pymysql.escape_string( bleach.clean(title) )
         message = pymysql.escape_string( bleach.clean(message) )

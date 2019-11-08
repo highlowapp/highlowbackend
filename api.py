@@ -1214,6 +1214,21 @@ def register():
 
     return notifs.register_device( request.form["platform"], request.form["device_id"], uid )
 
+@app.route("/notifications/deregister/<string:device_id>", methods=["POST"])
+def deregister(device_id):
+    #Retrieve the token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    token_verification = serviceutils.verify_token(token)
+
+    if 'error' in token_verification:
+        return token_verification
+
+    uid = token_verification["uid"]
+
+    notifs.deregister_device(device_id, uid)
+
+    return '{"status": "success"}'
 
 
 
