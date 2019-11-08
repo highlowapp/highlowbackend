@@ -69,8 +69,12 @@ class Notifications:
 
         push_notification = messaging.MulticastMessage(
             device_tokens,
-            data={"apns":{"sound":"definite.m4r"}},
-            notification=messaging.Notification(title=title, body=message)
+            notification=messaging.Notification(title=title, body=message),
+            apns=messaging.APNSConfig(
+                payload=messaging.APNSPayload(
+                    messaging.Aps(sound="definite.m4r")
+                )
+            )
         )
 
         response = messaging.send_multicast(push_notification)
