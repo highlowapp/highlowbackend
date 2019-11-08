@@ -69,6 +69,7 @@ class Notifications:
 
         push_notification = messaging.MulticastMessage(
             device_tokens,
+            data={"aps":{"sound":"definite.m4r"}},
             notification=messaging.Notification(title=title, body=message)
         )
 
