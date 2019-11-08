@@ -6,6 +6,7 @@ import datetime
 import bleach
 import json
 from services.FileStorage import FileStorage
+from services.Notifications import Notifications
 
 class HighLow:
 
@@ -656,6 +657,10 @@ class HighLowList:
         uid = pymysql.escape_string( bleach.clean(uid) )
 
         date = pymysql.escape_string( bleach.clean(date) )
+
+        #Testing
+        notifs = Notifications(self.host, self.username, self.password, self.database)
+        notifs.send_notification_to_user("Test", "This is a test notification from High/Low", uid)
 
 
         cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND _date = '{}';".format(uid, date) )
