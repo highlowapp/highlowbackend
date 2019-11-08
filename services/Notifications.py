@@ -39,7 +39,32 @@ class Notifications:
 
         return json.dumps( { "device_id": device_id, "uid": uid, "platform": platform } )
 
-    def send_notification(self, title, message, device_filter=".", platform=0, random_drop=0, admin_password=""):
+    def send_notification_to_user(self, title, message, uid):
+        title = pymysql.escape_string( bleach.clean(title) )
+        message = pymysql.escape_string( bleach.clean(message) )
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM devices WHERE uid='{}';".format(uid))
+
+        devices = cursor.fetchall()
+
+        device_tokens = [device["device_id"] for device in devices]
+
+        push_notification = firebase_admin.messaging.MulticastMessage(
+            device_tokens,
+            notification=firebase_admin.messaging.Notification(title=title, body=message)
+        )
+
+        response = firebase_admin.messaging.send(push_notification)
+
+    def send_notification_to_users(self, title, message, uids):
+        for uid in uids:
+            self.send_notification_to_user(title, message, uid)
+
+    def send_notification(self, title, message, device_filter=".+", platform=0, random_drop=0, admin_password=""):
         device_list = []
 
         platform = pymysql.escape_string( bleach.clean(platform) )

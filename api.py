@@ -1220,7 +1220,7 @@ def register():
 @app.route("/notifications/send", methods=["POST"])
 def send():
 
-    device_filter = request.form.get("device_filter") or "."
+    device_filter = request.form.get("device_filter") or ".+"
     platform = request.form.get("platform") or 0
     random_drop = request.form.get("random_drop") or 0
 
