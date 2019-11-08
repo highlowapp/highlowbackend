@@ -3,6 +3,7 @@ import bleach
 import json
 import datetime
 from services.FileStorage import FileStorage
+from services.Notifications import Notifications
 
 class User:
 
@@ -112,6 +113,9 @@ class User:
 
         conn.commit()
         conn.close()
+
+        notifs = Notifications(self.host, self.username, self.password, self.database)
+        notifs.send_notification_to_user("New Friend Request", self.firstname + " " + self.lastname + " has requested your friendship", uid)
 
         return { "status": "success" }
 
