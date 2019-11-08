@@ -1219,7 +1219,11 @@ def deregister(device_id):
     #Retrieve the token
     token = request.headers["Authorization"].replace("Bearer ", "")
 
-    token_verification = serviceutils.verify_token(token)
+    # Because it's not that big of a deal for someone to be able to deregister
+    # another user's device from push notifications, we accept old tokens.
+    # It's unlikely that even an old token would be obtained by someone.
+    # It's more critical that we make sure the users deregister their device before logging out.
+    token_verification = serviceutils.verify_token_accept_old(token)
 
     if 'error' in token_verification:
         return token_verification

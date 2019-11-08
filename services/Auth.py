@@ -311,7 +311,7 @@ class Auth:
         return token
 
     #Validate Token
-    def validate_token(self, token):
+    def validate_token(self, token, accepts_old=False):
 
         try:
             payload = jwt.decode(token, self.SECRET_KEY, algorithms=["HS256"])
@@ -319,8 +319,10 @@ class Auth:
             return "ERROR-INVALID-TOKEN"
 
         current_timestamp = time.mktime( datetime.datetime.now().timetuple() )
-
-        if payload["exp"] > current_timestamp and token not in self.blacklisted_tokens and payload["typ"] == "access":
+    
+        if not accepts_old and payload["exp"] > current_timestamp and token not in self.blacklisted_tokens and payload["typ"] == "access":
+            return payload["sub"]
+        if accepts_old and token not in self.blacklisted_tokens and payload["typ"] == "access":
             return payload["sub"]
 
         return "ERROR-INVALID-TOKEN"
