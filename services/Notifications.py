@@ -72,7 +72,7 @@ class Notifications:
             notification=messaging.Notification(title=title, body=message)
         )
 
-        response = messaging.send(push_notification)
+        response = messaging.send_multicast(push_notification)
 
     def send_notification_to_users(self, title, message, uids):
         for uid in uids:
