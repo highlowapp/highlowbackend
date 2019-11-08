@@ -3,6 +3,7 @@ import bleach
 import Helpers
 import json
 import firebase_admin
+from firebase_admin import messaging
 import random
 
 #Admin password
@@ -66,12 +67,12 @@ class Notifications:
 
         device_tokens = [device["device_id"] for device in devices]
 
-        push_notification = firebase_admin.messaging.MulticastMessage(
+        push_notification = messaging.MulticastMessage(
             device_tokens,
-            notification=firebase_admin.messaging.Notification(title=title, body=message)
+            notification=messaging.Notification(title=title, body=message)
         )
 
-        response = firebase_admin.messaging.send(push_notification)
+        response = messaging.send(push_notification)
 
     def send_notification_to_users(self, title, message, uids):
         for uid in uids:
