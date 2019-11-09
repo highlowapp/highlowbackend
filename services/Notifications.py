@@ -33,6 +33,13 @@ class Notifications:
         device_id = pymysql.escape_string( bleach.clean(device_id) )
         uid = pymysql.escape_string( bleach.clean(uid) )
 
+        cursor.execute("SELECT * FROM devices WHERE device_id='{}' AND uid='{}' AND platform={}".format(device_id, uid, platform))
+
+        potential_duplicate = cursor.fetchone()
+
+        if potential_duplicate is not None:
+            return json.dumps( { "device_id": device_id, "uid": uid, "platform": platform } )
+
         cursor.execute( "INSERT INTO devices(device_id, uid, platform) VALUES('{}', '{}', {});".format(device_id, uid, platform) )
 
         conn.commit()
