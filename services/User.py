@@ -104,12 +104,16 @@ class User:
 
         uid = pymysql.escape_string( bleach.clean(uid) )
 
-        cursor.execute("SELECT id FROM friends WHERE status!=0 AND ( (initiator='" + self.uid + "' AND acceptor='" + uid + "') OR (initiator='" + uid + "' AND acceptor='" + self.uid + "') );")
+        cursor.execute("SELECT id FROM friends WHERE status != 2 AND ( (initiator='" + self.uid + "' AND acceptor='" + uid + "') OR (initiator='" + uid + "' AND acceptor='" + self.uid + "') );")
 
         duplicate = cursor.fetchone()
 
-        if duplicate == None and self.uid != uid:
+        if duplicate is not None:
+            cursor.execute("DELETE FROM friends WHERE WHERE status != 2 AND ( (initiator='" + self.uid + "' AND acceptor='" + uid + "') OR (initiator='" + uid + "' AND acceptor='" + self.uid + "') );")
+
+        if self.uid != uid:
             cursor.execute("INSERT INTO friends(initiator, acceptor, status) VALUES('" + self.uid + "', '" + uid + "', 1)")
+
 
         conn.commit()
         conn.close()
