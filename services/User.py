@@ -109,7 +109,7 @@ class User:
         duplicate = cursor.fetchone()
 
         if duplicate is not None:
-            cursor.execute("DELETE FROM friends WHERE WHERE status != 2 AND ( (initiator='" + self.uid + "' AND acceptor='" + uid + "') OR (initiator='" + uid + "' AND acceptor='" + self.uid + "') );")
+            cursor.execute("DELETE FROM friends WHERE status != 2 AND ( (initiator='" + self.uid + "' AND acceptor='" + uid + "') OR (initiator='" + uid + "' AND acceptor='" + self.uid + "') );")
 
         if self.uid != uid:
             cursor.execute("INSERT INTO friends(initiator, acceptor, status) VALUES('" + self.uid + "', '" + uid + "', 1)")
@@ -118,12 +118,10 @@ class User:
         conn.commit()
         conn.close()
 
-        try:
-            notifs = Notifications(self.host, self.username, self.password, self.database)
-            notifs.send_notification_to_user("New Friend Request", self.firstname + " " + self.lastname + " has requested your friendship", uid)
-        except:
-            pass
-
+        
+        notifs = Notifications(self.host, self.username, self.password, self.database)
+        notifs.send_notification_to_user("New Friend Request", self.firstname + " " + self.lastname + " has requested your friendship", uid)
+    
         return { "status": "success" }
 
     def reject_friend(self, uid):
