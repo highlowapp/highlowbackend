@@ -114,8 +114,11 @@ class User:
         conn.commit()
         conn.close()
 
-        notifs = Notifications(self.host, self.username, self.password, self.database)
-        notifs.send_notification_to_user("New Friend Request", self.firstname + " " + self.lastname + " has requested your friendship", uid)
+        try:
+            notifs = Notifications(self.host, self.username, self.password, self.database)
+            notifs.send_notification_to_user("New Friend Request", self.firstname + " " + self.lastname + " has requested your friendship", uid)
+        except:
+            pass
 
         return { "status": "success" }
 
@@ -142,6 +145,12 @@ class User:
 
         conn.commit()
         conn.close()
+        
+        try:
+            notifs = Notifications(self.host, self.username, self.password, self.database)
+            notifs.send_notification_to_user("Friendship Accepted!", self.firstname + " " + self.lastname + " has accepted your friendship!", uid)
+        except:
+            pass
 
         return { "status": "success" }
 
@@ -183,6 +192,44 @@ class User:
         conn.close()
 
         return { "friends": friends }
+
+    def get_friend_uids(self):
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute( """
+        
+            SELECT
+                frnds.friend_id AS uid
+            FROM
+
+            (
+                SELECT CASE
+                    WHEN friends.initiator = '{}' THEN friends.acceptor
+                    WHEN friends.acceptor = '{}' THEN friends.initiator
+                END AS friend_id,
+                friends.status AS status
+                FROM friends
+                WHERE (friends.initiator = '{}' OR friends.acceptor = '{}') AND friends.status = 2
+            ) AS frnds
+
+            JOIN users ON users.uid = frnds.friend_id;
+        
+        """.format(self.uid, self.uid, self.uid, self.uid) )
+
+
+        friends = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        uids = []
+
+        for friend in friends:
+            uids.append(friend["uid"])
+
+        return uids
+
 
     
     def search_friends(self, search):

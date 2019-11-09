@@ -60,7 +60,7 @@ class Notifications:
         conn.commit()
         conn.close()
 
-    def send_notification_to_user(self, title, message, uid):
+    def send_notification_to_user(self, title, message, uid, data=None):
         title = pymysql.escape_string( bleach.clean(title) )
         message = pymysql.escape_string( bleach.clean(message) )
 
@@ -77,6 +77,7 @@ class Notifications:
         push_notification = messaging.MulticastMessage(
             device_tokens,
             notification=messaging.Notification(title=title, body=message),
+            data=data,
             apns=messaging.APNSConfig(
                 payload=messaging.APNSPayload(
                     messaging.Aps(sound="definite.m4r")
@@ -86,9 +87,9 @@ class Notifications:
 
         response = messaging.send_multicast(push_notification)
 
-    def send_notification_to_users(self, title, message, uids):
+    def send_notification_to_users(self, title, message, uids, data=None):
         for uid in uids:
-            self.send_notification_to_user(title, message, uid)
+            self.send_notification_to_user(title, message, uid, data)
 
     def send_notification(self, title, message, device_filter=".+", platform=0, random_drop=0, admin_password=""):
         device_list = []

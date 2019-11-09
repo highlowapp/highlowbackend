@@ -7,6 +7,7 @@ import bleach
 import json
 from services.FileStorage import FileStorage
 from services.Notifications import Notifications
+from services.User import User
 
 class HighLow:
 
@@ -106,7 +107,16 @@ class HighLow:
         #Commit and close the connection
         conn.commit()
         conn.close()
-        
+
+        try:
+            user = User(self.uid, self.host, self.username, self.password, self.database)
+            uids = user.get_friend_uids()
+
+            notifs = Notifications(self.host, self.username, self.password, self.database)
+            notifs.send_notification_to_users(user.firstname + " " + user.lastname + " has created a new High/Low", "Tap here to view it", uids, {"highlowid": self.high_low_id})
+        except:
+            pass
+
         #Return the HighLow ID
         return '{ "highlowid":"' + self.high_low_id + '" }'
 
@@ -657,10 +667,6 @@ class HighLowList:
         uid = pymysql.escape_string( bleach.clean(uid) )
 
         date = pymysql.escape_string( bleach.clean(date) )
-
-        #Testing
-        notifs = Notifications(self.host, self.username, self.password, self.database)
-        notifs.send_notification_to_user("Test", "This is a test notification from High/Low", uid)
 
 
         cursor.execute( "SELECT * FROM highlows WHERE uid='{}' AND _date = '{}';".format(uid, date) )
