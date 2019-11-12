@@ -385,19 +385,30 @@ class HighLow:
 
         cursor.execute( "INSERT INTO comments(commentid, highlowid, uid, message) VALUES('{}', '{}', '{}', '{}');".format(commentid, self.high_low_id, uid, cleaned_message) )
 
-        conn.commit()
-        conn.close()
-
         try:
+            cursor.execute("""
+        SELECT
+    comments.uid AS uid
+FROM
+    comments
+JOIN users ON users.uid = comments.uid
+WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE;
+        """.format(self.high_low_id))
+            users = cursor.fetchall()
+
             other_user = User(uid, self.host, self.username, self.password, self.database)
-            
-            user = User(self.uid, self.host, self.username, self.password, self.database)
-            
-            if user.notify_new_comment:
-                notifs = Notifications(self.host, self.username, self.password, self.database)
-                notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname, + " commented on your High/Low", cleaned_message, self.uid)
+            notifs = Notifications(self.host, self.username, self.password, self.database)
+
+            for user in users:
+                try:
+                    notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, user["uid"])
+                except:
+                    pass
         except:
             pass
+        
+        conn.commit()
+        conn.close()
 
         return { "status": "success" }
 
