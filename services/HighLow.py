@@ -391,8 +391,8 @@ class HighLow:
 FROM
     comments
 JOIN users ON users.uid = comments.uid
-WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE;
-        """.format(self.high_low_id))
+WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments.uid != '{}';
+        """.format(self.high_low_id, uid))
         users = cursor.fetchall()
 
         users.append({
