@@ -49,6 +49,7 @@ class User:
         self.notify_new_friend_acc = user["notify_new_friend_acc"]
         self.notify_new_feed_item = user["notify_new_feed_item"]
         self.notify_new_like = user["notify_new_like"]
+        self.notify_new_comment = user["notify_new_comment"]
     
     ## Setters ##
 
@@ -590,11 +591,12 @@ class User:
             "notify_new_friend_req": self.notify_new_friend_req,
             "notify_new_friend_acc": self.notify_new_friend_acc,
             "notify_new_feed_item": self.notify_new_feed_item,
-            "notify_new_like": self.notify_new_like
+            "notify_new_like": self.notify_new_like,
+            "notify_new_comment": self.notify_new_comment
         }
 
     def set_notif_setting(self, setting, value):
-        if setting not in ['notify_new_friend_req', 'notify_new_friend_acc', 'notify_new_feed_item', 'notify_new_like']:
+        if setting not in ['notify_new_friend_req', 'notify_new_friend_acc', 'notify_new_feed_item', 'notify_new_like', 'notify_new_comment']:
             raise ValueError("Invalid setting")
         
         if value not in (True, False):

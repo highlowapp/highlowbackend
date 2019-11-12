@@ -388,6 +388,17 @@ class HighLow:
         conn.commit()
         conn.close()
 
+        try:
+            other_user = User(uid, self.host, self.username, self.password, self.database)
+            
+            user = User(self.uid, self.host, self.username, self.password, self.database)
+            
+            if user.notify_new_comment:
+                notifs = Notifications(self.host, self.username, self.password, self.database)
+                notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname, + " commented on your High/Low", cleaned_message, self.uid)
+        except:
+            pass
+
         return { "status": "success" }
 
     def update_comment(self, uid, commentid, message):
