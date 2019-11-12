@@ -385,8 +385,7 @@ class HighLow:
 
         cursor.execute( "INSERT INTO comments(commentid, highlowid, uid, message) VALUES('{}', '{}', '{}', '{}');".format(commentid, self.high_low_id, uid, cleaned_message) )
 
-        try:
-            cursor.execute("""
+        cursor.execute("""
         SELECT
     comments.uid AS uid
 FROM
@@ -394,18 +393,14 @@ FROM
 JOIN users ON users.uid = comments.uid
 WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE;
         """.format(self.high_low_id))
-            users = cursor.fetchall()
+        users = cursor.fetchall()
 
-            other_user = User(uid, self.host, self.username, self.password, self.database)
-            notifs = Notifications(self.host, self.username, self.password, self.database)
+        other_user = User(uid, self.host, self.username, self.password, self.database)
+        notifs = Notifications(self.host, self.username, self.password, self.database)
 
-            for user in users:
-                try:
-                    notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, user["uid"])
-                except:
-                    pass
-        except:
-            pass
+        for user in users:
+            notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, user["uid"])
+        
         
         conn.commit()
         conn.close()
