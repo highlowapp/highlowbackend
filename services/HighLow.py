@@ -109,11 +109,20 @@ class HighLow:
         conn.close()
 
         try:
-            user = User(self.uid, self.host, self.username, self.password, self.database)
+            user = User(uid, self.host, self.username, self.password, self.database)
+
+            
             uids = user.get_friend_uids()
 
             notifs = Notifications(self.host, self.username, self.password, self.database)
-            notifs.send_notification_to_users(user.firstname + " " + user.lastname + " has created a new High/Low", "Tap here to view it", uids, {"highlowid": self.high_low_id})
+
+            for other_uid in uids:
+                try:
+                    friend = User(other_uid, self.host, self.username, self.password, self.database)
+                    if friend.notify_new_feed_item:
+                        notifs.send_notification_to_user("New Feed Item", user.firstname + " " + user.lastname + " created a new High/Low!", other_uid)
+                except: 
+                    continue
         except:
             pass
 
@@ -326,6 +335,12 @@ class HighLow:
         #Commit and close the connection
         conn.commit()
         conn.close()
+
+        user = User(self.uid, self.host, self.username, self.password, self.database)
+
+        if user.notify_new_like:
+            notifs = Notifications(self.host, self.username, self.password, self.database)
+            notifs.send_notification_to_user("Someone likes your post!", "You have received a like on one of your High/Lows!", self.uid, data={"highlowid": self.high_low_id})
 
         return { 'status': 'success', 'total_likes': highlow["total_likes"] }
 

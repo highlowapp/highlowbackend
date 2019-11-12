@@ -1247,8 +1247,40 @@ def send():
 
     return "request pending"
 
+@app.route("/notifications/settings", methods=["GET"])
+def get_notif_settings():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
 
+    #If there was an error, return the error
+    if "error" in token_verification_request:
+        return '{ "error": "' + token_verification_request["error"] + '" }'
+    
+    user = User(token_verification_request['uid'], host, username, password, database)
+    return json.dumps( user.get_notif_settings() )
+ 
+@app.route("/notifications/<string:setting>/on", methods=["POST"])
+def turn_notif_setting_on(setting):
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in token_verification_request:
+        return '{ "error": "' + token_verification_request["error"] + '" }'
+    
+    try:
+        user = User(token_verification_request['uid'], host, username, password, database)
+        result = user.set_notif_setting(setting, True)
+
+        return json.dumps(result)
+    except:
+        return '{ "error": "invalid-setting" }'
 
 
 

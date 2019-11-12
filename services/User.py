@@ -45,6 +45,10 @@ class User:
         self.streak = user["streak"]
         self.times_flagged = user["times_flagged"]
         self.banned = user["banned"]
+        self.notify_new_friend_req = user["notify_new_friend_req"]
+        self.notify_new_friend_acc = user["notify_new_friend_acc"]
+        self.notify_new_feed_item = user["notify_new_feed_item"]
+        self.notify_new_like = user["notify_new_like"]
     
     ## Setters ##
 
@@ -118,10 +122,12 @@ class User:
         conn.commit()
         conn.close()
 
+        other_user = User(uid, self.host, self.username, self.password, self.database)
         
-        notifs = Notifications(self.host, self.username, self.password, self.database)
-        notifs.send_notification_to_user("New Friend Request", self.firstname + " " + self.lastname + " has requested your friendship", uid)
-    
+        if other_user.notify_new_friend_req:
+            notifs = Notifications(self.host, self.username, self.password, self.database)
+            notifs.send_notification_to_user("New Friend Request", self.firstname + " " + self.lastname + " has requested your friendship", uid)
+        
         return { "status": "success" }
 
     def reject_friend(self, uid):
@@ -148,9 +154,14 @@ class User:
         conn.commit()
         conn.close()
         
+
+
         try:
-            notifs = Notifications(self.host, self.username, self.password, self.database)
-            notifs.send_notification_to_user("Friendship Accepted!", self.firstname + " " + self.lastname + " has accepted your friendship!", uid)
+            other_user = User(uid, self.host, self.username, self.password, self.database)
+            
+            if other_user.notify_new_friend_acc:
+                notifs = Notifications(self.host, self.username, self.password, self.database)
+                notifs.send_notification_to_user("Friendship Accepted!", self.firstname + " " + self.lastname + " has accepted your friendship!", uid)
         except:
             pass
 
@@ -573,3 +584,33 @@ class User:
         conn.close()
 
         return { "status": "success" }
+
+    def get_notif_settings(self):
+        return {
+            "notify_new_friend_req": self.notify_new_friend_req,
+            "notify_new_friend_acc": self.notify_new_friend_acc,
+            "notify_new_feed_item": self.notify_new_feed_item,
+            "notify_new_like": self.notify_new_like
+        }
+
+    def set_notif_setting(self, setting, value):
+        if setting not in ['notify_new_friend_req', 'notify_new_friend_acc', 'notify_new_feed_item', 'notify_new_like']:
+            raise ValueError("Invalid setting")
+        
+        if value not in (True, False):
+            raise ValueError("Invalid value")
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+        
+        if value:
+            cursor.execute("UPDATE users SET {}=TRUE WHERE uid='{}';".format(setting, self.uid))
+        else:
+            cursor.execute("UPDATE users SET {}=FALSE WHERE uid='{}';".format(setting, self.uid))
+        
+        conn.commit()
+        conn.close()
+
+        return { "status": "success" }
+        
