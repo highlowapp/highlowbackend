@@ -395,6 +395,10 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE;
         """.format(self.high_low_id))
         users = cursor.fetchall()
 
+        users.append({
+            "uid": self.uid
+        })
+
         other_user = User(uid, self.host, self.username, self.password, self.database)
         notifs = Notifications(self.host, self.username, self.password, self.database)
 
