@@ -395,14 +395,12 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
         """.format(self.high_low_id, uid))
         users = cursor.fetchall()
 
-        all_users = users + [{"uid": uid}]
-
         other_user = User(uid, self.host, self.username, self.password, self.database)
         notifs = Notifications(self.host, self.username, self.password, self.database)
 
-        for user in all_users:
+        for user in users:
             notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, user["uid"])
-        
+        notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, uid)
         
         conn.commit()
         conn.close()
