@@ -400,7 +400,7 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
 
         for user in users:
             notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, user["uid"])
-        notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, uid)
+        notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, self.uid)
         
         conn.commit()
         conn.close()
