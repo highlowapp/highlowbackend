@@ -756,13 +756,12 @@ def comment(highlowid):
 
         message = request.form.get("message") or ""
 
-        try: 
-            highlow = HighLow(host, username, password, database, highlowid)
-            result = highlow.comment(uid, message)
+        
+        highlow = HighLow(host, username, password, database, highlowid)
+        result = highlow.comment(uid, message)
 
-            return json.dumps( result )
-        except:
-            return json.dumps({'error': 'invalid-highlowid'})
+        return json.dumps( result )
+        
 
 
 #TODO: Add endpoints for getting specific highlows, getting all highlows for user and sorting, etc.
