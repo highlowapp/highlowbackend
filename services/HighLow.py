@@ -386,7 +386,7 @@ class HighLow:
         cursor.execute( "INSERT INTO comments(commentid, highlowid, uid, message) VALUES('{}', '{}', '{}', '{}');".format(commentid, self.high_low_id, uid, cleaned_message) )
 
         cursor.execute("""
-        SELECT
+        SELECT DISTINCT
     comments.uid AS uid
 FROM
     comments
