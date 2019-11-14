@@ -162,6 +162,19 @@ def sign_in():
     return sign_in_html
 
 
+@app.route("/auth/oauth/sign_in", methods=["POST"])
+def oauth_signin():
+    provider_key = request.form.get('provider_key')
+    provider_name = request.form.get('provider_name')
+    firstname = request.form.get('firstname')
+    lastname = request.form.get('lastname')
+    email = request.form.get('email')
+    profileimage = request.form.get('profileimage')
+
+    return auth.sign_in_with_oauth(provider_key, provider_name, firstname, lastname, email, profileimage)
+
+
+
 #Reset password
 @app.route("/auth/password_reset/<string:reset_id>", methods=["GET", "POST"])
 def password_reset(reset_id):
@@ -743,13 +756,12 @@ def comment(highlowid):
 
         message = request.form.get("message") or ""
 
-        try: 
-            highlow = HighLow(host, username, password, database, highlowid)
-            result = highlow.comment(uid, message)
+        
+        highlow = HighLow(host, username, password, database, highlowid)
+        result = highlow.comment(uid, message)
 
-            return json.dumps( result )
-        except:
-            return json.dumps({'error': 'invalid-highlowid'})
+        return json.dumps( result )
+        
 
 
 #TODO: Add endpoints for getting specific highlows, getting all highlows for user and sorting, etc.
@@ -1201,13 +1213,32 @@ def register():
 
     return notifs.register_device( request.form["platform"], request.form["device_id"], uid )
 
+@app.route("/notifications/deregister/<string:device_id>", methods=["POST"])
+def deregister(device_id):
+    #Retrieve the token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    # Because it's not that big of a deal for someone to be able to deregister
+    # another user's device from push notifications, we accept old tokens.
+    # It's unlikely that even an old token would be obtained by someone.
+    # It's more critical that we make sure the users deregister their device before logging out.
+    token_verification = serviceutils.verify_token_accept_old(token)
+
+    if 'error' in token_verification:
+        return token_verification
+
+    uid = token_verification["uid"]
+
+    notifs.deregister_device(device_id, uid)
+
+    return '{"status": "success"}'
 
 
 
 @app.route("/notifications/send", methods=["POST"])
 def send():
 
-    device_filter = request.form.get("device_filter") or "."
+    device_filter = request.form.get("device_filter") or ".+"
     platform = request.form.get("platform") or 0
     random_drop = request.form.get("random_drop") or 0
 
@@ -1215,10 +1246,60 @@ def send():
 
     return "request pending"
 
+@app.route("/notifications/settings", methods=["GET"])
+def get_notif_settings():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
 
+    #If there was an error, return the error
+    if "error" in token_verification_request:
+        return '{ "error": "' + token_verification_request["error"] + '" }'
+    
+    user = User(token_verification_request['uid'], host, username, password, database)
+    return json.dumps( user.get_notif_settings() )
+ 
+@app.route("/notifications/<string:setting>/on", methods=["POST"])
+def turn_notif_setting_on(setting):
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
 
+    #If there was an error, return the error
+    if "error" in token_verification_request:
+        return '{ "error": "' + token_verification_request["error"] + '" }'
+    
+    try:
+        user = User(token_verification_request['uid'], host, username, password, database)
+        result = user.set_notif_setting(setting, True)
+
+        return json.dumps(result)
+    except:
+        return '{ "error": "invalid-setting" }'
+
+@app.route("/notifications/<string:setting>/off", methods=["POST"])
+def turn_notif_setting_off(setting):
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in token_verification_request:
+        return '{ "error": "' + token_verification_request["error"] + '" }'
+    
+    try:
+        user = User(token_verification_request['uid'], host, username, password, database)
+        result = user.set_notif_setting(setting, False)
+
+        return json.dumps(result)
+    except:
+        return '{ "error": "invalid-setting" }'
 
 
 

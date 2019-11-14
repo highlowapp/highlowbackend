@@ -7,8 +7,10 @@ import random
 import datetime
 import time
 import requests
+import json
 import Helpers
 from services.HLEmail import HLEmail
+from services.FileStorage import FileStorage
 
 #Email Config
 email_config = Helpers.read_json_from_file("config/email_config.json")
@@ -54,6 +56,116 @@ class Auth:
 
         conn.commit()
         conn.close()
+
+    def sign_in_with_oauth(self, provider_key, provider_name, firstname, lastname, email, profileimage):
+         #Make a MySQL connection
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+
+        cursor = conn.cursor()
+
+        if provider_key is None or provider_name is None:
+            return '{ "error": "missing-provider" }'
+
+        #Sanitize input 
+        provider_key = pymysql.escape_string( bleach.clean(provider_key) )
+        
+        if provider_name not in ('apple', 'google'):
+            conn.close()
+            return '{ "error": "invalid-provider" }'
+        
+
+        #First check if the user exists. If not, create one
+        cursor.execute("SELECT uid FROM oauth_accounts WHERE provider_key='{}' AND provider_name='{}';".format(provider_key, provider_name))
+
+        user = cursor.fetchone()
+
+        if user != None:
+            conn.close()
+            return json.dumps({
+                "uid": user["uid"],
+                "access": self.create_token(user["uid"]),
+                "refresh": self.create_refresh_token(user["uid"])
+            })
+ 
+
+        #Check if email address has been used before
+        cursor.execute("SELECT uid FROM users WHERE email='{}';".format(email))
+
+        user = cursor.fetchone()
+
+        if user is not None:
+            uid = user['uid']
+            
+            if profileimage is None:
+                profileimage = 'user/' + uid + '/profile/profile.png' 
+
+
+            cursor.execute( "UPDATE users SET firstname='{}', lastname='{}', profileimage='{}' WHERE uid='{}'".format(firstname, lastname, profileimage, uid) )
+
+            cursor.execute( "INSERT INTO oauth_accounts(provider_key, uid, provider_name) VALUES('{}', '{}', '{}');".format(provider_key, uid, provider_name) )
+
+            conn.commit()
+            conn.close()
+            
+            return json.dumps({
+                "uid": uid,
+                "access": self.create_token(user["uid"]),
+                "refresh": self.create_refresh_token(user["uid"])
+            })
+        
+        if firstname is None or lastname is None or email is None:
+            return '{"error": "missing-information"}'
+
+        firstname = pymysql.escape_string( bleach.clean(firstname) )
+        lastname = pymysql.escape_string( bleach.clean(lastname) )
+        email = pymysql.escape_string( bleach.clean(email) )
+       
+
+        #Create a new user
+        error = ""
+
+        if len(firstname) == 0:
+            error = "empty-firstname"
+        if len(lastname) == 0:
+            error = "empty-lastname"
+        if len(email) == 0:
+            error = "empty-email"
+        
+        if not (('@' in email) and ('.' in email)):
+            error = "invalid-email"
+        
+        if error == "":
+            #Go ahead and make an entry in the database
+            uid = uuid.uuid1()
+
+            if profileimage is None:
+                profileimage = 'user/' + str(uid) + '/profile/profile.png' 
+
+
+            cursor.execute( "INSERT INTO users(uid, firstname, lastname, email, profileimage) VALUES('{}', '{}', '{}', '{}', '{}');".format(str(uid), firstname, lastname, email, profileimage) ) 
+            
+            #Now, make an entry in the oauth_accounts table
+            cursor.execute( "INSERT INTO oauth_accounts(provider_key, uid, provider_name) VALUES('{}', '{}', '{}');".format(provider_key, str(uid), provider_name) )
+
+            conn.commit()
+            conn.close()
+
+            fileStorage = FileStorage()
+
+            fileStorage.set_default_profile_image(str(uid))
+
+
+            return json.dumps({
+                "uid": str(uid), 
+                "access": self.create_token(str(uid)),
+                "refresh": self.create_refresh_token(str(uid))
+            })
+        else:
+            conn.close()
+            return '{"error": "' + error + '"}'
+    
+
+        
 
     #Sign up
     def sign_up(self, firstname, lastname, email, password, confirmpassword):
@@ -181,7 +293,7 @@ class Auth:
 
         #Calculate time half a year in the future (approximately)
         current_time = datetime.datetime.now()
-        expiration = current_time + datetime.timedelta( minutes=expiration_minutes ) #Defaults to six months in the future
+        expiration = current_time + datetime.timedelta( minutes=expiration_minutes ) #Defaults to six minutes in the future
 
 
         token_payload = {
@@ -199,7 +311,7 @@ class Auth:
         return token
 
     #Validate Token
-    def validate_token(self, token):
+    def validate_token(self, token, accepts_old=False):
 
         try:
             payload = jwt.decode(token, self.SECRET_KEY, algorithms=["HS256"])
@@ -207,8 +319,10 @@ class Auth:
             return "ERROR-INVALID-TOKEN"
 
         current_timestamp = time.mktime( datetime.datetime.now().timetuple() )
-
-        if payload["exp"] > current_timestamp and token not in self.blacklisted_tokens and payload["typ"] == "access":
+    
+        if not accepts_old and payload["exp"] > current_timestamp and token not in self.blacklisted_tokens and payload["typ"] == "access":
+            return payload["sub"]
+        if accepts_old and token not in self.blacklisted_tokens and payload["typ"] == "access":
             return payload["sub"]
 
         return "ERROR-INVALID-TOKEN"
@@ -229,7 +343,7 @@ class Auth:
         cursor = conn.cursor()
 
         #Get the relevant user(s)
-        cursor.execute("SELECT firstname, lastname, uid, email FROM users WHERE email='" + email + "';")
+        cursor.execute("SELECT firstname, lastname, uid, email FROM users WHERE email='" + email + "' AND password != NULL;")
         user = cursor.fetchone()
 
         #Commit and close the connection

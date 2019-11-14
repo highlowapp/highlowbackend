@@ -6,6 +6,8 @@ import datetime
 import bleach
 import json
 from services.FileStorage import FileStorage
+from services.Notifications import Notifications
+from services.User import User
 
 class HighLow:
 
@@ -105,7 +107,25 @@ class HighLow:
         #Commit and close the connection
         conn.commit()
         conn.close()
-        
+
+        try:
+            user = User(uid, self.host, self.username, self.password, self.database)
+
+            
+            uids = user.get_friend_uids()
+
+            notifs = Notifications(self.host, self.username, self.password, self.database)
+
+            for other_uid in uids:
+                try:
+                    friend = User(other_uid, self.host, self.username, self.password, self.database)
+                    if friend.notify_new_feed_item:
+                        notifs.send_notification_to_user("New Feed Item", user.firstname + " " + user.lastname + " created a new High/Low!", other_uid)
+                except: 
+                    continue
+        except:
+            pass
+
         #Return the HighLow ID
         return '{ "highlowid":"' + self.high_low_id + '" }'
 
@@ -316,6 +336,12 @@ class HighLow:
         conn.commit()
         conn.close()
 
+        user = User(self.uid, self.host, self.username, self.password, self.database)
+
+        if user.notify_new_like:
+            notifs = Notifications(self.host, self.username, self.password, self.database)
+            notifs.send_notification_to_user("Someone likes your post!", "You have received a like on one of your High/Lows!", self.uid, data={"highlowid": self.high_low_id})
+
         return { 'status': 'success', 'total_likes': highlow["total_likes"] }
 
 
@@ -359,6 +385,23 @@ class HighLow:
 
         cursor.execute( "INSERT INTO comments(commentid, highlowid, uid, message) VALUES('{}', '{}', '{}', '{}');".format(commentid, self.high_low_id, uid, cleaned_message) )
 
+        cursor.execute("""
+        SELECT DISTINCT
+    comments.uid AS uid
+FROM
+    comments
+JOIN users ON users.uid = comments.uid
+WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments.uid != '{}';
+        """.format(self.high_low_id, uid))
+        users = cursor.fetchall()
+
+        other_user = User(uid, self.host, self.username, self.password, self.database)
+        notifs = Notifications(self.host, self.username, self.password, self.database)
+
+        for user in users:
+            notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, user["uid"])
+        notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, self.uid)
+        
         conn.commit()
         conn.close()
 

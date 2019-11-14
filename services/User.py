@@ -3,6 +3,7 @@ import bleach
 import json
 import datetime
 from services.FileStorage import FileStorage
+from services.Notifications import Notifications
 
 class User:
 
@@ -44,6 +45,11 @@ class User:
         self.streak = user["streak"]
         self.times_flagged = user["times_flagged"]
         self.banned = user["banned"]
+        self.notify_new_friend_req = user["notify_new_friend_req"]
+        self.notify_new_friend_acc = user["notify_new_friend_acc"]
+        self.notify_new_feed_item = user["notify_new_feed_item"]
+        self.notify_new_like = user["notify_new_like"]
+        self.notify_new_comment = user["notify_new_comment"]
     
     ## Setters ##
 
@@ -103,16 +109,26 @@ class User:
 
         uid = pymysql.escape_string( bleach.clean(uid) )
 
-        cursor.execute("SELECT id FROM friends WHERE status!=0 AND ( (initiator='" + self.uid + "' AND acceptor='" + uid + "') OR (initiator='" + uid + "' AND acceptor='" + self.uid + "') );")
+        cursor.execute("SELECT id FROM friends WHERE status != 2 AND ( (initiator='" + self.uid + "' AND acceptor='" + uid + "') OR (initiator='" + uid + "' AND acceptor='" + self.uid + "') );")
 
         duplicate = cursor.fetchone()
 
-        if duplicate == None and self.uid != uid:
+        if duplicate is not None:
+            cursor.execute("DELETE FROM friends WHERE status != 2 AND ( (initiator='" + self.uid + "' AND acceptor='" + uid + "') OR (initiator='" + uid + "' AND acceptor='" + self.uid + "') );")
+
+        if self.uid != uid:
             cursor.execute("INSERT INTO friends(initiator, acceptor, status) VALUES('" + self.uid + "', '" + uid + "', 1)")
+
 
         conn.commit()
         conn.close()
 
+        other_user = User(uid, self.host, self.username, self.password, self.database)
+        
+        if other_user.notify_new_friend_req:
+            notifs = Notifications(self.host, self.username, self.password, self.database)
+            notifs.send_notification_to_user("New Friend Request", self.firstname + " " + self.lastname + " has requested your friendship", uid)
+        
         return { "status": "success" }
 
     def reject_friend(self, uid):
@@ -138,6 +154,17 @@ class User:
 
         conn.commit()
         conn.close()
+        
+
+
+        try:
+            other_user = User(uid, self.host, self.username, self.password, self.database)
+            
+            if other_user.notify_new_friend_acc:
+                notifs = Notifications(self.host, self.username, self.password, self.database)
+                notifs.send_notification_to_user("Friendship Accepted!", self.firstname + " " + self.lastname + " has accepted your friendship!", uid)
+        except:
+            pass
 
         return { "status": "success" }
 
@@ -179,6 +206,44 @@ class User:
         conn.close()
 
         return { "friends": friends }
+
+    def get_friend_uids(self):
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute( """
+        
+            SELECT
+                frnds.friend_id AS uid
+            FROM
+
+            (
+                SELECT CASE
+                    WHEN friends.initiator = '{}' THEN friends.acceptor
+                    WHEN friends.acceptor = '{}' THEN friends.initiator
+                END AS friend_id,
+                friends.status AS status
+                FROM friends
+                WHERE (friends.initiator = '{}' OR friends.acceptor = '{}') AND friends.status = 2
+            ) AS frnds
+
+            JOIN users ON users.uid = frnds.friend_id;
+        
+        """.format(self.uid, self.uid, self.uid, self.uid) )
+
+
+        friends = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        uids = []
+
+        for friend in friends:
+            uids.append(friend["uid"])
+
+        return uids
+
 
     
     def search_friends(self, search):
@@ -466,6 +531,9 @@ class User:
 
         most_recent_highlow = cursor.fetchone()
 
+        if most_recent_highlow is None:
+            return 0
+
         most_recent_highlow_datetime = datetime.datetime.strptime(most_recent_highlow["_date"], "%Y-%m-%d") 
 
         diff = datetime.datetime.now() - most_recent_highlow_datetime
@@ -517,3 +585,34 @@ class User:
         conn.close()
 
         return { "status": "success" }
+
+    def get_notif_settings(self):
+        return {
+            "notify_new_friend_req": self.notify_new_friend_req,
+            "notify_new_friend_acc": self.notify_new_friend_acc,
+            "notify_new_feed_item": self.notify_new_feed_item,
+            "notify_new_like": self.notify_new_like,
+            "notify_new_comment": self.notify_new_comment
+        }
+
+    def set_notif_setting(self, setting, value):
+        if setting not in ['notify_new_friend_req', 'notify_new_friend_acc', 'notify_new_feed_item', 'notify_new_like', 'notify_new_comment']:
+            raise ValueError("Invalid setting")
+        
+        if value not in (True, False):
+            raise ValueError("Invalid value")
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+        
+        if value:
+            cursor.execute("UPDATE users SET {}=TRUE WHERE uid='{}';".format(setting, self.uid))
+        else:
+            cursor.execute("UPDATE users SET {}=FALSE WHERE uid='{}';".format(setting, self.uid))
+        
+        conn.commit()
+        conn.close()
+
+        return { "status": "success" }
+        

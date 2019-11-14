@@ -44,6 +44,19 @@ def verify_token(token):
     #Otherwise, return the UID
     return json.loads('{ "uid": "' + result + '" }')
 
+### DON"T USE UNLESS ABSOLUTELY SURE. USE `verify_token` INSTEAD ###
+def verify_token_accept_old(token):
+    result = auth.validate_token(token, accepts_old=True)
+
+    if result == "ERROR-INVALID-TOKEN":
+        return {
+            "error": result
+        }
+    
+    return {
+        "uid": result
+    }
+
 def send_email(recipient, subject, message):
     hlemail.send_email(recipient, subject, message, email_config["password"])
 
