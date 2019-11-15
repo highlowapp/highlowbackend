@@ -120,7 +120,7 @@ class HighLow:
                 try:
                     friend = User(other_uid, self.host, self.username, self.password, self.database)
                     if friend.notify_new_feed_item:
-                        notifs.send_notification_to_user("New Feed Item", user.firstname + " " + user.lastname + " created a new High/Low!", other_uid)
+                        notifs.send_notification_to_user("New Feed Item", user.firstname + " " + user.lastname + " created a new High/Low!", other_uid, data={"highlowid": self.high_low_id})
                 except: 
                     continue
         except:
@@ -399,8 +399,8 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
         notifs = Notifications(self.host, self.username, self.password, self.database)
 
         for user in users:
-            notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, user["uid"])
-        notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, self.uid)
+            notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, user["uid"], data={"highlowid": self.high_low_id})
+        notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, self.uid, data={"highlowid": self.high_low_id})
         
         conn.commit()
         conn.close()
