@@ -127,7 +127,7 @@ class User:
         
         if other_user.notify_new_friend_req:
             notifs = Notifications(self.host, self.username, self.password, self.database)
-            notifs.send_notification_to_user("New Friend Request", self.firstname + " " + self.lastname + " has requested your friendship", uid)
+            notifs.send_notification_to_user("New Friend Request", self.firstname + " " + self.lastname + " has requested your friendship", uid, data={"uid": uid})
         
         return { "status": "success" }
 
@@ -162,7 +162,7 @@ class User:
             
             if other_user.notify_new_friend_acc:
                 notifs = Notifications(self.host, self.username, self.password, self.database)
-                notifs.send_notification_to_user("Friendship Accepted!", self.firstname + " " + self.lastname + " has accepted your friendship!", uid)
+                notifs.send_notification_to_user("Friendship Accepted!", self.firstname + " " + self.lastname + " has accepted your friendship!", uid, data={"uid": uid})
         except:
             pass
 
