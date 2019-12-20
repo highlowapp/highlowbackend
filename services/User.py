@@ -32,7 +32,7 @@ class User:
 
         interests = cursor.fetchall()
 
-
+        print(interests)
 
         #Commit and close the connection
         conn.commit()
