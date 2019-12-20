@@ -666,7 +666,7 @@ def add_interest():
     return json.dumps( user.add_interests(interests) )
 
 @app.route("/user/interests/remove", methods=["POST"])
-def add_interest():
+def remove_interest():
     #Get token from Authorization
     token = request.headers["Authorization"].replace("Bearer ", "")
 
