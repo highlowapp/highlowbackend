@@ -319,7 +319,7 @@ def get_complete_user():
 
     return json.dumps( user_json )
 
-@app.route("/user/interests", method=["GET"])
+@app.route("/user/interests", methods=["GET"])
 def get_interests():
     #Get token from Authorization
     token = request.headers["Authorization"].replace("Bearer ", "")
