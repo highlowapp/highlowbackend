@@ -31,7 +31,7 @@ class User:
         cursor.execute("SELECT interests.name FROM user_interests INNER JOIN interests ON interests.interest_id = user_interests.interest WHERE uid='" + self.uid + "';")
 
         interests = cursor.fetchall()
-
+        print("SELECT interests.name FROM user_interests INNER JOIN interests ON interests.interest_id = user_interests.interest WHERE uid='{}';".format(self.uid))
         print(interests)
 
         #Commit and close the connection
