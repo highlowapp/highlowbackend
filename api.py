@@ -706,7 +706,23 @@ def remove_interest():
 
     return json.dumps( user.remove_interests(interests) )
 
+@app.route("/user/interests/all", methods=["GET"])
+def get_all_interests():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    user = User(uid, host, username, password, database)
+
+    return json.dumps( user.get_all_interests() )
 
 
 #######################

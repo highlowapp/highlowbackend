@@ -692,3 +692,17 @@ class User:
         conn.close()
 
         return { "interests": interests }
+
+    def get_all_interests(self):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT name, interest_id FROM interests;")
+
+        interests = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        return { "interests": interests }
