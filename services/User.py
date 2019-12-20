@@ -672,6 +672,7 @@ class User:
         interest_id = uuid.uuid1()
 
         cursor.execute("INSERT INTO interests(name, interest_id) VALUES('{}', '{}');".format(name, interest_id))
+        cursor.execute("INSERT INTO user_interests(uid, interest) VALUES('{}', '{}');".format(self.uid, interest_id))
 
         conn.commit()
         conn.close()
