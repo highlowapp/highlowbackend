@@ -627,7 +627,63 @@ def get_calendar():
     
     return json.dumps( user.get_calendar() )
 
+@app.route("/user/interests/create", methods=["POST"])
+def create_interest():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    user = User(uid, host, username, password, database)
+
+    return json.dumps( user.create_interest(request.form.get('name')) )
+
+@app.route("/user/interests/add", methods=["POST"])
+def add_interest():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    interests = request.form.get('interests')
+
+    user = User(uid, host, username, password, database)
+
+    return json.dumps( user.add_interests(interests) )
+
+@app.route("/user/interests/remove", methods=["POST"])
+def add_interest():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    interests = request.form.get('interests')
+
+    user = User(uid, host, username, password, database)
+
+    return json.dumps( user.remove_interests(interests) )
 
 
 

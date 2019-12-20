@@ -1,5 +1,6 @@
 import pymysql
 import bleach
+import uuid
 import json
 import datetime
 from services.FileStorage import FileStorage
@@ -27,6 +28,12 @@ class User:
 
         user = cursor.fetchone()
 
+        cursor.execute("SELECT interests.name FROM user_interests INNER JOIN interests ON interests.interest_id = user_interests.interest WHERE uid='" + self.uid + "';")
+
+        interests = cursor.fetchall()
+
+
+
         #Commit and close the connection
         conn.commit()
         conn.close()
@@ -50,6 +57,7 @@ class User:
         self.notify_new_feed_item = user["notify_new_feed_item"]
         self.notify_new_like = user["notify_new_like"]
         self.notify_new_comment = user["notify_new_comment"]
+        self.interests = [interest['name'] for interest in interests]
     
     ## Setters ##
 
@@ -615,4 +623,59 @@ class User:
         conn.close()
 
         return { "status": "success" }
+
+
+
+    def add_interests(self, interests):
+        if interests is None:
+            return { "error": "no-interests-provided" }
+
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
         
+        for interest in interests:
+            interest = pymysql.escape_string( bleach.clean(interest) )
+            cursor.execute("INSERT INTO user_interests(uid, interest) VALUES('{}','{}');".format(self.uid, interest))
+
+        conn.commit()
+        conn.close()
+
+        return { "status": "success" }
+
+    def remove_interests(self, interests):
+        if interests is None:
+            return { "error": "no-interests-provided" }
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+        
+        for interest in interests:
+            interest = pymysql.escape_string( bleach.clean(interest) )
+            cursor.execute("DELETE FROM user_interests WHERE uid='{}' AND interest='{}';".format(self.uid, interest))
+
+        conn.commit()
+        conn.close()
+
+        return { "status": "success" }
+
+    def create_interest(self, name):
+        if name is None: 
+            return { "error": "no-name-provided" }
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        name = pymysql.escape_string( bleach.clean(name) )
+
+        interest_id = uuid.uuid1()
+
+        cursor.execute("INSERT INTO interests(name, interest_id) VALUES('{}', '{}');".format(name, interest_id))
+
+        conn.commit()
+        conn.close()
+
+        return { "status": "success" } 
