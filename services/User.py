@@ -678,3 +678,17 @@ class User:
         conn.close()
 
         return { "status": "success" } 
+
+    def get_interests(self):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT interests.name, interests.interest_id FROM user_interests INNER JOIN interests ON interests.interest_id = user_interests.interest WHERE uid='" + self.uid + "';")
+
+        interests = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        return { "interests": interests }

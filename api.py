@@ -319,6 +319,26 @@ def get_complete_user():
 
     return json.dumps( user_json )
 
+@app.route("/user/interests", method=["GET"])
+def get_interests():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
+
+    #Obtain the result as JSON
+    result = token_verification_request
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+
+    #Otherwise, get the user
+    user = User(result["uid"], host, username, password, database)
+
+    return json.dumps( user.get_interests() )
+
 @app.route("/user/get/<string:property>", methods=["POST"])
 def get(property):
     #Get token from Authorization
