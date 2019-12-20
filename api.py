@@ -313,7 +313,8 @@ def get_complete_user():
         "profileimage": user.profileimage,
         "streak": user.calculate_streak(),
         "email": user.email,
-        "bio": user.bio
+        "bio": user.bio,
+        "interests": user.interests
     }
 
     return json.dumps( user_json )
