@@ -727,6 +727,26 @@ def get_all_interests():
 
     return json.dumps( user.get_all_interests() )
 
+@app.route("/user/friends/suggestions", methods=["GET"])
+def get_friend_suggestions():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    user = User(uid, host, username, password, database)
+
+    return json.dumps( user.get_mutual_interests() )
+
+
+
 
 #######################
 # HighLow             #

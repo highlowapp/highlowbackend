@@ -727,3 +727,63 @@ class User:
         conn.close()
 
         return { "interests": interests }
+
+    def get_mutual_interests(self):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        
+        SELECT DISTINCT
+            users.uid uid,
+            users.firstname firstname,
+            users.lastname lastname,
+            users.profileimage profileimage,
+            users.streak streak,
+            users.bio bio
+        FROM
+        (SELECT * FROM user_interests WHERE uid='{}') my_interests
+
+        JOIN user_interests others_interests ON others_interests.interest = my_interests.interest AND others_interests.uid != '{}'
+        JOIN users ON users.uid = others_interests.uid;
+        
+        """.format(self.uid, self.uid))
+
+        common_interest_users = cursor.fetchall()
+
+        cursor.execute("""
+        
+        SELECT
+            frnds.friend_id AS uid
+        FROM
+
+        (
+            SELECT CASE
+                WHEN friends.initiator = '{}' THEN friends.acceptor
+                WHEN friends.acceptor = '{}' THEN friends.initiator
+            END AS friend_id,
+            friends.status AS status
+            FROM friends
+            WHERE (friends.initiator = '{}' OR friends.acceptor = '{}') AND friends.status = 2
+        ) AS frnds
+
+        JOIN users ON users.uid = frnds.friend_id;
+
+        """.format(self.uid, self.uid, self.uid, self.uid))
+
+        friends = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        friends_set = set()
+
+        for friend in friends:
+            friends_set.add(friend["uid"])
+
+        users = filter(lambda x: (x["uid"] in friends_set))
+
+        return { 
+            "users": users
+        }
