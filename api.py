@@ -703,7 +703,7 @@ def remove_interest():
 
     interests = request.form.get('interests')
 
-    print(interests)
+    print(request.form)
 
     user = User(uid, host, username, password, database)
 
