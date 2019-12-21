@@ -637,7 +637,7 @@ class User:
             interest = pymysql.escape_string( bleach.clean(interest) )
 
             #Check for existing interest
-            cursor.execute("SELECT * FROM user_interests WHERE uid='{}' AND interest='{}';".format(self.uid, interest_id))
+            cursor.execute("SELECT * FROM user_interests WHERE uid='{}' AND interest='{}';".format(self.uid, interest))
 
             dups = cursor.fetchone()
 
