@@ -660,14 +660,15 @@ class User:
         return { "status": "success" }
 
     def create_interest(self, name):
-        if name is None: 
+        name = pymysql.escape_string( bleach.clean(name) )
+        if name is None or len(name) == 0: 
             return { "error": "no-name-provided" }
 
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        name = pymysql.escape_string( bleach.clean(name) )
+        
 
         interest_id = uuid.uuid1()
 
