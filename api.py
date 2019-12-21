@@ -681,6 +681,7 @@ def add_interest():
     uid = result["uid"]
 
     interests = request.form.get('interests')
+    
 
     user = User(uid, host, username, password, database)
 
@@ -701,6 +702,8 @@ def remove_interest():
     uid = result["uid"]
 
     interests = request.form.get('interests')
+
+    print(interests)
 
     user = User(uid, host, username, password, database)
 
