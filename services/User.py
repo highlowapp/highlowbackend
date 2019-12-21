@@ -635,7 +635,14 @@ class User:
         
         for interest in interests:
             interest = pymysql.escape_string( bleach.clean(interest) )
-            cursor.execute("INSERT INTO user_interests(uid, interest) VALUES('{}','{}');".format(self.uid, interest))
+
+            #Check for existing interest
+            cursor.execute("SELECT * FROM user_interests WHERE uid='{}' AND interest='{}';".format(self.uid, interest_id))
+
+            dups = cursor.fetchone()
+
+            if dups is None:
+                cursor.execute("INSERT INTO user_interests(uid, interest) VALUES('{}','{}');".format(self.uid, interest))
 
         conn.commit()
         conn.close()
@@ -660,7 +667,7 @@ class User:
         return { "status": "success" }
 
     def create_interest(self, name):
-        name = pymysql.escape_string( bleach.clean(name) )
+        name = pymysql.escape_string( bleach.clean(name) ).lower()
         if name is None or len(name) == 0: 
             return { "error": "no-name-provided" }
 
@@ -668,17 +675,30 @@ class User:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        
-
         interest_id = uuid.uuid1()
 
-        cursor.execute("INSERT INTO interests(name, interest_id) VALUES('{}', '{}');".format(name, interest_id))
-        cursor.execute("INSERT INTO user_interests(uid, interest) VALUES('{}', '{}');".format(self.uid, interest_id))
+        #Check for duplicates
+        cursor.execute("SELECT * FROM interests WHERE name='{}';".format(name))
+
+        duplicate_entries = cursor.fetchone()
+
+        if duplicate_entries is not None:
+            interest_id = duplicate_entries["interest_id"]
+        else:
+            cursor.execute("INSERT INTO interests(name, interest_id) VALUES('{}', '{}');".format(name, interest_id))
+        
+        #Check for existing interest
+        cursor.execute("SELECT * FROM user_interests WHERE uid='{}' AND interest='{}';".format(self.uid, interest_id))
+
+        dups = cursor.fetchone()
+
+        if dups is None:
+            cursor.execute("INSERT INTO user_interests(uid, interest) VALUES('{}', '{}');".format(self.uid, interest_id))
 
         conn.commit()
         conn.close()
 
-        return { "status": "success", "interest_id": interest_id } 
+        return { "status": "success", "interest_id": str(interest_id) } 
 
     def get_interests(self):
         #Connect to MySQL
