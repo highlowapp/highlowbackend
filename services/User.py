@@ -678,7 +678,7 @@ class User:
         conn.commit()
         conn.close()
 
-        return { "status": "success" } 
+        return { "status": "success", "interest_id": interest_id } 
 
     def get_interests(self):
         #Connect to MySQL
