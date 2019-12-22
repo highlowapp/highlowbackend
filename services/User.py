@@ -785,5 +785,5 @@ class User:
         users = filter(lambda x: (x["uid"] in friends_set), common_interest_users)
 
         return { 
-            "users": users
+            "users": list(users)
         }
