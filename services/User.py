@@ -782,7 +782,7 @@ class User:
         for friend in friends:
             friends_set.add(friend["uid"])
 
-        users = filter(lambda x: (x["uid"] in friends_set), common_interest_users)
+        users = filter(lambda x: (x["uid"] not in friends_set), common_interest_users)
 
         return { 
             "users": list(users)
