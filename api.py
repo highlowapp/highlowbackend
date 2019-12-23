@@ -313,10 +313,31 @@ def get_complete_user():
         "profileimage": user.profileimage,
         "streak": user.calculate_streak(),
         "email": user.email,
-        "bio": user.bio
+        "bio": user.bio,
+        "interests": user.interests
     }
 
     return json.dumps( user_json )
+
+@app.route("/user/interests", methods=["GET"])
+def get_interests():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
+
+    #Obtain the result as JSON
+    result = token_verification_request
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+
+    #Otherwise, get the user
+    user = User(result["uid"], host, username, password, database)
+
+    return json.dumps( user.get_interests() )
 
 @app.route("/user/get/<string:property>", methods=["POST"])
 def get(property):
@@ -627,7 +648,102 @@ def get_calendar():
     
     return json.dumps( user.get_calendar() )
 
+@app.route("/user/interests/create", methods=["POST"])
+def create_interest():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    user = User(uid, host, username, password, database)
+
+    return json.dumps( user.create_interest(request.form.get('name')) )
+
+@app.route("/user/interests/add", methods=["POST"])
+def add_interest():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    interests = request.form.getlist('interests[]')
+    
+
+    user = User(uid, host, username, password, database)
+
+    return json.dumps( user.add_interests(interests) )
+
+@app.route("/user/interests/remove", methods=["POST"])
+def remove_interest():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    interests = request.form.getlist('interests[]')
+
+    print(request.form)
+
+    user = User(uid, host, username, password, database)
+
+    return json.dumps( user.remove_interests(interests) )
+
+@app.route("/user/interests/all", methods=["GET"])
+def get_all_interests():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    user = User(uid, host, username, password, database)
+
+    return json.dumps( user.get_all_interests() )
+
+@app.route("/user/friends/suggestions", methods=["GET"])
+def get_friend_suggestions():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+    
+    uid = result["uid"]
+
+    user = User(uid, host, username, password, database)
+
+    return json.dumps( user.get_mutual_interests() )
 
 
 

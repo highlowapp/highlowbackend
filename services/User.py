@@ -1,5 +1,6 @@
 import pymysql
 import bleach
+import uuid
 import json
 import datetime
 from services.FileStorage import FileStorage
@@ -27,6 +28,10 @@ class User:
 
         user = cursor.fetchone()
 
+        cursor.execute("SELECT interests.name FROM user_interests INNER JOIN interests ON interests.interest_id = user_interests.interest WHERE uid='" + self.uid + "';")
+
+        interests = cursor.fetchall()
+
         #Commit and close the connection
         conn.commit()
         conn.close()
@@ -50,6 +55,7 @@ class User:
         self.notify_new_feed_item = user["notify_new_feed_item"]
         self.notify_new_like = user["notify_new_like"]
         self.notify_new_comment = user["notify_new_comment"]
+        self.interests = [interest['name'] for interest in interests]
     
     ## Setters ##
 
@@ -615,4 +621,169 @@ class User:
         conn.close()
 
         return { "status": "success" }
+
+
+
+    def add_interests(self, interests):
+        if interests is None:
+            return { "error": "no-interests-provided" }
+
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
         
+        for interest in interests:
+            interest = pymysql.escape_string( bleach.clean(interest) )
+
+            #Check for existing interest
+            cursor.execute("SELECT * FROM user_interests WHERE uid='{}' AND interest='{}';".format(self.uid, interest))
+
+            dups = cursor.fetchone()
+
+            if dups is None:
+                cursor.execute("INSERT INTO user_interests(uid, interest) VALUES('{}','{}');".format(self.uid, interest))
+
+        conn.commit()
+        conn.close()
+
+        return { "status": "success" }
+
+    def remove_interests(self, interests):
+        if interests is None:
+            return { "error": "no-interests-provided" }
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+        
+        for interest in interests:
+            interest = pymysql.escape_string( bleach.clean(interest) )
+            cursor.execute("DELETE FROM user_interests WHERE uid='{}' AND interest='{}';".format(self.uid, interest))
+
+        conn.commit()
+        conn.close()
+
+        return { "status": "success" }
+
+    def create_interest(self, name):
+        name = pymysql.escape_string( bleach.clean(name) ).lower()
+        if name is None or len(name) == 0: 
+            return { "error": "no-name-provided" }
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        interest_id = uuid.uuid1()
+
+        #Check for duplicates
+        cursor.execute("SELECT * FROM interests WHERE name='{}';".format(name))
+
+        duplicate_entries = cursor.fetchone()
+
+        if duplicate_entries is not None:
+            interest_id = duplicate_entries["interest_id"]
+        else:
+            cursor.execute("INSERT INTO interests(name, interest_id) VALUES('{}', '{}');".format(name, interest_id))
+        
+        #Check for existing interest
+        cursor.execute("SELECT * FROM user_interests WHERE uid='{}' AND interest='{}';".format(self.uid, interest_id))
+
+        dups = cursor.fetchone()
+
+        if dups is None:
+            cursor.execute("INSERT INTO user_interests(uid, interest) VALUES('{}', '{}');".format(self.uid, interest_id))
+
+        conn.commit()
+        conn.close()
+
+        return { "status": "success", "interest_id": str(interest_id) } 
+
+    def get_interests(self):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT interests.name, interests.interest_id FROM user_interests INNER JOIN interests ON interests.interest_id = user_interests.interest WHERE uid='" + self.uid + "';")
+
+        interests = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        return { "interests": interests }
+
+    def get_all_interests(self):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT name, interest_id FROM interests;")
+
+        interests = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        return { "interests": interests }
+
+    def get_mutual_interests(self):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        
+        SELECT DISTINCT
+            users.uid uid,
+            users.firstname firstname,
+            users.lastname lastname,
+            users.profileimage profileimage,
+            users.streak streak,
+            users.bio bio
+        FROM
+        (SELECT * FROM user_interests WHERE uid='{}') my_interests
+
+        JOIN user_interests others_interests ON others_interests.interest = my_interests.interest AND others_interests.uid != '{}'
+        JOIN users ON users.uid = others_interests.uid;
+        
+        """.format(self.uid, self.uid))
+
+        common_interest_users = cursor.fetchall()
+
+        cursor.execute("""
+        
+        SELECT
+            frnds.friend_id AS uid
+        FROM
+
+        (
+            SELECT CASE
+                WHEN friends.initiator = '{}' THEN friends.acceptor
+                WHEN friends.acceptor = '{}' THEN friends.initiator
+            END AS friend_id,
+            friends.status AS status
+            FROM friends
+            WHERE (friends.initiator = '{}' OR friends.acceptor = '{}') AND friends.status = 2
+        ) AS frnds
+
+        JOIN users ON users.uid = frnds.friend_id;
+
+        """.format(self.uid, self.uid, self.uid, self.uid))
+
+        friends = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        friends_set = set()
+
+        for friend in friends:
+            friends_set.add(friend["uid"])
+
+        users = filter(lambda x: (x["uid"] not in friends_set), common_interest_users)
+
+        return { 
+            "users": list(users)
+        }
