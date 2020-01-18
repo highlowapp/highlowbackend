@@ -1276,8 +1276,21 @@ def list_bug_reports():
 
     return response
 
+@app.route("/admin/take_analytics_snapshot", methods=["GET"])
+def take_analytics_snapshot():
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
 
+    return admin.take_analytics_snapshot()
 
+@app.route("/admin/get_analytics", methods=["GET"])
+def get_analytics():
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    return json.dumps(
+        admin.get_analytics()
+    )
 
 
 @app.route("/bug_reports/submit", methods=["POST"])

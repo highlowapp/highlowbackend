@@ -44,7 +44,7 @@ def verify_token(token):
     #Otherwise, return the UID
     return json.loads('{ "uid": "' + result + '" }')
 
-### DON"T USE UNLESS ABSOLUTELY SURE. USE `verify_token` INSTEAD ###
+### DON'T USE UNLESS ABSOLUTELY SURE. USE `verify_token` INSTEAD ###
 def verify_token_accept_old(token):
     result = auth.validate_token(token, accepts_old=True)
 
