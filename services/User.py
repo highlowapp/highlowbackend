@@ -455,7 +455,7 @@ class User:
 
                 JOIN highlows ON highlows.uid = friend_id
                 JOIN users ON users.uid = frnds.friend_id
-                RIGHT JOIN flags ON flags.flagger != '{}' OR flags.highlowid != highlows.highlowid
+                LEFT JOIN flags ON flags.flagger != '{}' OR flags.highlowid != highlows.highlowid
                 LEFT OUTER JOIN likes ON likes.uid = '{}' AND likes.highlowid = highlows.highlowid
 
             ORDER BY highlows._timestamp DESC
