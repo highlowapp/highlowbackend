@@ -437,6 +437,7 @@ class User:
                 CASE 
                 WHEN flags.id IS NULL THEN 0
                 ELSE 1
+                END
                  AS flagged,
 
                 CASE
