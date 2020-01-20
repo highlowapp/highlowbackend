@@ -434,10 +434,7 @@ class User:
                 users.streak,
                 users.bio,
 
-                CASE
-                WHEN flags.id IS NULL THEN 0
-                ELSE 1
-                END              AS flagged,
+                0 AS flagged,
 
                 CASE
                 WHEN likes.id IS NULL THEN 0
@@ -458,7 +455,7 @@ class User:
 
                 JOIN highlows ON highlows.uid = friend_id
                 JOIN users ON users.uid = frnds.friend_id
-                LEFT OUTER JOIN flags ON flags.flagger = '{}' AND flags.highlowid = highlows.highlowid
+                RIGHT JOIN flags ON flags.flagger != '{}' OR flags.highlowid != highlows.highlowid
                 LEFT OUTER JOIN likes ON likes.uid = '{}' AND likes.highlowid = highlows.highlowid
 
             ORDER BY highlows._timestamp DESC
