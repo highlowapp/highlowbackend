@@ -105,6 +105,9 @@ class Admin:
         conn.commit()
         conn.close()
 
+        for snapshot in analytics:
+            snapshot['date'] = snapshot['date'].isoformat()
+
         return {
             "analytics": analytics
         }
