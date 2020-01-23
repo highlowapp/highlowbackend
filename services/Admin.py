@@ -98,7 +98,7 @@ class Admin:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM analytics;")
+        cursor.execute("SELECT * FROM analytics ORDER BY date;")
 
         analytics = cursor.fetchall()
 
