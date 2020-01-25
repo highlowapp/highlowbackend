@@ -479,12 +479,18 @@ class Auth:
             cursor.execute("SELECT banned FROM users WHERE uid='{}';".format(payload["sub"]))
 
             user = cursor.fetchone()
+
+            conn.commit()
+            conn.close()
             if user != None and user["banned"]:
                 return "ERROR-INVALID-REFRESH-TOKEN"
 
             #Create a new token and return it
             new_access_token = self.create_token(payload["sub"])
             return new_access_token
+
+        conn.commit()
+        conn.close()
 
         return "ERROR-INVALID-REFRESH-TOKEN"
 

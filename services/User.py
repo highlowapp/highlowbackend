@@ -462,10 +462,11 @@ class User:
                 LEFT OUTER JOIN flags ON flags.flagger = '{}' AND flags.highlowid = highlows.highlowid
                 LEFT OUTER JOIN likes ON likes.uid = '{}' AND likes.highlowid = highlows.highlowid
 
+            WHERE (highlows.uid = '{}' OR highlows.private = FALSE)
             ORDER BY highlows._timestamp DESC
             LIMIT {} OFFSET {};
 
-            """.format(self.uid, self.uid, self.uid, self.uid, self.uid, self.uid, limit, offset) )
+            """.format(self.uid, self.uid, self.uid, self.uid, self.uid, self.uid, self.uid, limit, offset) )
 
         raw_feed = cursor.fetchall()
 
