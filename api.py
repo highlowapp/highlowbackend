@@ -128,7 +128,7 @@ def sign_up():
             #Upload profile picture...
             serviceutils.upload_default_profile_picture(result["uid"])
 
-        
+
 
         return json.dumps( result )
 
@@ -249,7 +249,7 @@ def refresh_access():
     if result == "ERROR-INVALID-REFRESH-TOKEN":
         serviceutils.log_event("invalid_refresh_token", {
             "error": result,
-            "false_token": refresh_token, 
+            "false_token": refresh_token,
             "ip": get_remote_addr(request)
         })
 
@@ -300,10 +300,10 @@ def get_complete_user():
     #If there was an error, return the error
     if "error" in token_verification:
         return token_verification
-    
+
     #Otherwise, get the user
     user = User(request.args.get("uid") or token_verification["uid"], host, username, password, database)
-   
+
 
     #Create user JSON description
     user_json = {
@@ -427,7 +427,7 @@ def set_user_profile():
 
     if profileimage:
         user.set_profileimage(profileimage, result["uid"])
-    
+
     firstname = request.form.get("firstname")
     lastname = request.form.get("lastname")
     bio = request.form.get("bio")
@@ -438,7 +438,7 @@ def set_user_profile():
         user.set_column("lastname", lastname)
     if bio:
         user.set_column("bio", bio)
-    
+
     return '{"status": "success"}'
 
 @app.route("/user/flag/<string:_user>", methods=["POST"])
@@ -532,8 +532,8 @@ def get_friends():
 
 
     uid = request.args.get("uid") or result["uid"]
-    
-    
+
+
     user = User(uid, host, username, password, database)
     return json.dumps( user.list_friends() )
 
@@ -548,7 +548,7 @@ def unfriend(friend):
     #If there was an error, return the error
     if "error" in result:
         return '{ "error": "' + result["error"] + '" }'
-    
+
     uid = result["uid"]
 
     user = User(uid, host, username, password, database)
@@ -567,7 +567,7 @@ def request_friend(user_id):
     #If there was an error, return the error
     if "error" in result:
         return '{ "error": "' + result["error"] + '" }'
-    
+
     uid = result["uid"]
 
     user = User(uid, host, username, password, database)
@@ -585,7 +585,7 @@ def search_users():
     #If there was an error, return the error
     if "error" in result:
         return '{ "error": "' + result["error"] + '" }'
-    
+
     uid = result["uid"]
 
     search = request.form["search"]
@@ -604,12 +604,12 @@ def get_pending():
     #If there was an error, return the error
     if "error" in result:
         return '{ "error": "' + result["error"] + '" }'
-    
+
     uid = result["uid"]
 
     user = User(uid, host, username, password, database)
     return user.list_pending_requests()
-    
+
 
 
 @app.route("/user/accept_friend/<string:friend>", methods=["POST"])
@@ -623,7 +623,7 @@ def accept_friendship(friend):
     #If there was an error, return the error
     if "error" in result:
         return '{ "error": "' + result["error"] + '" }'
-    
+
     uid = result["uid"]
 
     user = User(uid, host, username, password, database)
@@ -641,11 +641,11 @@ def get_calendar():
     #If there was an error, return the error
     if "error" in result:
         return '{ "error": "' + result["error"] + '" }'
-    
+
     uid = result["uid"]
 
     user = User(uid, host, username, password, database)
-    
+
     return json.dumps( user.get_calendar() )
 
 @app.route("/user/interests/create", methods=["POST"])
@@ -659,7 +659,7 @@ def create_interest():
     #If there was an error, return the error
     if "error" in result:
         return '{ "error": "' + result["error"] + '" }'
-    
+
     uid = result["uid"]
 
     user = User(uid, host, username, password, database)
@@ -677,11 +677,11 @@ def add_interest():
     #If there was an error, return the error
     if "error" in result:
         return '{ "error": "' + result["error"] + '" }'
-    
+
     uid = result["uid"]
 
     interests = request.form.getlist('interests[]')
-    
+
 
     user = User(uid, host, username, password, database)
 
@@ -698,7 +698,7 @@ def remove_interest():
     #If there was an error, return the error
     if "error" in result:
         return '{ "error": "' + result["error"] + '" }'
-    
+
     uid = result["uid"]
 
     interests = request.form.getlist('interests[]')
@@ -720,7 +720,7 @@ def get_all_interests():
     #If there was an error, return the error
     if "error" in result:
         return '{ "error": "' + result["error"] + '" }'
-    
+
     uid = result["uid"]
 
     user = User(uid, host, username, password, database)
@@ -738,7 +738,7 @@ def get_friend_suggestions():
     #If there was an error, return the error
     if "error" in result:
         return '{ "error": "' + result["error"] + '" }'
-    
+
     uid = result["uid"]
 
     user = User(uid, host, username, password, database)
@@ -769,10 +769,10 @@ def sethigh():
     highlow = None
 
     if "highlowid" in request.form:
-        
+
         highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
         return highlow.update_high(uid, text=high, image=high_image)
-        
+
 
     else:
         highlow = HighLow(host, username, password, database)
@@ -800,17 +800,36 @@ def setlow():
 
 
     if "highlowid" in request.form:
-        
+
         highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
         return highlow.update_low(uid, text=low, image=low_image)
-        
+
 
 
     else:
 
         highlow = HighLow(host, username, password, database)
         return highlow.create(uid, request.form["date"], high=None, low=low, high_image=None, low_image=low_image)
-      
+
+
+@app.route("/highlow/<string:highlowid>/private/<int:on>", methods=["GET"])
+def toggle_private(highlowid, on):
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    verification = serviceutils.verify_token(token)
+
+    if 'error' in verification:
+        return json.dumps( verification )
+
+    uid = verification["uid"]
+
+    highlow = HighLow(host, username, password, database, high_low_id=highlowid)
+
+    if on == 1:
+        return highlow.make_private()
+    else:
+        return highlow.make_public()
 
 
 @app.route("/highlow/like/<string:highlowid>", methods=["POST"])
@@ -832,7 +851,7 @@ def like(highlowid):
 
             return json.dumps( result )
         except Exception:
-            return '{"error":"invalid-highlowid"}'  
+            return '{"error":"invalid-highlowid"}'
 
 
 @app.route("/highlow/unlike/<string:highlowid>", methods=["POST"])
@@ -851,10 +870,10 @@ def unlike(highlowid):
         result = highlow.unlike(uid)
 
         return result
-        
-        
 
-        
+
+
+
 
 
 @app.route("/highlow/comment/<string:highlowid>", methods=["POST"])
@@ -872,12 +891,12 @@ def comment(highlowid):
 
         message = request.form.get("message") or ""
 
-        
+
         highlow = HighLow(host, username, password, database, highlowid)
         result = highlow.comment(uid, message)
 
         return json.dumps( result )
-        
+
 
 
 #TODO: Add endpoints for getting specific highlows, getting all highlows for user and sorting, etc.
@@ -910,14 +929,14 @@ def get_arbitrary(highlowid):
 
     if 'error' in verification:
         return json.dumps( verification )
-    else: 
-        
+    else:
+
         try:
             highlow = HighLow(host, username, password, database, highlowid)
             return json.dumps( highlow.get_json(verification["uid"]) )
         except Exception as e:
             print(e)
-            return '{ "error": "invalid-highlowid"  }' 
+            return '{ "error": "invalid-highlowid"  }'
 
 
 
@@ -956,7 +975,7 @@ def get_date():
 
     highlowlist = HighLowList(host, username, password, database)
 
-    return json.dumps( highlowlist.get_day_for_user(verification["uid"], date, verification["uid"]) ) 
+    return json.dumps( highlowlist.get_day_for_user(verification["uid"], date, verification["uid"]) )
 
 
 
@@ -1027,7 +1046,7 @@ def get_comments(highlowid):
     if "error" in token_verification_request:
         return '{ "error": "' + token_verification_request["error"] + '" }'
 
-    try: 
+    try:
         highlow = HighLow(host, username, password, database, high_low_id=highlowid)
     except:
         return '{ "error": "highlow-no-exist" }'
@@ -1139,7 +1158,7 @@ def get_flags():
     if request.args.get("admin_password") != eventlogger_config["admin_password"]:
         return "error"
 
-    query_result = admin.get_flags() 
+    query_result = admin.get_flags()
 
     response = jsonify(query_result)
     response.headers.set('Access-Control-Allow-Origin', '*')
@@ -1154,7 +1173,7 @@ def inspect_user(uid):
 
     #Otherwise, get the user
     user = User(uid, host, username, password, database)
-   
+
 
     #Create user JSON description
     user_json = {
@@ -1166,9 +1185,9 @@ def inspect_user(uid):
         "email": user.email,
         "bio": user.bio,
         "times_flagged": user.times_flagged,
-        "banned": user.banned 
+        "banned": user.banned
     }
-    
+
     response = jsonify(user_json)
     response.headers.set('Access-Control-Allow-Origin', '*')
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
@@ -1182,9 +1201,9 @@ def ban_user(uid):
 
     #Otherwise, get the user
     user = User(uid, host, username, password, database)
-   
-    result = user.ban() 
-    
+
+    result = user.ban()
+
     response = jsonify(result)
     response.headers.set('Access-Control-Allow-Origin', '*')
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
@@ -1199,9 +1218,9 @@ def unban_user(uid):
 
     #Otherwise, get the user
     user = User(uid, host, username, password, database)
-   
-    result = user.unban() 
-    
+
+    result = user.unban()
+
     response = jsonify(result)
     response.headers.set('Access-Control-Allow-Origin', '*')
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
@@ -1255,7 +1274,7 @@ def dismiss_bug(bug_id):
     if request.args.get("admin_password") != eventlogger_config["admin_password"]:
         return "error"
 
-    result = bug_reports.dismiss(bug_id) 
+    result = bug_reports.dismiss(bug_id)
 
     response = jsonify(result)
     response.headers.set('Access-Control-Allow-Origin', '*')
@@ -1276,8 +1295,25 @@ def list_bug_reports():
 
     return response
 
+@app.route("/admin/take_analytics_snapshot", methods=["GET"])
+def take_analytics_snapshot():
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
 
+    return admin.take_analytics_snapshot()
 
+@app.route("/admin/get_analytics", methods=["GET"])
+def get_analytics():
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
+
+    query_result = admin.get_analytics()
+
+    response = jsonify(query_result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
 
 
 @app.route("/bug_reports/submit", methods=["POST"])
@@ -1373,10 +1409,10 @@ def get_notif_settings():
     #If there was an error, return the error
     if "error" in token_verification_request:
         return '{ "error": "' + token_verification_request["error"] + '" }'
-    
+
     user = User(token_verification_request['uid'], host, username, password, database)
     return json.dumps( user.get_notif_settings() )
- 
+
 @app.route("/notifications/<string:setting>/on", methods=["POST"])
 def turn_notif_setting_on(setting):
     #Get token from Authorization
@@ -1388,7 +1424,7 @@ def turn_notif_setting_on(setting):
     #If there was an error, return the error
     if "error" in token_verification_request:
         return '{ "error": "' + token_verification_request["error"] + '" }'
-    
+
     try:
         user = User(token_verification_request['uid'], host, username, password, database)
         result = user.set_notif_setting(setting, True)
@@ -1408,7 +1444,7 @@ def turn_notif_setting_off(setting):
     #If there was an error, return the error
     if "error" in token_verification_request:
         return '{ "error": "' + token_verification_request["error"] + '" }'
-    
+
     try:
         user = User(token_verification_request['uid'], host, username, password, database)
         result = user.set_notif_setting(setting, False)

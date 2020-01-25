@@ -434,10 +434,11 @@ class User:
                 users.streak,
                 users.bio,
 
-                CASE
+                CASE 
                 WHEN flags.id IS NULL THEN 0
                 ELSE 1
-                END              AS flagged,
+                END
+                 AS flagged,
 
                 CASE
                 WHEN likes.id IS NULL THEN 0
