@@ -387,6 +387,12 @@ class HighLow:
 
         highlow = cursor.fetchone()
 
+        cursor.execute( "SELECT firstname, lastname FROM users WHERE uid='{}';".format(uid))
+
+        liker = cursor.fetchone()
+
+        name = liker["firstname"] + " " + liker["lastname"]
+
         #Commit and close the connection
         conn.commit()
         conn.close()
@@ -394,10 +400,8 @@ class HighLow:
         user = User(self.uid, self.host, self.username, self.password, self.database)
 
         if user.notify_new_like:
-            print('Attempting Notifications...')
             notifs = Notifications(self.host, self.username, self.password, self.database)
-            notifs.send_notification_to_user("Someone likes your post!", "You have received a like on one of your High/Lows!", self.uid, data={"highlowid": self.high_low_id})
-            print('Notifications worked')
+            notifs.send_notification_to_user(name + " likes your post!", "You have received a like on one of your High/Lows!", self.uid, data={"highlowid": self.high_low_id})
         return { 'status': 'success', 'total_likes': highlow["total_likes"] }
 
 
