@@ -765,18 +765,23 @@ def sethigh():
 
     high = request.form.get("high")
     high_image = request.files.get("file")
+    isPrivateStr = request.form.get("private")
+    isPrivate = False
+    
+    if isPrivateStr == "true":
+        isPrivate = True
 
     highlow = None
 
     if "highlowid" in request.form:
 
         highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
-        return highlow.update_high(uid, text=high, image=high_image)
+        return highlow.update_high(uid, text=high, image=high_image, isPrivate=isPrivate)
 
 
     else:
         highlow = HighLow(host, username, password, database)
-        return highlow.create(uid, request.form["date"], high=high, low=None, high_image=high_image, low_image=None)
+        return highlow.create(uid, request.form["date"], high=high, low=None, high_image=high_image, low_image=None, isPrivate=isPrivate)
 
 
 
@@ -795,6 +800,11 @@ def setlow():
 
     low = request.form.get("low")
     low_image = request.files.get("file")
+    isPrivateStr = request.form.get("private")
+    isPrivate = False
+
+    if isPrivateStr == "true":
+        isPrivate = True
 
     highlow = None
 
@@ -802,14 +812,14 @@ def setlow():
     if "highlowid" in request.form:
 
         highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
-        return highlow.update_low(uid, text=low, image=low_image)
+        return highlow.update_low(uid, text=low, image=low_image, isPrivate=isPrivate)
 
 
 
     else:
 
         highlow = HighLow(host, username, password, database)
-        return highlow.create(uid, request.form["date"], high=None, low=low, high_image=None, low_image=low_image)
+        return highlow.create(uid, request.form["date"], high=None, low=low, high_image=None, low_image=low_image, isPrivate=isPrivate)
 
 
 @app.route("/highlow/<string:highlowid>/private/<int:on>", methods=["GET"])
@@ -827,9 +837,9 @@ def toggle_private(highlowid, on):
     highlow = HighLow(host, username, password, database, high_low_id=highlowid)
 
     if on == 1:
-        return highlow.make_private()
+        return highlow.make_private(uid)
     else:
-        return highlow.make_public()
+        return highlow.make_public(uid)
 
 
 @app.route("/highlow/like/<string:highlowid>", methods=["POST"])

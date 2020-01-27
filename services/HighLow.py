@@ -27,7 +27,7 @@ class HighLow:
             result = cursor.fetchone()
             conn.commit()
             conn.close()
-            print("Result:" + str(result))
+
             if not result:
                 raise ValueError("highlow-no-exist")
             
@@ -39,6 +39,7 @@ class HighLow:
             self.timestamp = result["_timestamp"]
             self.total_likes = result["total_likes"]
             self.date = result["_date"]
+            self.isPrivate = result["private"]
         else:
             self.high = ""
             self.low = ""
@@ -46,9 +47,10 @@ class HighLow:
             self.low_image = ""
             self.timestamp = None
             self.total_likes = 0
+            self.isPrivate = False
         self.protected_columns = []
 
-    def create(self, uid, _date, high=None, low=None, high_image=None, low_image=None):
+    def create(self, uid, _date, high=None, low=None, high_image=None, low_image=None, isPrivate=False):
         ## Create a new High/Low entry in the database ##
 
         #Create a High/Low ID
@@ -90,6 +92,8 @@ class HighLow:
         else:
             self.low_image = "NULL"
 
+        self.isPrivate = isPrivate
+
         _date = pymysql.escape_string( bleach.clean(_date) )
 
         self.date = _date
@@ -99,7 +103,7 @@ class HighLow:
         cursor = conn.cursor()
 
         #Now, insert the data
-        cursor.execute("INSERT INTO highlows(highlowid, uid, high, low, high_image, low_image, total_likes, _date) VALUES('{}', '{}', {}, {}, {}, {}, 0, '{}');".format(self.high_low_id, uid, self.high, self.low, self.high_image, self.low_image, self.date) )
+        cursor.execute("INSERT INTO highlows(highlowid, uid, high, low, high_image, low_image, total_likes, _date, private) VALUES('{}', '{}', {}, {}, {}, {}, 0, '{}', {});".format(self.high_low_id, uid, self.high, self.low, self.high_image, self.low_image, self.date, "TRUE" if self.isPrivate else "FALSE") )
 
         #...and update the streak
         cursor.execute("UPDATE users SET streak = streak + 1 WHERE uid='{}';".format(uid))
@@ -108,23 +112,24 @@ class HighLow:
         conn.commit()
         conn.close()
 
-        try:
-            user = User(uid, self.host, self.username, self.password, self.database)
+        if not self.isPrivate:
+            try:
+                user = User(uid, self.host, self.username, self.password, self.database)
 
-            
-            uids = user.get_friend_uids()
+                
+                uids = user.get_friend_uids()
 
-            notifs = Notifications(self.host, self.username, self.password, self.database)
+                notifs = Notifications(self.host, self.username, self.password, self.database)
 
-            for other_uid in uids:
-                try:
-                    friend = User(other_uid, self.host, self.username, self.password, self.database)
-                    if friend.notify_new_feed_item:
-                        notifs.send_notification_to_user("New Feed Item", user.firstname + " " + user.lastname + " created a new High/Low!", other_uid, data={"highlowid": self.high_low_id})
-                except: 
-                    continue
-        except:
-            pass
+                for other_uid in uids:
+                    try:
+                        friend = User(other_uid, self.host, self.username, self.password, self.database)
+                        if friend.notify_new_feed_item:
+                            notifs.send_notification_to_user("New Feed Item", user.firstname + " " + user.lastname + " created a new High/Low!", other_uid, data={"highlowid": self.high_low_id})
+                    except: 
+                        continue
+            except:
+                pass
 
         #Return the HighLow ID
         return '{ "highlowid":"' + self.high_low_id + '" }'
@@ -141,8 +146,12 @@ class HighLow:
             "highlowid": self.high_low_id,
             "_timestamp": self.timestamp.isoformat(),
             "_date": self.date,
-            "comments": []
+            "comments": [],
+            "private": self.isPrivate
         }
+
+        if (uid != self.uid) and self.isPrivate:
+            return { "error": "not-authorized" }
 
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
@@ -182,18 +191,55 @@ class HighLow:
 
         return json_object
 
+    def make_private(self, uid):
+        if uid != self.uid:
+            return '{"error": "not-authorized"}'
 
-    def update(self, uid, high=None, low=None, high_image=None, low_image=None):
-        
-        self.update_high(uid, text=high, image=high_image)
-        self.update_low(uid, text=low, image=low_image)
-
-    def update_high(self, uid, text=None, image=None):
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
+        cursor.execute("UPDATE highlows SET private=TRUE WHERE highlowid='{}';".format(self.high_low_id))
 
+        self.isPrivate = True
+
+        conn.commit()
+        conn.close()
+
+        return '{ "status": "success" }'
+
+    def make_public(self, uid):
+        if uid != self.uid:
+            return '{"error": "not-authorized"}'
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE highlows SET private=FALSE WHERE highlowid='{}';".format(self.high_low_id))
+        self.isPrivate = False
+
+
+        conn.commit()
+        conn.close()
+
+        return '{ "status": "success" }'
+
+
+    def update(self, uid, high=None, low=None, high_image=None, low_image=None, isPrivate=False):
+        
+        self.update_high(uid, text=high, image=high_image, isPrivate=isPrivate)
+        self.update_low(uid, text=low, image=low_image, isPrivate=isPrivate)
+
+    def update_high(self, uid, text=None, image=None, isPrivate=False):
+        if uid != self.uid:
+            return '{"error": "not-authorized"}'
+
+        self.isPrivate = isPrivate
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
 
         if text != None:
             text = pymysql.escape_string( bleach.clean(text) )
@@ -210,6 +256,8 @@ class HighLow:
             upload_result = json.loads( fileStorage.upload_to_high_images(image) )
 
             if 'error' in upload_result:
+                conn.commit()
+                conn.close()
                 return json.dumps( upload_result )
         
             filename = "'{}'".format(upload_result["file"])
@@ -221,7 +269,7 @@ class HighLow:
         self.high_image = image
 
         #Update the data
-        cursor.execute( "UPDATE highlows SET high={}, high_image={} WHERE highlowid='{}' AND uid='{}';".format(text, filename, self.high_low_id, uid) )
+        cursor.execute( "UPDATE highlows SET high={}, high_image={}, private={} WHERE highlowid='{}' AND uid='{}';".format(text, filename, "TRUE" if self.isPrivate else "FALSE",self.high_low_id, uid) )
 
         #Commit and close the connection
         conn.commit()
@@ -229,7 +277,12 @@ class HighLow:
 
         return '{"status": "success"}'
 
-    def update_low(self, uid, text=None, image=None):
+    def update_low(self, uid, text=None, image=None, isPrivate=False):
+        if uid != self.uid:
+            return '{"error": "not-authorized"}'
+
+        self.isPrivate = isPrivate
+
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
@@ -249,6 +302,8 @@ class HighLow:
             upload_result = json.loads( fileStorage.upload_to_low_images(image) )
 
             if 'error' in upload_result:
+                conn.commit()
+                conn.close()
                 return json.dumps( upload_result )
         
             filename = "'{}'".format(upload_result["file"])
@@ -260,7 +315,7 @@ class HighLow:
         self.low_image = image
 
         #Update the data
-        cursor.execute( "UPDATE highlows SET low={}, low_image={} WHERE highlowid='{}' AND uid='{}';".format(text, filename, self.high_low_id, uid) )
+        cursor.execute( "UPDATE highlows SET low={}, low_image={}, private={} WHERE highlowid='{}' AND uid='{}';".format(text, filename, "TRUE" if self.isPrivate else "FALSE", self.high_low_id, uid) )
 
         #Commit and close the connection
         conn.commit()
@@ -332,6 +387,12 @@ class HighLow:
 
         highlow = cursor.fetchone()
 
+        cursor.execute( "SELECT firstname, lastname FROM users WHERE uid='{}';".format(uid))
+
+        liker = cursor.fetchone()
+
+        name = liker["firstname"] + " " + liker["lastname"]
+
         #Commit and close the connection
         conn.commit()
         conn.close()
@@ -340,8 +401,7 @@ class HighLow:
 
         if user.notify_new_like:
             notifs = Notifications(self.host, self.username, self.password, self.database)
-            notifs.send_notification_to_user("Someone likes your post!", "You have received a like on one of your High/Lows!", self.uid, data={"highlowid": self.high_low_id})
-
+            notifs.send_notification_to_user(name + " likes your post!", "You have received a like on one of your High/Lows!", self.uid, data={"highlowid": self.high_low_id})
         return { 'status': 'success', 'total_likes': highlow["total_likes"] }
 
 
@@ -571,10 +631,10 @@ class HighLowList:
             highlows
             LEFT OUTER JOIN flags ON flags.flagger = '{}' AND flags.highlowid = highlows.highlowid
             LEFT OUTER JOIN likes ON likes.uid = '{}' AND likes.highlowid = highlows.highlowid
-        WHERE highlows.uid = '{}'
+        WHERE highlows.uid = '{}' AND (highlows.uid = '{}' OR highlows.private = FALSE)
         ORDER BY highlows._timestamp DESC LIMIT {} OFFSET {};
         
-        """.format(current_user, current_user, uid, limit, offset))
+        """.format(current_user, current_user, uid, current_user, limit, offset))
 
         highlows = cursor.fetchall()
 
