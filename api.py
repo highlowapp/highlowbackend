@@ -103,6 +103,9 @@ def get_remote_addr(request):
 
 
 #Define app routes
+@app.before_request
+def update_requests():
+    event_logger.increment_requests()
 
 #######################
 # Authentication      #
