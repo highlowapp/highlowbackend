@@ -74,6 +74,8 @@ class HighLow:
             upload_result = json.loads( fileStorage.upload_to_high_images(high_image) )
 
             if 'error' in upload_result:
+                conn.commit()
+                conn.close()
                 return json.dumps( upload_result )
         
             self.high_image = "'{}'".format(upload_result["file"])
@@ -86,6 +88,8 @@ class HighLow:
             upload_result = json.loads( fileStorage.upload_to_low_images(low_image) )
 
             if 'error' in upload_result:
+                conn.commit()
+                conn.close()
                 return json.dumps( upload_result )
         
             self.low_image = "'{}'".format(upload_result["file"])
@@ -132,7 +136,7 @@ class HighLow:
                 pass
 
         #Return the HighLow ID
-        return '{ "highlowid":"' + self.high_low_id + '" }'
+        return self.get_json(uid=self.uid)
 
 
     def get_json(self, uid=None):
@@ -275,7 +279,7 @@ class HighLow:
         conn.commit()
         conn.close()
 
-        return '{"status": "success"}'
+        return json.dumps(self.get_json(uid=self.uid))
 
     def update_low(self, uid, text=None, image=None, isPrivate=False):
         if uid != self.uid:
@@ -321,7 +325,7 @@ class HighLow:
         conn.commit()
         conn.close()
 
-        return '{"status": "success"}'
+        return json.dumps(self.get_json(uid=self.uid))
 
     def delete(self):
         ## Delete the HighLow database entry ##
