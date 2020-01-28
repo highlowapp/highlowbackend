@@ -911,9 +911,6 @@ def comment(highlowid):
         return json.dumps( result )
 
 
-
-#TODO: Add endpoints for getting specific highlows, getting all highlows for user and sorting, etc.
-#Those endpoints will make use of the "HighLowList" class
 @app.route("/highlow/get/today", methods=["GET"])
 def get_today():
     #Verify auth token

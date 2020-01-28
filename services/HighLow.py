@@ -210,7 +210,7 @@ class HighLow:
         conn.commit()
         conn.close()
 
-        return '{ "status": "success" }'
+        return json.dumps( self.get_json(uid=uid) )
 
     def make_public(self, uid):
         if uid != self.uid:
@@ -227,7 +227,7 @@ class HighLow:
         conn.commit()
         conn.close()
 
-        return '{ "status": "success" }'
+        return json.dumps( self.get_json(uid=uid) )
 
 
     def update(self, uid, high=None, low=None, high_image=None, low_image=None, isPrivate=False):
@@ -566,7 +566,7 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
         conn.commit()
         conn.close()
 
-        return '{"status": "success"}'
+        return json.dumps(self.get_json(uid=uid))
 
     def unflag(self, uid):
         #Connect to MySQL
@@ -588,7 +588,7 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
         conn.commit()
         conn.close()
 
-        return '{"status": "success"}'
+        return json.dumps(self.get_json(uid=uid))
 
 
 class HighLowList:
