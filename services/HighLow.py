@@ -469,7 +469,7 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
         conn.commit()
         conn.close()
 
-        return { "status": "success" }
+        return self.get_comments()
 
     def update_comment(self, uid, commentid, message):
         #Find the comment and udpate the database
