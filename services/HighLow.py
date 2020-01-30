@@ -101,6 +101,8 @@ class HighLow:
         _date = pymysql.escape_string( bleach.clean(_date) )
 
         self.date = _date
+
+        self.uid = uid
         
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
