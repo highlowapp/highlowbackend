@@ -343,7 +343,7 @@ class Auth:
         cursor = conn.cursor()
 
         #Get the relevant user(s)
-        cursor.execute("SELECT firstname, lastname, uid, email FROM users WHERE email='" + email + "' AND password != NULL;")
+        cursor.execute("SELECT firstname, lastname, uid, email FROM users WHERE email='" + email + "' AND password IS NOT NULL;")
         user = cursor.fetchone()
 
         #Commit and close the connection
@@ -351,7 +351,7 @@ class Auth:
         conn.close()
 
         #Check and see if any users existed with that email
-        if user == None:
+        if user is None:
             error = "user-no-exist"
             status = "failure"
 
