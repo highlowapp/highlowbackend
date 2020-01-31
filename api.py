@@ -771,7 +771,7 @@ def sethigh():
     isPrivateStr = request.form.get("private")
     isPrivate = False
     
-    if isPrivateStr == "true":
+    if isPrivateStr in ['true', '1']:
         isPrivate = True
 
     highlow = None
@@ -806,7 +806,7 @@ def setlow():
     isPrivateStr = request.form.get("private")
     isPrivate = False
 
-    if isPrivateStr == "true":
+    if isPrivateStr in ['true', '1']:
         isPrivate = True
 
     highlow = None
