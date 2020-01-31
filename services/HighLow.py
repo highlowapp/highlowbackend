@@ -74,6 +74,8 @@ class HighLow:
             upload_result = json.loads( fileStorage.upload_to_high_images(high_image) )
 
             if 'error' in upload_result:
+                conn.commit()
+                conn.close()
                 return json.dumps( upload_result )
         
             self.high_image = "'{}'".format(upload_result["file"])
@@ -86,6 +88,8 @@ class HighLow:
             upload_result = json.loads( fileStorage.upload_to_low_images(low_image) )
 
             if 'error' in upload_result:
+                conn.commit()
+                conn.close()
                 return json.dumps( upload_result )
         
             self.low_image = "'{}'".format(upload_result["file"])
@@ -97,6 +101,8 @@ class HighLow:
         _date = pymysql.escape_string( bleach.clean(_date) )
 
         self.date = _date
+
+        self.uid = uid
         
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
@@ -132,7 +138,7 @@ class HighLow:
                 pass
 
         #Return the HighLow ID
-        return '{ "highlowid":"' + self.high_low_id + '" }'
+        return self.get_json(uid=self.uid)
 
 
     def get_json(self, uid=None):
@@ -206,7 +212,7 @@ class HighLow:
         conn.commit()
         conn.close()
 
-        return '{ "status": "success" }'
+        return json.dumps( self.get_json(uid=uid) )
 
     def make_public(self, uid):
         if uid != self.uid:
@@ -223,7 +229,7 @@ class HighLow:
         conn.commit()
         conn.close()
 
-        return '{ "status": "success" }'
+        return json.dumps( self.get_json(uid=uid) )
 
 
     def update(self, uid, high=None, low=None, high_image=None, low_image=None, isPrivate=False):
@@ -275,7 +281,7 @@ class HighLow:
         conn.commit()
         conn.close()
 
-        return '{"status": "success"}'
+        return json.dumps(self.get_json(uid=self.uid))
 
     def update_low(self, uid, text=None, image=None, isPrivate=False):
         if uid != self.uid:
@@ -321,7 +327,7 @@ class HighLow:
         conn.commit()
         conn.close()
 
-        return '{"status": "success"}'
+        return json.dumps(self.get_json(uid=self.uid))
 
     def delete(self):
         ## Delete the HighLow database entry ##
@@ -465,7 +471,7 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
         conn.commit()
         conn.close()
 
-        return { "status": "success" }
+        return self.get_comments()
 
     def update_comment(self, uid, commentid, message):
         #Find the comment and udpate the database
@@ -562,7 +568,7 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
         conn.commit()
         conn.close()
 
-        return '{"status": "success"}'
+        return json.dumps(self.get_json(uid=uid))
 
     def unflag(self, uid):
         #Connect to MySQL
@@ -584,7 +590,7 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
         conn.commit()
         conn.close()
 
-        return '{"status": "success"}'
+        return json.dumps(self.get_json(uid=uid))
 
 
 class HighLowList:

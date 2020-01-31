@@ -103,6 +103,9 @@ def get_remote_addr(request):
 
 
 #Define app routes
+@app.before_request
+def update_requests():
+    event_logger.increment_requests()
 
 #######################
 # Authentication      #
@@ -908,9 +911,6 @@ def comment(highlowid):
         return json.dumps( result )
 
 
-
-#TODO: Add endpoints for getting specific highlows, getting all highlows for user and sorting, etc.
-#Those endpoints will make use of the "HighLowList" class
 @app.route("/highlow/get/today", methods=["GET"])
 def get_today():
     #Verify auth token

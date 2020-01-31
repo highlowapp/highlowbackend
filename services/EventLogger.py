@@ -93,3 +93,13 @@ class EventLogger:
 
         #Return the data
         return data
+
+    def increment_requests(self):
+        #Connect to MySQL database
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE requests SET num_requests = num_requests + 1;")
+
+        conn.commit()
+        conn.close()
