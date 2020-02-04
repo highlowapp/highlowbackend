@@ -908,7 +908,7 @@ def comment(highlowid):
         highlow = HighLow(host, username, password, database, highlowid)
         result = highlow.comment(uid, message)
 
-        return json.dumps( result )
+        return json.dumps( { "comments": result } )
 
 
 @app.route("/highlow/get/today", methods=["GET"])
