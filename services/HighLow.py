@@ -810,8 +810,6 @@ class HighLowList:
                 "total_likes": 0,
                 "high_image": "",
                 "low_image": "",
-                "flagged": 0,
-                "liked": 0,
                 "date": "",
                 "comments": []
             }
