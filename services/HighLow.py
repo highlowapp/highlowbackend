@@ -299,7 +299,7 @@ class HighLow:
             filename = "NULL"
 
         self.high = text
-        self.high_image = image
+        self.high_image = filename
 
         #Update the data
         cursor.execute( "UPDATE highlows SET high={}, high_image={}, private={} WHERE highlowid='{}' AND uid='{}';".format(text, filename, "TRUE" if self.isPrivate else "FALSE",self.high_low_id, uid) )
@@ -345,7 +345,7 @@ class HighLow:
             filename = "NULL"
 
         self.low = text
-        self.low_image = image
+        self.low_image = filename
 
         #Update the data
         cursor.execute( "UPDATE highlows SET low={}, low_image={}, private={} WHERE highlowid='{}' AND uid='{}';".format(text, filename, "TRUE" if self.isPrivate else "FALSE", self.high_low_id, uid) )
