@@ -84,15 +84,11 @@ class HighLow:
 
         if high != None:
             self.high = pymysql.escape_string( bleach.clean(high) )
-            self.high = "'{}'".format(self.high)
-        else:
-            self.high = "NULL"
+            self.high = "{}".format(self.high)
 
         if low != None:
             self.low = pymysql.escape_string( bleach.clean(low) )
-            self.low = "'{}'".format(self.low)
-        else:
-            self.low = "NULL"
+            self.low = "{}".format(self.low)
 
         if high_image != None:
             fileStorage = FileStorage()
@@ -104,9 +100,7 @@ class HighLow:
                 conn.close()
                 return json.dumps( upload_result )
         
-            self.high_image = "'{}'".format(upload_result["file"])
-        else:
-            self.high_image = "NULL"
+            self.high_image = "{}".format(upload_result["file"])
 
         if low_image != None:
             fileStorage = FileStorage()
@@ -118,9 +112,7 @@ class HighLow:
                 conn.close()
                 return json.dumps( upload_result )
         
-            self.low_image = "'{}'".format(upload_result["file"])
-        else:
-            self.low_image = "NULL"
+            self.low_image = "{}".format(upload_result["file"])
 
         self.isPrivate = isPrivate
 
@@ -131,7 +123,7 @@ class HighLow:
         self.uid = uid
 
         #Now, insert the data
-        cursor.execute("INSERT INTO highlows(highlowid, uid, high, low, high_image, low_image, total_likes, _date, private) VALUES('{}', '{}', {}, {}, {}, {}, 0, '{}', {});".format(self.high_low_id, uid, self.high, self.low, self.high_image, self.low_image, self.date, "TRUE" if self.isPrivate else "FALSE") )
+        cursor.execute("INSERT INTO highlows(highlowid, uid, high, low, high_image, low_image, total_likes, _date, private) VALUES('{}', '{}', {}, {}, {}, {}, 0, '{}', {});".format(self.high_low_id, uid, "'{}'".format(self.high) if self.high else "NULL", "'{}'".format(self.low) if self.low else "NULL", "'{}'".format(self.high_image) if self.high_image else "NULL", "'{}'".format(self.low_image) if self.low_image else "NULL", self.date, "TRUE" if self.isPrivate else "FALSE") )
 
         #...and update the streak
         cursor.execute("UPDATE users SET streak = streak + 1 WHERE uid='{}';".format(uid))
@@ -276,6 +268,7 @@ class HighLow:
 
         if text != None:
             text = pymysql.escape_string( bleach.clean(text) )
+            self.high = text
             text = "'{}'".format(text)
         else:
             text = "NULL"
@@ -294,12 +287,9 @@ class HighLow:
                 return json.dumps( upload_result )
         
             filename = "'{}'".format(upload_result["file"])
-
+            self.high_image = upload_result["file"]
         else:
             filename = "NULL"
-
-        self.high = text
-        self.high_image = filename
 
         #Update the data
         cursor.execute( "UPDATE highlows SET high={}, high_image={}, private={} WHERE highlowid='{}' AND uid='{}';".format(text, filename, "TRUE" if self.isPrivate else "FALSE",self.high_low_id, uid) )
@@ -322,6 +312,7 @@ class HighLow:
 
         if text != None:
             text = pymysql.escape_string( bleach.clean(text) )
+            self.low = text
             text = "'{}'".format(text)
         else:
             text = "NULL"
@@ -340,12 +331,10 @@ class HighLow:
                 return json.dumps( upload_result )
         
             filename = "'{}'".format(upload_result["file"])
+            self.low_image = upload_result["file"]
 
         else:
             filename = "NULL"
-
-        self.low = text
-        self.low_image = filename
 
         #Update the data
         cursor.execute( "UPDATE highlows SET low={}, low_image={}, private={} WHERE highlowid='{}' AND uid='{}';".format(text, filename, "TRUE" if self.isPrivate else "FALSE", self.high_low_id, uid) )
