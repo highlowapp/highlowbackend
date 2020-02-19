@@ -53,20 +53,42 @@ class HighLow:
     def create(self, uid, _date, high=None, low=None, high_image=None, low_image=None, isPrivate=False):
         ## Create a new High/Low entry in the database ##
 
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        _date = pymysql.escape_string( bleach.clean(_date) )
+
+        cursor.execute("SELECT * FROM highlows WHERE uid='{}' AND _date='{}';".format(uid, _date))
+
+        possible_duplicate = cursor.fetchone()
+
+        if possible_duplicate is not None:
+            self.high_low_id = possible_duplicate["highlowid"]
+            self.date = _date
+            self.high_image = possible_duplicate["high_image"]
+            self.low_image = possible_duplicate["low_image"]
+            self.high = possible_duplicate["high"]
+            self.low = possible_duplicate["low"]
+            self.uid = possible_duplicate["uid"]
+            self.total_likes = possible_duplicate["total_likes"]
+            self.timestamp = possible_duplicate["_timestamp"]
+            self.isPrivate = possible_duplicate["private"]
+            conn.commit()
+            conn.close()
+            return self.update(uid, high, low, high_image, low_image, isPrivate)
+
+
         #Create a High/Low ID
         self.high_low_id = str( uuid.uuid1() )
 
         if high != None:
             self.high = pymysql.escape_string( bleach.clean(high) )
-            self.high = "'{}'".format(self.high)
-        else:
-            self.high = "NULL"
+            self.high = "{}".format(self.high)
 
         if low != None:
             self.low = pymysql.escape_string( bleach.clean(low) )
-            self.low = "'{}'".format(self.low)
-        else:
-            self.low = "NULL"
+            self.low = "{}".format(self.low)
 
         if high_image != None:
             fileStorage = FileStorage()
@@ -78,9 +100,7 @@ class HighLow:
                 conn.close()
                 return json.dumps( upload_result )
         
-            self.high_image = "'{}'".format(upload_result["file"])
-        else:
-            self.high_image = "NULL"
+            self.high_image = "{}".format(upload_result["file"])
 
         if low_image != None:
             fileStorage = FileStorage()
@@ -92,9 +112,7 @@ class HighLow:
                 conn.close()
                 return json.dumps( upload_result )
         
-            self.low_image = "'{}'".format(upload_result["file"])
-        else:
-            self.low_image = "NULL"
+            self.low_image = "{}".format(upload_result["file"])
 
         self.isPrivate = isPrivate
 
@@ -103,16 +121,16 @@ class HighLow:
         self.date = _date
 
         self.uid = uid
-        
-        #Connect to MySQL
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
-        cursor = conn.cursor()
 
         #Now, insert the data
-        cursor.execute("INSERT INTO highlows(highlowid, uid, high, low, high_image, low_image, total_likes, _date, private) VALUES('{}', '{}', {}, {}, {}, {}, 0, '{}', {});".format(self.high_low_id, uid, self.high, self.low, self.high_image, self.low_image, self.date, "TRUE" if self.isPrivate else "FALSE") )
+        cursor.execute("INSERT INTO highlows(highlowid, uid, high, low, high_image, low_image, total_likes, _date, private) VALUES('{}', '{}', {}, {}, {}, {}, 0, '{}', {});".format(self.high_low_id, uid, "'{}'".format(self.high) if self.high else "NULL", "'{}'".format(self.low) if self.low else "NULL", "'{}'".format(self.high_image) if self.high_image else "NULL", "'{}'".format(self.low_image) if self.low_image else "NULL", self.date, "TRUE" if self.isPrivate else "FALSE") )
 
         #...and update the streak
         cursor.execute("UPDATE users SET streak = streak + 1 WHERE uid='{}';".format(uid))
+
+        cursor.execute("SELECT _timestamp FROM highlows WHERE highlowid='{}';".format(self.high_low_id))
+
+        self.timestamp = cursor.fetchone()["_timestamp"]
 
         #Commit and close the connection
         conn.commit()
@@ -138,7 +156,7 @@ class HighLow:
                 pass
 
         #Return the HighLow ID
-        return self.get_json(uid=self.uid)
+        return json.dumps( self.get_json(uid=self.uid) )
 
 
     def get_json(self, uid=None):
@@ -237,10 +255,11 @@ class HighLow:
         self.update_high(uid, text=high, image=high_image, isPrivate=isPrivate)
         self.update_low(uid, text=low, image=low_image, isPrivate=isPrivate)
 
+        return json.dumps(self.get_json(uid=self.uid))
+
     def update_high(self, uid, text=None, image=None, isPrivate=False):
         if uid != self.uid:
             return '{"error": "not-authorized"}'
-
         self.isPrivate = isPrivate
 
         #Connect to MySQL
@@ -249,6 +268,7 @@ class HighLow:
 
         if text != None:
             text = pymysql.escape_string( bleach.clean(text) )
+            self.high = text
             text = "'{}'".format(text)
         else:
             text = "NULL"
@@ -267,12 +287,9 @@ class HighLow:
                 return json.dumps( upload_result )
         
             filename = "'{}'".format(upload_result["file"])
-
+            self.high_image = upload_result["file"]
         else:
             filename = "NULL"
-
-        self.high = text
-        self.high_image = image
 
         #Update the data
         cursor.execute( "UPDATE highlows SET high={}, high_image={}, private={} WHERE highlowid='{}' AND uid='{}';".format(text, filename, "TRUE" if self.isPrivate else "FALSE",self.high_low_id, uid) )
@@ -295,6 +312,7 @@ class HighLow:
 
         if text != None:
             text = pymysql.escape_string( bleach.clean(text) )
+            self.low = text
             text = "'{}'".format(text)
         else:
             text = "NULL"
@@ -313,12 +331,10 @@ class HighLow:
                 return json.dumps( upload_result )
         
             filename = "'{}'".format(upload_result["file"])
+            self.low_image = upload_result["file"]
 
         else:
             filename = "NULL"
-
-        self.low = text
-        self.low_image = image
 
         #Update the data
         cursor.execute( "UPDATE highlows SET low={}, low_image={}, private={} WHERE highlowid='{}' AND uid='{}';".format(text, filename, "TRUE" if self.isPrivate else "FALSE", self.high_low_id, uid) )
@@ -783,8 +799,6 @@ class HighLowList:
                 "total_likes": 0,
                 "high_image": "",
                 "low_image": "",
-                "flagged": 0,
-                "liked": 0,
                 "date": "",
                 "comments": []
             }

@@ -107,6 +107,10 @@ def get_remote_addr(request):
 def update_requests():
     event_logger.increment_requests()
 
+@app.route("/uptime_check", methods=["GET", "POST"])
+def uptime_check():
+    return "IS_UP"
+
 #######################
 # Authentication      #
 #######################
@@ -771,7 +775,7 @@ def sethigh():
     isPrivateStr = request.form.get("private")
     isPrivate = False
     
-    if isPrivateStr == "true":
+    if isPrivateStr in ['true', '1']:
         isPrivate = True
 
     highlow = None
@@ -806,7 +810,7 @@ def setlow():
     isPrivateStr = request.form.get("private")
     isPrivate = False
 
-    if isPrivateStr == "true":
+    if isPrivateStr in ['true', '1']:
         isPrivate = True
 
     highlow = None
@@ -908,7 +912,7 @@ def comment(highlowid):
         highlow = HighLow(host, username, password, database, highlowid)
         result = highlow.comment(uid, message)
 
-        return json.dumps( result )
+        return json.dumps( { "comments": result } )
 
 
 @app.route("/highlow/get/today", methods=["GET"])
