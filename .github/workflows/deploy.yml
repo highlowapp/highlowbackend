@@ -13,10 +13,11 @@ jobs:
     steps:
       - name: Retrieving the repo
         uses: actions/checkout@v1
-      - name: Setting up GCloud Auth
-        uses: actions/gcloud/auth@master
-        env:
-          GCLOUD_AUTH: ${{ secrets.GCLOUD_AUTH }} # You must run base64 ./gcp_creds.json, then paste the output into the secrets area in your repo settings.
+      - name: Setup gcloud environment
+        uses: GoogleCloudPlatform/github-actions@0.1.1
+        with:
+          # The service account key which will be used for authentication.
+          service_account_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
       - name: Set up Python 3.7
         uses: actions/setup-python@v1
         with:
@@ -25,18 +26,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Test with pytest
-        env:
-          APPLICATION_CREDENTIALS: ${{ secrets.APPLICATION_CREDENTIALS }}
-        run: |
-          echo $APPLICATION_CREDENTIALS > ~/service_account_credentials.json
-          pip install pytest
-          python -m pytest tests/
       - name: Run deployment
-        if: success()
         uses: actions/gcloud/cli@master
         env:
-          CLOUDSDK_CORE_PROJECT: YOUR_GCP_PROJECT_NAME
+          CLOUDSDK_CORE_PROJECT: highlow
         with:
           entrypoint: gcloud
           args: app deploy ./app.yaml --quiet
