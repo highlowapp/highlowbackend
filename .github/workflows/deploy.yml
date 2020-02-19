@@ -20,6 +20,10 @@ jobs:
           service_account_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
       - name: Clone config repo
         run: gcloud source repos clone config --project highlow
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+         python-version: 3.7
       - name: Run build script
         run: ./config/build.sh false
       - name: Run deployment
