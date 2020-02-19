@@ -27,7 +27,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Run deployment
-        uses: actions/gcloud/cli@master
         env:
           CLOUDSDK_CORE_PROJECT: highlow
         with:
