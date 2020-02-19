@@ -30,3 +30,5 @@ jobs:
         run: gcloud app deploy
         env:
           CLOUDSDK_CORE_PROJECT: highlow
+      - name: Delete artifacts bucket
+        run: gsutil rm -r gs://us.artifacts.highlow.appspot.com
