@@ -836,7 +836,7 @@ class HighLowList:
 
 
         highlow["_timestamp"] = highlow["_timestamp"].isoformat()
-
+        highlow["private"] = highlow["private"] == 1
         return highlow
 
 
