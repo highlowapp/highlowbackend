@@ -39,7 +39,7 @@ class HighLow:
             self.timestamp = result["_timestamp"]
             self.total_likes = result["total_likes"]
             self.date = result["_date"]
-            self.isPrivate = result["private"]
+            self.isPrivate = result["private"] == 1
         else:
             self.high = ""
             self.low = ""
@@ -73,7 +73,7 @@ class HighLow:
             self.uid = possible_duplicate["uid"]
             self.total_likes = possible_duplicate["total_likes"]
             self.timestamp = possible_duplicate["_timestamp"]
-            self.isPrivate = possible_duplicate["private"]
+            self.isPrivate = possible_duplicate["private"] == 1
             conn.commit()
             conn.close()
             return self.update(uid, high, low, high_image, low_image, isPrivate)
