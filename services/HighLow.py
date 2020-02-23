@@ -191,6 +191,7 @@ class HighLow:
 
         cursor.execute( """
             SELECT
+                comments.highlowid AS highlowid,
                 commentid,
                 comments.uid AS uid,
                 message,
@@ -748,6 +749,7 @@ class HighLowList:
 
         cursor.execute( """
             SELECT
+                comments.highlowid AS highlowid,
                 commentid,
                 comments.uid AS uid,
                 message,
@@ -813,6 +815,7 @@ class HighLowList:
 
         cursor.execute( """
             SELECT
+            comments.highlowid AS highlowid,
                 commentid,
                 comments.uid AS uid,
                 message,
