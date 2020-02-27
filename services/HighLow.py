@@ -648,7 +648,8 @@ class HighLowList:
             CASE
             WHEN likes.id IS NULL THEN 0
             ELSE 1
-            END              AS liked
+            END              AS liked,
+            highlows.private AS private
 
         FROM
             highlows
@@ -695,6 +696,9 @@ class HighLowList:
             WHERE comments.highlowid = '{}' ORDER BY _timestamp;
             """.format(highlow["highlowid"]) )
 
+            highlow["flagged"] = highlow["flagged"] == 1
+            highlow["liked"] = highlow["liked"] == 1
+            highlow["private"] = highlow["private"] == 1
             highlow["comments"] = cursor.fetchall()
 
             for i in highlow["comments"]:
