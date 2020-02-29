@@ -431,7 +431,7 @@ def set_user_profile():
 
     #Set all items
     profileimage = request.files.get("file")
-
+    print(profileimage)
     if profileimage:
         user.set_profileimage(profileimage, result["uid"])
 
