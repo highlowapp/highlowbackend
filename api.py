@@ -431,9 +431,10 @@ def set_user_profile():
 
     #Set all items
     profileimage = request.files.get("file")
-    print(profileimage)
     if profileimage:
-        user.set_profileimage(profileimage, result["uid"])
+        state = json.loads( user.set_profileimage(profileimage, result["uid"]) )
+        if 'error' in state:
+            return state
 
     firstname = request.form.get("firstname")
     lastname = request.form.get("lastname")
