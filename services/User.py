@@ -88,7 +88,7 @@ class User:
 
     #NOTE: This function is different from the rest, because rather than using set_column, it utilizes the filestorage service
     def set_profileimage(self, image, uid):
-        
+        print("Setting image")
         fileStorage = FileStorage()
 
         result = fileStorage.set_profileimage(image, uid)
