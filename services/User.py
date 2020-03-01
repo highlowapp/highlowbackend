@@ -92,6 +92,16 @@ class User:
 
         result = fileStorage.set_profileimage(image, uid)
 
+        if "status" in json.loads(result):
+            #Connect to MySQL
+            conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+            cursor = conn.cursor()
+
+            cursor.execute("UPDATE users SET profileimage='{}' WHERE uid='{}';".format("user/" + uid + "/profile/profile.png", uid))
+            
+            conn.commit()
+            conn.close()
+            
         return result
 
     def set_default_profile_image(self):
