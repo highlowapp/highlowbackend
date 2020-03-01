@@ -433,7 +433,6 @@ def set_user_profile():
     profileimage = request.files.get("file")
     if profileimage:
         state = json.loads( user.set_profileimage(profileimage, result["uid"]) )
-        print(state)
         if 'error' in state:
             return json.dumps(state)
 
