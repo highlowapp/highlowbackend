@@ -526,8 +526,8 @@ class User:
                     "total_likes": raw_feed[i]["total_likes"],
                     "uid": raw_feed[i]["friend_id"],
                     "comments": comments,
-                    "liked": raw_feed[i]["liked"],
-                    "flagged": raw_feed[i]["flagged"]
+                    "liked": (raw_feed[i]["liked"] == 1),
+                    "flagged": (raw_feed[i]["flagged"] == 1)
                 }
             }
 
