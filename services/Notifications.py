@@ -80,7 +80,7 @@ class Notifications:
             data=data,
             apns=messaging.APNSConfig(
                 payload=messaging.APNSPayload(
-                    messaging.Aps(sound="definite.m4r")
+                    messaging.Aps(sound="default")
                 )
             )
         )
