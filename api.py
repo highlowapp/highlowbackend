@@ -695,6 +695,28 @@ def add_interest():
 
     return json.dumps( user.add_interests(interests) )
 
+@app.route("/user/interest/add", methods=["POST"])
+def add_single_interest():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+
+    uid = result["uid"]
+
+    interest = request.form.getlist('interest')
+
+
+    user = User(uid, host, username, password, database)
+
+    return json.dumps( user.add_interests([interest]) )
+
+
 @app.route("/user/interests/remove", methods=["POST"])
 def remove_interest():
     #Get token from Authorization
@@ -716,6 +738,28 @@ def remove_interest():
     user = User(uid, host, username, password, database)
 
     return json.dumps( user.remove_interests(interests) )
+
+@app.route("/user/interest/remove", methods=["POST"])
+def remove_single_interest():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    result = serviceutils.verify_token(token)
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+
+    uid = result["uid"]
+
+    interest = request.form.get('interest')
+
+    print(request.form)
+
+    user = User(uid, host, username, password, database)
+
+    return json.dumps( user.remove_interests([interest]) )
 
 @app.route("/user/interests/all", methods=["GET"])
 def get_all_interests():
