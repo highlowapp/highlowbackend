@@ -709,7 +709,7 @@ def add_single_interest():
 
     uid = result["uid"]
 
-    interest = request.form.getlist('interest')
+    interest = request.form.get('interest')
 
 
     user = User(uid, host, username, password, database)
