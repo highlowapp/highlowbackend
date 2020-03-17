@@ -74,6 +74,8 @@ class Notifications:
 
         device_tokens = [device["device_id"] for device in devices]
 
+        print(device_tokens)
+
         push_notification = messaging.MulticastMessage(
             device_tokens,
             notification=messaging.Notification(title=title, body=message),
