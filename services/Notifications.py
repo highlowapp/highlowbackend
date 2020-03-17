@@ -85,7 +85,9 @@ class Notifications:
             ),
             android=messaging.AndroidConfig(
                 notification=messaging.AndroidNotification(
-                    default_sound=True
+                    default_sound=True,
+                    title=title,
+                    body=message
                 )
             )
         )
