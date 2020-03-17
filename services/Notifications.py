@@ -82,13 +82,6 @@ class Notifications:
                 payload=messaging.APNSPayload(
                     messaging.Aps(sound="default")
                 )
-            ),
-            android=messaging.AndroidConfig(
-                notification=messaging.AndroidNotification(
-                    default_sound=True,
-                    title=title,
-                    body=message
-                )
             )
         )
 
