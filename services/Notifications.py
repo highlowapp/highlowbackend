@@ -74,8 +74,6 @@ class Notifications:
 
         device_tokens = [device["device_id"] for device in devices]
 
-        print(device_tokens)
-
         push_notification = messaging.MulticastMessage(
             device_tokens,
             notification=messaging.Notification(title=title, body=message),
@@ -83,6 +81,12 @@ class Notifications:
             apns=messaging.APNSConfig(
                 payload=messaging.APNSPayload(
                     messaging.Aps(sound="default")
+                )
+            ),
+            android=messaging.AndroidConfig(
+                notification=messaging.AndroidNotification(
+                    sound="default",
+                    click_action="OPEN_FROM_NOTIFICATION"
                 )
             )
         )
