@@ -511,6 +511,10 @@ class User:
             for j in comments:
                 j["_timestamp"] = j["_timestamp"].isoformat()
 
+            cursor.execute("SELECT interests.name FROM user_interests INNER JOIN interests ON interests.interest_id = user_interests.interest WHERE uid='" + raw_feed[i]['friend_id'] + "';")
+
+            interests = cursor.fetchall()
+
             feed_item = {
                 "user": {
                     "uid": raw_feed[i]["friend_id"],
@@ -518,7 +522,8 @@ class User:
                     "lastname": raw_feed[i]["lastname"],
                     "profileimage": raw_feed[i]["profileimage"],
                     "streak": raw_feed[i]["streak"],
-                    "bio": raw_feed[i]["bio"]
+                    "bio": raw_feed[i]["bio"],
+                    "interests": interests
                 },
                 "highlow": {
                     "highlowid": raw_feed[i]["highlowid"],
