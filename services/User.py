@@ -218,8 +218,8 @@ class User:
         friends = cursor.fetchall()
 
         for friend in friends:
-            cursor.execute("SELECT interests.name FROM user_interests INNER JOIN interests ON interests.interest_id = user_interests.interest WHERE uid='" + friend['uid'] + "';")
-            interests = cursor.fetchall()
+            cursor.execute("SELECT interests.name AS name FROM user_interests INNER JOIN interests ON interests.interest_id = user_interests.interest WHERE uid='" + friend['uid'] + "';")
+            interests = [interest['name'] for interest in cursor.fetchall()]
             friend['interests'] = interests
 
         conn.commit()
@@ -511,9 +511,9 @@ class User:
             for j in comments:
                 j["_timestamp"] = j["_timestamp"].isoformat()
 
-            cursor.execute("SELECT interests.name FROM user_interests INNER JOIN interests ON interests.interest_id = user_interests.interest WHERE uid='" + raw_feed[i]['friend_id'] + "';")
+            cursor.execute("SELECT interests.name AS name FROM user_interests INNER JOIN interests ON interests.interest_id = user_interests.interest WHERE uid='" + raw_feed[i]['friend_id'] + "';")
 
-            interests = cursor.fetchall()
+            interests = [interest['name'] for interest in cursor.fetchall()]
 
             feed_item = {
                 "user": {
