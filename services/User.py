@@ -217,6 +217,11 @@ class User:
 
         friends = cursor.fetchall()
 
+        for friend in friends:
+            cursor.execute("SELECT interests.name FROM user_interests INNER JOIN interests ON interests.interest_id = user_interests.interest WHERE uid='" + friend['uid'] + "';")
+            interests = cursor.fetchall()
+            friend['interests'] = interests
+
         conn.commit()
         conn.close()
 
