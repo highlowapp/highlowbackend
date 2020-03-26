@@ -1203,8 +1203,8 @@ def admin_sign_in():
     print('requested')
     result = json.loads( auth.admin_sign_in( request.form["username"], request.form["password"] ) )
     response = jsonify(result)
-    response.headers.set('Access-Control-Allow-Origin', '*')
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Methods', 'GET, POST')
     return response
 
 @app.route("/admin/refresh_access", methods=["POST"])
@@ -1242,7 +1242,7 @@ def total_users():
     query_result = admin.total_users()
 
     response = jsonify(query_result)
-    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Origin', 'localhost')
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
 
     return response
