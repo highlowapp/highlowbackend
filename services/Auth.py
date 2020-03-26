@@ -24,6 +24,9 @@ hlemail = HLEmail(email_config["email"])
 SECRET_KEY = ""
 with open("config/encryption_key.txt", 'r') as file:
     SECRET_KEY = file.read()
+ADMIN_SECRET_KEY = ""
+with open("config/admin_encryption_key.txt", 'r') as file:
+    ADMIN_SECRET_KEY = file.read()
 
 class Auth:
 
@@ -38,6 +41,7 @@ class Auth:
         self.blacklisted_tokens = []
 
         self.SECRET_KEY = SECRET_KEY
+        self.ADMIN_SECRET_KEY = ADMIN_SECRET_KEY
 
 
         ## Load blacklisted tokens ##
@@ -288,12 +292,53 @@ class Auth:
         #If the user was not authenticated, return the error
         return '{"error": "' + error + '"}'
 
+
+    #Sign in
+    def admin_sign_in(self, username, password):
+
+        #Make a connection to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+
+        cursor = conn.cursor()
+
+        #Get and sanitize the input
+        username = pymysql.escape_string( bleach.clean(username.lower() ) )
+        password = pymysql.escape_string( bleach.clean(password) )
+
+        #Keep track of errors
+        error = ""
+
+        #Does a user exist with that email?
+        cursor.execute("SELECT username, password, permission_level FROM admins WHERE username='" + username + "';")
+
+        existingUser = cursor.fetchone()
+
+
+        if existingUser != None:
+
+            #If the password is correct...
+            if bcrypt.checkpw(password.encode('utf-8'), existingUser["password"].encode('utf-8')):
+
+                #The user is authenticated; create and return a token
+                access_token = self.create_admin_token( existingUser["username"] )
+                refresh_token = self.create_admin_refresh_token( existingUser["username"] )
+
+                return '{"access": "' + access_token + '", "refresh": "' + refresh_token + '", "username": "' + existingUser['username'] + '"}'
+
+
+            else:
+                #The password is wrong
+                error = "incorrect-username-or-password"
+        else:
+            error = "user-no-exist"
+
+        #If the user was not authenticated, return the error
+        return '{"error": "' + error + '"}'
+
     #Create Token
     def create_token(self, uid, expiration_minutes= 60 ):
-
-        #Calculate time half a year in the future (approximately)
         current_time = datetime.datetime.now()
-        expiration = current_time + datetime.timedelta( minutes=expiration_minutes ) #Defaults to six minutes in the future
+        expiration = current_time + datetime.timedelta( minutes=expiration_minutes ) #Defaults to sixty minutes in the future
 
 
         token_payload = {
@@ -310,11 +355,47 @@ class Auth:
 
         return token
 
+    def create_admin_token(self, user, expiration_minutes= 60):
+        current_time = datetime.datetime.now()
+        expiration = current_time + datetime.timedelta( minutes=expiration_minutes ) #Defaults to sixty minutes in the future
+
+
+        token_payload = {
+            "iss": "highlowadmin",
+            "exp": time.mktime( expiration.timetuple() ),
+            "sub": user,
+            "typ": "access",
+            "iat": time.mktime( current_time.timetuple() )
+        }
+
+        token = jwt.encode(token_payload, self.ADMIN_SECRET_KEY, algorithm="HS256")
+
+        token = token.decode('utf-8')
+
+        return token
+
     #Validate Token
     def validate_token(self, token, accepts_old=False):
 
         try:
             payload = jwt.decode(token, self.SECRET_KEY, algorithms=["HS256"])
+        except:
+            return "ERROR-INVALID-TOKEN"
+
+        current_timestamp = time.mktime( datetime.datetime.now().timetuple() )
+    
+        if not accepts_old and payload["exp"] > current_timestamp and token not in self.blacklisted_tokens and payload["typ"] == "access":
+            return payload["sub"]
+        if accepts_old and token not in self.blacklisted_tokens and payload["typ"] == "access":
+            return payload["sub"]
+
+        return "ERROR-INVALID-TOKEN"
+
+
+    def validate_admin_token(self, token, accepts_old=False):
+
+        try:
+            payload = jwt.decode(token, self.ADMIN_SECRET_KEY, algorithms=["HS256"])
         except:
             return "ERROR-INVALID-TOKEN"
 
@@ -460,8 +541,28 @@ class Auth:
 
         return token
 
+    def create_admin_refresh_token(self, user):
+        #Calculate time half a year in the future (approximately)
+        current_time = datetime.datetime.now()
+        expiration = current_time + datetime.timedelta(minutes=60 * 24 * 30)
+
+
+        token_payload = {
+            "iss": "highlowadmin",
+            "exp": time.mktime( expiration.timetuple() ),
+            "sub": user,
+            "typ": "refresh",
+            "iat": time.mktime( current_time.timetuple() )
+        }
+
+        token = jwt.encode(token_payload, self.ADMIN_SECRET_KEY, algorithm="HS256")
+
+        token = token.decode('utf-8')
+
+        return token
+
+
     def refresh_access(self, refresh_token):
-        #Make sure the user is already deleted
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
@@ -485,6 +586,29 @@ class Auth:
             if user != None and user["banned"]:
                 return "ERROR-INVALID-REFRESH-TOKEN"
 
+            #Create a new token and return it
+            new_access_token = self.create_token(payload["sub"])
+            return new_access_token
+
+        conn.commit()
+        conn.close()
+
+        return "ERROR-INVALID-REFRESH-TOKEN"
+
+
+
+    def refresh_admin_access(self, refresh_token):
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        try:
+            payload = jwt.decode(refresh_token, self.ADMIN_SECRET_KEY, algorithms=["HS256"])
+        except:
+            return "ERROR-INVALID-REFRESH-TOKEN"
+
+        current_timestamp = time.mktime( datetime.datetime.now().timetuple() )
+
+        if payload["exp"] > current_timestamp and refresh_token not in self.blacklisted_tokens and payload["typ"] == "refresh":
             #Create a new token and return it
             new_access_token = self.create_token(payload["sub"])
             return new_access_token

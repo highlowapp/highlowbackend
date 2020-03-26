@@ -44,6 +44,17 @@ def verify_token(token):
     #Otherwise, return the UID
     return json.loads('{ "uid": "' + result + '" }')
 
+def verify_admin_token(token):
+    result = auth.validate_admin_token(token)
+
+    #If token is invalid...
+    if result == "ERROR-INVALID-TOKEN":
+        #Return an error
+        return json.loads('{ "error": "' + result + '" }')
+
+    #Otherwise, return the UID
+    return json.loads('{ "user": "' + result + '" }')
+
 ### DON'T USE UNLESS ABSOLUTELY SURE. USE `verify_token` INSTEAD ###
 def verify_token_accept_old(token):
     result = auth.validate_token(token, accepts_old=True)

@@ -1167,6 +1167,14 @@ def log_event():
 
 @app.route("/eventlogger/query", methods=["GET"])
 def query():
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    verification = serviceutils.verify_admin_token(token)
+
+    if 'error' in verification:
+        return json.dumps( verification )
+
     _type = request.args.get("type")
     min_time = request.args.get("min_time")
     max_time = request.args.get("max_time")
@@ -1179,12 +1187,6 @@ def query():
 
         conditions = json.loads( conditions_json_str )
 
-    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        serviceutils.log_event("eventlogger_failed_attempt", {
-            "ip": get_remote_addr(request)
-            })
-        return '{ "error": "Unauthorized" }'
-
     query_result = event_logger.query( _type=_type, min_time=min_time, max_time=max_time, conditions=conditions or [], admin_password=request.args["admin_password"] )
 
     response = jsonify(query_result)
@@ -1195,11 +1197,47 @@ def query():
     return response
 
 
+## ADMIN 
+@app.route("/admin/sign_in", methods=["POST"])
+def admin_sign_in():
+    result = json.loads( auth.admin_sign_in( request.form["username"], request.form["password"] ) )
+    response = jsonify(result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+    return response
+
+@app.route("/admin/refresh_access", methods=["POST"])
+def admin_refresh_access():
+    #Get the refresh token
+    refresh_token = request.form["refresh"]
+
+    #Refresh access
+    result = auth.refresh_admin_access(refresh_token)
+
+    #Make sure there wasn't an error
+    if result == "ERROR-INVALID-REFRESH-TOKEN":
+        response = jsonify({ 'error': result })
+
+    #Otherwise, return the new access token
+    response = jsonify({"access": result})
+
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+
+
 @app.route("/admin/total_users", methods=["GET"])
 def total_users():
-    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        return "error"
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
 
+    verification = serviceutils.verify_admin_token(token)
+
+    if 'error' in verification:
+        return json.dumps( verification )
+    
     query_result = admin.total_users()
 
     response = jsonify(query_result)
@@ -1210,8 +1248,13 @@ def total_users():
 
 @app.route("/admin/list_flags", methods=["GET"])
 def get_flags():
-    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        return "error"
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    verification = serviceutils.verify_admin_token(token)
+
+    if 'error' in verification:
+        return json.dumps( verification )
 
     query_result = admin.get_flags()
 
@@ -1223,8 +1266,13 @@ def get_flags():
 
 @app.route("/admin/inspect_user/<string:uid>", methods=["GET"])
 def inspect_user(uid):
-    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        return "error"
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    verification = serviceutils.verify_admin_token(token)
+
+    if 'error' in verification:
+        return json.dumps( verification )
 
     #Otherwise, get the user
     user = User(uid, host, username, password, database)
@@ -1251,8 +1299,13 @@ def inspect_user(uid):
 
 @app.route("/admin/ban/<string:uid>", methods=["GET"])
 def ban_user(uid):
-    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        return "error"
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    verification = serviceutils.verify_admin_token(token)
+
+    if 'error' in verification:
+        return json.dumps( verification )
 
     #Otherwise, get the user
     user = User(uid, host, username, password, database)
@@ -1268,8 +1321,13 @@ def ban_user(uid):
 
 @app.route("/admin/unban/<string:uid>", methods=["GET"])
 def unban_user(uid):
-    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        return "error"
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    verification = serviceutils.verify_admin_token(token)
+
+    if 'error' in verification:
+        return json.dumps( verification )
 
     #Otherwise, get the user
     user = User(uid, host, username, password, database)
@@ -1285,8 +1343,13 @@ def unban_user(uid):
 
 @app.route("/admin/inspect_highlow/<string:highlowid>", methods=["GET"])
 def inspect_highlow(highlowid):
-    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        return "error"
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    verification = serviceutils.verify_admin_token(token)
+
+    if 'error' in verification:
+        return json.dumps( verification )
 
     highlow = HighLow(host, username, password, database, highlowid)
     result = highlow.get_json()
@@ -1299,8 +1362,13 @@ def inspect_highlow(highlowid):
 
 @app.route("/admin/delete_highlow/<string:highlowid>", methods=["GET"])
 def delete_highlow(highlowid):
-    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        return "error"
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    verification = serviceutils.verify_admin_token(token)
+
+    if 'error' in verification:
+        return json.dumps( verification )
 
     highlow = HighLow(host, username, password, database, highlowid)
     highlow.delete()
@@ -1313,8 +1381,13 @@ def delete_highlow(highlowid):
 
 @app.route("/admin/dismiss_flag/<int:flag_id>", methods=["GET"])
 def dismissFlag(flag_id):
-    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        return "error"
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    verification = serviceutils.verify_admin_token(token)
+
+    if 'error' in verification:
+        return json.dumps( verification )
 
     result = admin.dismiss_flag(flag_id)
 
@@ -1326,8 +1399,13 @@ def dismissFlag(flag_id):
 
 @app.route("/admin/dismiss_bug/<int:bug_id>", methods=["GET"])
 def dismiss_bug(bug_id):
-    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        return "error"
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    verification = serviceutils.verify_admin_token(token)
+
+    if 'error' in verification:
+        return json.dumps( verification )
 
     result = bug_reports.dismiss(bug_id)
 
@@ -1339,8 +1417,13 @@ def dismiss_bug(bug_id):
 
 @app.route("/admin/list_bug_reports", methods=["GET"])
 def list_bug_reports():
-    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        return "error"
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    verification = serviceutils.verify_admin_token(token)
+
+    if 'error' in verification:
+        return json.dumps( verification )
 
     result = bug_reports.list_bugs()
 
@@ -1352,15 +1435,25 @@ def list_bug_reports():
 
 @app.route("/admin/take_analytics_snapshot", methods=["GET"])
 def take_analytics_snapshot():
-    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        return "error"
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    verification = serviceutils.verify_admin_token(token)
+
+    if 'error' in verification:
+        return json.dumps( verification )
 
     return admin.take_analytics_snapshot()
 
 @app.route("/admin/get_analytics", methods=["GET"])
 def get_analytics():
-    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
-        return "error"
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    verification = serviceutils.verify_admin_token(token)
+
+    if 'error' in verification:
+        return json.dumps( verification )
 
     query_result = admin.get_analytics()
 
