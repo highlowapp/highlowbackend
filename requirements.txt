@@ -2,6 +2,7 @@ werkzeug==0.16.0
 six
 gunicorn
 flask
+flask-cors
 pymysql
 bleach
 bcrypt

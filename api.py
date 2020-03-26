@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import Helpers
 import requests
 import json
@@ -87,6 +88,7 @@ with open("resetPassword.html", 'r') as file:
 
 #Create flask app
 app = Flask(__name__)
+cors = CORS(app, resources={r"/admin/*": {"origins":"*"}})
 
 
 #Proxies
