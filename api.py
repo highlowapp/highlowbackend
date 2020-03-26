@@ -1200,6 +1200,7 @@ def query():
 ## ADMIN 
 @app.route("/admin/sign_in", methods=["POST"])
 def admin_sign_in():
+    print('requested')
     result = json.loads( auth.admin_sign_in( request.form["username"], request.form["password"] ) )
     response = jsonify(result)
     response.headers.set('Access-Control-Allow-Origin', '*')
