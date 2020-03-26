@@ -1244,7 +1244,7 @@ def total_users():
     query_result = admin.total_users()
 
     response = jsonify(query_result)
-    response.headers.set('Access-Control-Allow-Origin', 'localhost')
+    response.headers.set('Access-Control-Allow-Origin', '*')
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
 
     return response
