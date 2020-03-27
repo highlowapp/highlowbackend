@@ -610,7 +610,7 @@ class Auth:
 
         if payload["exp"] > current_timestamp and refresh_token not in self.blacklisted_tokens and payload["typ"] == "refresh":
             #Create a new token and return it
-            new_access_token = self.create_token(payload["sub"])
+            new_access_token = self.create_admin_token(payload["sub"])
             return new_access_token
 
         conn.commit()
