@@ -172,7 +172,7 @@ class Auth:
         
 
     #Sign up
-    def sign_up(self, firstname, lastname, email, password, confirmpassword):
+    def sign_up(self, firstname, lastname, email, password, confirmpassword, platform=None):
 
         #Make a MySQL connection
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
@@ -185,6 +185,8 @@ class Auth:
         email = pymysql.escape_string( bleach.clean( email.lower() ) )
         password = pymysql.escape_string( bleach.clean(password) )
         confirmpassword = pymysql.escape_string( bleach.clean(confirmpassword) )
+        if platform is not None:
+            platform = 1
 
         #Keep track of errors
         error = ""
@@ -231,7 +233,10 @@ class Auth:
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
             #Insert into the database
-            cursor.execute("INSERT INTO users(uid, firstname, lastname, email, password, profileimage, streak, bio) VALUES('" + str(uid) + "', '" + firstname + "', '" + lastname + "', '" + email + "', '" + hashed_password.decode('utf-8') + "', 'user/" + str(uid) + "/profile/profile.png', 0, '');")
+            if platform == None:
+                cursor.execute("INSERT INTO users(uid, firstname, lastname, email, password, profileimage, streak, bio) VALUES('" + str(uid) + "', '" + firstname + "', '" + lastname + "', '" + email + "', '" + hashed_password.decode('utf-8') + "', 'user/" + str(uid) + "/profile/profile.png', 0, '');")
+            else:
+                cursor.execute("INSERT INTO users(uid, firstname, lastname, email, password, profileimage, streak, bio, platform) VALUES('" + str(uid) + "', '" + firstname + "', '" + lastname + "', '" + email + "', '" + hashed_password.decode('utf-8') + "', 'user/" + str(uid) + "/profile/profile.png', 0, '', " + platform + ");")
 
             #Commit and close
             conn.commit()
