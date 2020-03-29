@@ -188,6 +188,8 @@ class Auth:
         if platform is not None:
             platform = 1
 
+        print(platform)
+
         #Keep track of errors
         error = ""
 
