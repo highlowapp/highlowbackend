@@ -1438,13 +1438,8 @@ def list_bug_reports():
 
 @app.route("/admin/take_analytics_snapshot", methods=["GET"])
 def take_analytics_snapshot():
-    #Verify auth token
-    token = request.headers["Authorization"].replace("Bearer ", "")
-
-    verification = serviceutils.verify_admin_token(token)
-
-    if 'error' in verification:
-        return json.dumps( verification )
+    if request.args.get("admin_password") != eventlogger_config["admin_password"]:
+        return "error"
 
     return admin.take_analytics_snapshot()
 
