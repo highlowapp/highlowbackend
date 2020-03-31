@@ -185,10 +185,10 @@ class Auth:
         email = pymysql.escape_string( bleach.clean( email.lower() ) )
         password = pymysql.escape_string( bleach.clean(password) )
         confirmpassword = pymysql.escape_string( bleach.clean(confirmpassword) )
+
+        #Platform will only be 1 or None
         if platform is not None:
             platform = 1
-
-        print(platform)
 
         #Keep track of errors
         error = ""
@@ -238,7 +238,7 @@ class Auth:
             if platform == None:
                 cursor.execute("INSERT INTO users(uid, firstname, lastname, email, password, profileimage, streak, bio) VALUES('" + str(uid) + "', '" + firstname + "', '" + lastname + "', '" + email + "', '" + hashed_password.decode('utf-8') + "', 'user/" + str(uid) + "/profile/profile.png', 0, '');")
             else:
-                cursor.execute("INSERT INTO users(uid, firstname, lastname, email, password, profileimage, streak, bio, platform) VALUES('" + str(uid) + "', '" + firstname + "', '" + lastname + "', '" + email + "', '" + hashed_password.decode('utf-8') + "', 'user/" + str(uid) + "/profile/profile.png', 0, '', " + platform + ");")
+                cursor.execute("INSERT INTO users(uid, firstname, lastname, email, password, profileimage, streak, bio, platform) VALUES('" + str(uid) + "', '" + firstname + "', '" + lastname + "', '" + email + "', '" + hashed_password.decode('utf-8') + "', 'user/" + str(uid) + "/profile/profile.png', 0, '', " + str(platform) + ");")
 
             #Commit and close
             conn.commit()
