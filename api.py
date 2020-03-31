@@ -176,7 +176,7 @@ def oauth_signin():
     email = request.form.get('email')
     profileimage = request.form.get('profileimage')
 
-    return auth.sign_in_with_oauth(provider_key, provider_name, firstname, lastname, email, profileimage)
+    return auth.sign_in_with_oauth(provider_key, provider_name, firstname, lastname, email, profileimage, request.form.get('is_android'))
 
 
 

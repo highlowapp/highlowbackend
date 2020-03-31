@@ -61,7 +61,7 @@ class Auth:
         conn.commit()
         conn.close()
 
-    def sign_in_with_oauth(self, provider_key, provider_name, firstname, lastname, email, profileimage):
+    def sign_in_with_oauth(self, provider_key, provider_name, firstname, lastname, email, profileimage, platform=None):
          #Make a MySQL connection
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
 
@@ -76,6 +76,9 @@ class Auth:
         if provider_name not in ('apple', 'google'):
             conn.close()
             return '{ "error": "invalid-provider" }'
+
+        if platform is not None:
+            platform = 1
         
 
         #First check if the user exists. If not, create one
@@ -145,8 +148,10 @@ class Auth:
             if profileimage is None:
                 profileimage = 'user/' + str(uid) + '/profile/profile.png' 
 
-
-            cursor.execute( "INSERT INTO users(uid, firstname, lastname, email, profileimage) VALUES('{}', '{}', '{}', '{}', '{}');".format(str(uid), firstname, lastname, email, profileimage) ) 
+            if platform is None:
+                cursor.execute( "INSERT INTO users(uid, firstname, lastname, email, profileimage) VALUES('{}', '{}', '{}', '{}', '{}');".format(str(uid), firstname, lastname, email, profileimage) ) 
+            else:
+                cursor.execute( "INSERT INTO users(uid, firstname, lastname, email, profileimage, platform) VALUES('{}', '{}', '{}', '{}', '{}', 1);".format(str(uid), firstname, lastname, email, profileimage) ) 
             
             #Now, make an entry in the oauth_accounts table
             cursor.execute( "INSERT INTO oauth_accounts(provider_key, uid, provider_name) VALUES('{}', '{}', '{}');".format(provider_key, str(uid), provider_name) )
