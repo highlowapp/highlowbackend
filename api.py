@@ -118,7 +118,7 @@ def uptime_check():
 def sign_up():
 
     if request.method == "POST":
-        result = json.loads( auth.sign_up( request.form["firstname"], request.form["lastname"], request.form["email"], request.form["password"], request.form["confirmpassword"] ) )
+        result = json.loads( auth.sign_up( request.form["firstname"], request.form["lastname"], request.form["email"], request.form["password"], request.form["confirmpassword"], request.form.get('is_android') ) )
 
         if "error" in result:
 
