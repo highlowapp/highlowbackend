@@ -93,12 +93,12 @@ class Admin:
 
         return '{"status": "success"}'
 
-    def get_analytics(self):
+    def get_analytics(self, num_days):
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM analytics ORDER BY date;")
+        cursor.execute("SELECT * FROM analytics ORDER BY date LIMIT {};".format(num_days))
 
         analytics = cursor.fetchall()
 
