@@ -1448,8 +1448,8 @@ def take_analytics_snapshot():
 
     return admin.take_analytics_snapshot()
 
-@app.route("/admin/get_analytics", methods=["GET"])
-def get_analytics():
+@app.route("/admin/get_analytics/<int:num_days>", methods=["GET"])
+def get_analytics(num_days):
     #Verify auth token
     token = request.headers["Authorization"].replace("Bearer ", "")
 
@@ -1458,7 +1458,7 @@ def get_analytics():
     if 'error' in verification:
         return json.dumps( verification )
 
-    query_result = admin.get_analytics()
+    query_result = admin.get_analytics(num_days)
 
     response = jsonify(query_result)
     response.headers.set('Access-Control-Allow-Origin', '*')
