@@ -161,7 +161,6 @@ class FileStorage:
         img.save(resized_img, format="PNG")
 
         blob = bucket.blob( "user/{}/profile/profile.png".format(uid, str( uuid.uuid1() ) ) )
-
         blob.upload_from_string(
             resized_img.getvalue(),
             content_type=image.content_type
