@@ -145,6 +145,11 @@ class HighLow:
 
                 notifs = Notifications(self.host, self.username, self.password, self.database)
 
+                try:
+                    notifs.send_notification_to_users("New Feed Item", user.firstname + " " + user.lastname + " created a new High/Low!", uids, 2, data={"highlowid": self.high_low_id})
+                except:
+                    pass
+                """
                 for other_uid in uids:
                     try:
                         friend = User(other_uid, self.host, self.username, self.password, self.database)
@@ -152,6 +157,7 @@ class HighLow:
                             notifs.send_notification_to_user("New Feed Item", user.firstname + " " + user.lastname + " created a new High/Low!", other_uid, data={"highlowid": self.high_low_id})
                     except: 
                         continue
+                """
             except:
                 pass
 

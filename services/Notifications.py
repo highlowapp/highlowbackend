@@ -5,6 +5,7 @@ import json
 import firebase_admin
 from firebase_admin import messaging
 import random
+import threading
 
 #Admin password
 notifications_config = Helpers.read_json_from_file("config/notifications_config.json")
@@ -93,9 +94,45 @@ class Notifications:
 
         response = messaging.send_multicast(push_notification)
 
-    def send_notification_to_users(self, title, message, uids, data=None):
-        for uid in uids:
-            self.send_notification_to_user(title, message, uid, data)
+    def send_notification_to_users(self, title, message, uids, setting, data=None):
+        settings = ['users.notify_new_friend_req', 'users.notify_new_friend_acc', 'notify_new_feed_item', 'notify_new_like', 'notify_new_comment']
+        
+        title = pymysql.escape_string( bleach.clean(title) )
+        message = pymysql.escape_string( bleach.clean(message) )
+
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("""SELECT device_id, devices.uid AS uid FROM users
+
+LEFT OUTER JOIN devices ON devices.uid = users.uid
+
+WHERE devices.uid IN ({}) AND {} = 1;""".format(",".join(["'{}'".format(uid) for uid in uids]), settings[setting]))
+
+        devices = cursor.fetchall()
+
+        device_tokens = [device["device_id"] for device in devices]
+        print("Hi there")
+        print(device_tokens)
+        push_notification = messaging.MulticastMessage(
+            device_tokens,
+            notification=messaging.Notification(title=title, body=message),
+            data=data,
+            apns=messaging.APNSConfig(
+                payload=messaging.APNSPayload(
+                    messaging.Aps(sound="default")
+                )
+            ),
+            android=messaging.AndroidConfig(
+                notification=messaging.AndroidNotification(
+                    sound="default",
+                    click_action="OPEN_FROM_NOTIFICATION"
+                )
+            )
+        )
+
+        response = messaging.send_multicast(push_notification)
 
     def send_notification(self, title, message, device_filter=".+", platform=0, random_drop=0, admin_password=""):
         device_list = []
