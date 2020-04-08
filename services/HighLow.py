@@ -487,9 +487,9 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
         other_user = User(uid, self.host, self.username, self.password, self.database)
         notifs = Notifications(self.host, self.username, self.password, self.database)
 
-        for user in users:
-            notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, user["uid"], data={"highlowid": self.high_low_id})
-        notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", cleaned_message, self.uid, data={"highlowid": self.high_low_id})
+        notifs.send_notification_to_users(other_user.firstname + " " + other_user.lastname + " commented on your discussion", bleach.clean(message), [user["uid"] for user in users], 4, data={"highlowid": self.high_low_id})
+        
+        notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", bleach.clean(message), self.uid, data={"highlowid": self.high_low_id})
         
         conn.commit()
         conn.close()
