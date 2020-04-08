@@ -64,7 +64,7 @@ class Auth:
         conn.close()
 
     def sign_in_with_oauth(self, provider_key, provider_name, firstname, lastname, email, profileimage, platform=None):
-         #Make a MySQL connection
+        #Make a MySQL connection
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
 
         cursor = conn.cursor()
@@ -154,6 +154,8 @@ class Auth:
                 cursor.execute( "INSERT INTO users(uid, firstname, lastname, email, profileimage) VALUES('{}', '{}', '{}', '{}', '{}');".format(str(uid), firstname, lastname, email, profileimage) ) 
             else:
                 cursor.execute( "INSERT INTO users(uid, firstname, lastname, email, profileimage, platform) VALUES('{}', '{}', '{}', '{}', '{}', 1);".format(str(uid), firstname, lastname, email, profileimage) ) 
+
+            cursor.execute("INSERT INTO friends(initiator, acceptor, status) VALUES('{}', '{}', 2);".format(HIGHLOWAPP_UID, str(uid)))
             
             #Now, make an entry in the oauth_accounts table
             cursor.execute( "INSERT INTO oauth_accounts(provider_key, uid, provider_name) VALUES('{}', '{}', '{}');".format(provider_key, str(uid), provider_name) )
@@ -247,7 +249,7 @@ class Auth:
             else:
                 cursor.execute("INSERT INTO users(uid, firstname, lastname, email, password, profileimage, streak, bio, platform) VALUES('" + str(uid) + "', '" + firstname + "', '" + lastname + "', '" + email + "', '" + hashed_password.decode('utf-8') + "', 'user/" + str(uid) + "/profile/profile.png', 0, '', " + str(platform) + ");")
 
-            cursor.execute("INSERT INTO friends(initiator, acceptor, status) VALUES('{}', '{}', 1);".format(HIGHLOWAPP_UID, str(uid)))
+            cursor.execute("INSERT INTO friends(initiator, acceptor, status) VALUES('{}', '{}', 2);".format(HIGHLOWAPP_UID, str(uid)))
 
             #Commit and close
             conn.commit()
