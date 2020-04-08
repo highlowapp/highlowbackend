@@ -489,7 +489,7 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
 
         notifs.send_notification_to_users(other_user.firstname + " " + other_user.lastname + " commented on your discussion", bleach.clean(message), [user["uid"] for user in users], 4, data={"highlowid": self.high_low_id})
         
-        notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", bleach.clean(message), self.uid, data={"highlowid": self.high_low_id})
+        notifs.send_notification_to_user(other_user.firstname + " " + other_user.lastname + " commented on your High/Low", bleach.clean, self.uid, data={"highlowid": self.high_low_id})
         
         conn.commit()
         conn.close()
