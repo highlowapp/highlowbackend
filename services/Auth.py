@@ -28,6 +28,8 @@ ADMIN_SECRET_KEY = ""
 with open("config/admin_encryption_key.txt", 'r') as file:
     ADMIN_SECRET_KEY = file.read()
 
+HIGHLOWAPP_UID = "46a3abbc-79ed-11ea-9a6a-2b0cd635fce8"
+
 class Auth:
 
     def __init__(self, servername, host, username, password, database):
@@ -244,6 +246,8 @@ class Auth:
                 cursor.execute("INSERT INTO users(uid, firstname, lastname, email, password, profileimage, streak, bio) VALUES('" + str(uid) + "', '" + firstname + "', '" + lastname + "', '" + email + "', '" + hashed_password.decode('utf-8') + "', 'user/" + str(uid) + "/profile/profile.png', 0, '');")
             else:
                 cursor.execute("INSERT INTO users(uid, firstname, lastname, email, password, profileimage, streak, bio, platform) VALUES('" + str(uid) + "', '" + firstname + "', '" + lastname + "', '" + email + "', '" + hashed_password.decode('utf-8') + "', 'user/" + str(uid) + "/profile/profile.png', 0, '', " + str(platform) + ");")
+
+            cursor.execute("INSERT INTO friends(initiator, acceptor, status) VALUES('{}', '{}', 1);".format(HIGHLOWAPP_UID, str(uid)))
 
             #Commit and close
             conn.commit()
