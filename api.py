@@ -1473,7 +1473,7 @@ def createCompanyHighLow():
     low_image = request.files.get('low')
     date = request.form.get('date')
 
-    result = admin.create_company_highlow(high, low, high_image, low_image, date)
+    result = admin.create_company_highlow(verification['user'], high, low, high_image, low_image, date)
 
     response = jsonify(result)
     response.headers.set('Access-Control-Allow-Origin', '*')
