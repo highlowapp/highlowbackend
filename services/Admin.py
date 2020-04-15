@@ -131,5 +131,6 @@ class Admin:
         if user['permission_level'] < 100:
             return { 'error': 'insufficient-permissions' }
         
-        highlow = HighLow(self.host, self.username, self.password, self.database)
-        return json.loads( highlow.create(HIGHLOWAPP_UID, date, high=high, low=low, high_image=high_image, low_image=low_image, isPrivate=False) )
+        #highlow = HighLow(self.host, self.username, self.password, self.database)
+        #return json.loads( highlow.create(HIGHLOWAPP_UID, date, high=high, low=low, high_image=high_image, low_image=low_image, isPrivate=False) )
+        return { 'status': 'success' }
