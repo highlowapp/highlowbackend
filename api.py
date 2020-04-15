@@ -1469,8 +1469,8 @@ def createCompanyHighLow():
 
     high = request.form.get('high')
     low = request.form.get('low')
-    high_image = request.files.get('high')
-    low_image = request.files.get('low')
+    high_image = request.files.get('high_image')
+    low_image = request.files.get('low_image')
     date = request.form.get('date')
 
     result = admin.create_company_highlow(verification['user'], high, low, high_image, low_image, date)
