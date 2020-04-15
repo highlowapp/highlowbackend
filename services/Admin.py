@@ -1,6 +1,10 @@
 import pymysql
 import datetime
 import bleach
+import json
+from services.HighLow import HighLow
+
+HIGHLOWAPP_UID = "46a3abbc-79ed-11ea-9a6a-2b0cd635fce8"
 
 class Admin:
     def __init__(self, host, username, password, database):
@@ -111,3 +115,21 @@ class Admin:
         return {
             "analytics": analytics
         }
+
+    def create_company_highlow(self, username, high, low, high_image, low_image, date):
+        #Connect to MySQL
+        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM admins WHERE username='{}';".format(username))
+
+        user = cursor.fetchone()
+
+        conn.commit()
+        conn.close()
+
+        if user['permission_level'] < 100:
+            return { 'error': 'insufficient-permissions' }
+        
+        highlow = HighLow(self.host, self.username, self.password, self.database)
+        return json.loads( highlow.create(HIGHLOWAPP_UID, date, high=high, low=low, high_image=high_image, low_image=low_image, isPrivate=False) )
