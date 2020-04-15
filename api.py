@@ -1624,10 +1624,8 @@ def turn_notif_setting_off(setting):
 
 
 
-
+rook.start(token='2e0e5a8e38fa29fe1b11e2f7fd748cde8c3c435168bba1efca98d0b56d900139')
 
 if __name__ == '__main__':
-    rook.start(token='2e0e5a8e38fa29fe1b11e2f7fd748cde8c3c435168bba1efca98d0b56d900139')
-
     app.wsgi_app = ProxyFix(app.wsgi_app, num_proxies=3)
     app.run(host='0.0.0.0')
