@@ -14,7 +14,8 @@ from services.BugReports import BugReports
 import serviceutils
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
-import os
+import os 
+import rook
 
 
 
@@ -1202,7 +1203,6 @@ def query():
 ## ADMIN 
 @app.route("/admin/sign_in", methods=["POST"])
 def admin_sign_in():
-    print('requested')
     result = json.loads( auth.admin_sign_in( request.form["username"], request.form["password"] ) )
     response = jsonify(result)
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -1217,12 +1217,7 @@ def admin_refresh_access():
     #Refresh access
     result = auth.refresh_admin_access(refresh_token)
 
-    #Make sure there wasn't an error
-    if result == "ERROR-INVALID-REFRESH-TOKEN":
-        response = jsonify({ 'error': result })
-
-    #Otherwise, return the new access token
-    response = jsonify({"access": result})
+    response = jsonify(result)
 
     response.headers.set('Access-Control-Allow-Origin', '*')
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
@@ -1462,6 +1457,31 @@ def get_analytics(num_days):
     return response
 
 
+@app.route("/admin/createCompanyHighLow", methods=["POST"])
+def createCompanyHighLow():
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    verification = serviceutils.verify_admin_token(token)
+
+    if 'error' in verification:
+        return json.dumps( verification )
+
+    high = request.form.get('high')
+    low = request.form.get('low')
+    high_image = request.files.get('high')
+    low_image = request.files.get('low')
+    date = request.form.get('date')
+
+    result = admin.create_company_highlow(high, low, high_image, low_image, date)
+
+    response = jsonify(result)
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST')
+
+    return response
+
+
 @app.route("/bug_reports/submit", methods=["POST"])
 def report_bug():
     #Get token from Authorization
@@ -1607,5 +1627,7 @@ def turn_notif_setting_off(setting):
 
 
 if __name__ == '__main__':
+    rook.start(token='2e0e5a8e38fa29fe1b11e2f7fd748cde8c3c435168bba1efca98d0b56d900139')
+
     app.wsgi_app = ProxyFix(app.wsgi_app, num_proxies=3)
     app.run(host='0.0.0.0')
