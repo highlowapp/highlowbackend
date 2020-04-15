@@ -341,7 +341,7 @@ class Auth:
                 access_token = self.create_admin_token( existingUser["username"] )
                 refresh_token = self.create_admin_refresh_token( existingUser["username"] )
 
-                return '{"access": "' + access_token + '", "refresh": "' + refresh_token + '", "username": "' + existingUser['username'] + '"}'
+                return '{"access": "' + access_token + '", "refresh": "' + refresh_token + '", "username": "' + existingUser['username'] + '", "permissionLevel": ' + str(existingUser['permission_level']) + '}'
 
 
             else:
@@ -622,19 +622,27 @@ class Auth:
         try:
             payload = jwt.decode(refresh_token, self.ADMIN_SECRET_KEY, algorithms=["HS256"])
         except:
-            return "ERROR-INVALID-REFRESH-TOKEN"
+            return { "error": "ERROR-INVALID-REFRESH-TOKEN" }
 
         current_timestamp = time.mktime( datetime.datetime.now().timetuple() )
 
         if payload["exp"] > current_timestamp and refresh_token not in self.blacklisted_tokens and payload["typ"] == "refresh":
             #Create a new token and return it
             new_access_token = self.create_admin_token(payload["sub"])
-            return new_access_token
+
+            cursor.execute("SELECT permission_level FROM admins WHERE username='" + payload['sub'] + "';")
+
+            user = cursor.fetchone()
+
+            conn.commit()
+            conn.close()
+
+            return { "access": new_access_token, "permissionLevel": user["permission_level"] }
 
         conn.commit()
         conn.close()
 
-        return "ERROR-INVALID-REFRESH-TOKEN"
+        return { "error": "ERROR-INVALID-REFRESH-TOKEN" }
 
 
 
