@@ -61,6 +61,8 @@ bug_reports = BugReports(host, username, password, database)
 #Create a Notifications instance
 notifs = Notifications(host, username, password, database)
 
+#Rookout config
+rookout_config = Helpers.read_json_from_file("config/rookout_config.json")
 
 
 
@@ -1624,7 +1626,7 @@ def turn_notif_setting_off(setting):
 
 
 
-rook.start(token='2e0e5a8e38fa29fe1b11e2f7fd748cde8c3c435168bba1efca98d0b56d900139')
+rook.start(token=rookout_config['token'])
 
 if __name__ == '__main__':
     app.wsgi_app = ProxyFix(app.wsgi_app, num_proxies=3)
