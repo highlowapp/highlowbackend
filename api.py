@@ -818,6 +818,7 @@ def sethigh():
 
     high = request.form.get("high")
     high_image = request.files.get("file")
+    request_id = request.form.get('request_id')
     isPrivateStr = request.form.get("private")
     isPrivate = False
     
@@ -834,7 +835,7 @@ def sethigh():
 
     else:
         highlow = HighLow(host, username, password, database)
-        return highlow.create(uid, request.form["date"], high=high, low=None, high_image=high_image, low_image=None, isPrivate=isPrivate)
+        return highlow.create(uid, request.form["date"], high=high, low=None, high_image=high_image, low_image=None, isPrivate=isPrivate, request_id=request_id)
 
 
 
@@ -853,6 +854,7 @@ def setlow():
 
     low = request.form.get("low")
     low_image = request.files.get("file")
+    request_id = request.form.get('request_id')
     isPrivateStr = request.form.get("private")
     isPrivate = False
 
@@ -872,7 +874,7 @@ def setlow():
     else:
 
         highlow = HighLow(host, username, password, database)
-        return highlow.create(uid, request.form["date"], high=None, low=low, high_image=None, low_image=low_image, isPrivate=isPrivate)
+        return highlow.create(uid, request.form["date"], high=None, low=low, high_image=None, low_image=low_image, isPrivate=isPrivate, request_id=request_id)
 
 
 @app.route("/highlow/<string:highlowid>/private/<int:on>", methods=["GET"])
@@ -953,10 +955,11 @@ def comment(highlowid):
         uid = verification["uid"]
 
         message = request.form.get("message") or ""
+        request_id = request.form.get('request_id')
 
 
         highlow = HighLow(host, username, password, database, highlowid)
-        result = highlow.comment(uid, message)
+        result = highlow.comment(uid, message, request_id=request_id)
 
         return json.dumps( { "comments": result } )
 

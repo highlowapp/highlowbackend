@@ -50,12 +50,22 @@ class HighLow:
             self.isPrivate = False
         self.protected_columns = []
 
-    def create(self, uid, _date, high=None, low=None, high_image=None, low_image=None, isPrivate=False):
+    def create(self, uid, _date, high=None, low=None, high_image=None, low_image=None, isPrivate=False, request_id=None):
         ## Create a new High/Low entry in the database ##
 
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
+
+        #Check to see if this is a duplicate request. If it is, return the original response
+        if request_id is not None:
+            request_id = pymysql.escape_string( bleach.clean(request_id) )
+            cursor.execute("SELECT * FROM onetime_requests WHERE request_id='{}';".format(request_id))
+
+            duplicate = cursor.fetchone()
+
+            if duplicate is not None:
+                return duplicate['response']
 
         _date = pymysql.escape_string( bleach.clean(_date) )
 
@@ -162,7 +172,21 @@ class HighLow:
                 pass
 
         #Return the HighLow ID
-        return json.dumps( self.get_json(uid=self.uid) )
+        response = json.dumps( self.get_json(uid=self.uid) )
+
+        
+        #If a request ID was given, store it in the onetime requests table
+        if request_id is not None:
+            request_id = pymysql.escape_string( bleach.clean(request_id) )
+            #Connect to MySQL
+            conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO ontime_requests(request_id, response) VALUES('{}', '{}');".format(request_id, response))
+            conn.commit()
+            conn.close()
+
+        return response
+
 
 
     def get_json(self, uid=None):
@@ -459,10 +483,20 @@ class HighLow:
 
         return json.dumps({ 'status': 'success', 'total_likes': highlow["total_likes"] })
 
-    def comment(self, uid, message):
+    def comment(self, uid, message, request_id=None):
         #Collect the specified data and add to the database
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
+
+        #Check to see if this is a duplicate request. If it is, return the original response
+        if request_id is not None:
+            request_id = pymysql.escape_string( bleach.clean(request_id) )
+            cursor.execute("SELECT * FROM onetime_requests WHERE request_id='{}';".format(request_id))
+
+            duplicate = cursor.fetchone()
+
+            if duplicate is not None:
+                return json.loads(duplicate['response'])
 
         commentid = str( uuid.uuid1() )
 
@@ -495,7 +529,20 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
         conn.commit()
         conn.close()
 
-        return self.get_comments()
+        response = self.get_comments()
+
+        #If a request ID was given, store it in the onetime requests table
+        if request_id is not None:
+            request_id = pymysql.escape_string( bleach.clean(request_id) )
+            
+            #Connect to MySQL
+            conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO ontime_requests(request_id, response) VALUES('{}', '{}');".format(request_id, json.dumps(response)))
+            conn.commit()
+            conn.close()
+
+        return response
 
     def update_comment(self, uid, commentid, message):
         #Find the comment and udpate the database
