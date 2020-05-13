@@ -181,7 +181,7 @@ class HighLow:
             #Connect to MySQL
             conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO ontime_requests(request_id, response) VALUES('{}', '{}');".format(request_id, response))
+            cursor.execute("INSERT INTO onetime_requests(request_id, response) VALUES('{}', '{}');".format(request_id, response))
             conn.commit()
             conn.close()
 
@@ -538,7 +538,7 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
             #Connect to MySQL
             conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO ontime_requests(request_id, response) VALUES('{}', '{}');".format(request_id, json.dumps(response)))
+            cursor.execute("INSERT INTO onetime_requests(request_id, response) VALUES('{}', '{}');".format(request_id, json.dumps(response)))
             conn.commit()
             conn.close()
 
