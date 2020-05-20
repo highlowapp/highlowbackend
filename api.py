@@ -519,8 +519,10 @@ def get_feed(page):
 
     uid = result["uid"]
 
+    supports_html = request.args.get('supports_html') or False
+
     user = User(uid, host, username, password, database)
-    return user.get_feed(FEED_LIMIT, page)
+    return user.get_feed(FEED_LIMIT, page, supports_html=supports_html)
 
 
 @app.route("/user/friends", methods=["GET"])
@@ -820,6 +822,7 @@ def sethigh():
     high_image = request.files.get("file")
     request_id = request.form.get('request_id')
     isPrivateStr = request.form.get("private")
+    supports_html = request.form.get('supports_html') or False
     isPrivate = False
     
     if isPrivateStr in ['true', '1']:
@@ -830,12 +833,12 @@ def sethigh():
     if "highlowid" in request.form:
 
         highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
-        return highlow.update_high(uid, text=high, image=high_image, isPrivate=isPrivate)
+        return highlow.update_high(uid, text=high, image=high_image, isPrivate=isPrivate, supports_html=supports_html)
 
 
     else:
         highlow = HighLow(host, username, password, database)
-        return highlow.create(uid, request.form["date"], high=high, low=None, high_image=high_image, low_image=None, isPrivate=isPrivate, request_id=request_id)
+        return highlow.create(uid, request.form["date"], high=high, low=None, high_image=high_image, low_image=None, isPrivate=isPrivate, request_id=request_id, supports_html=supports_html)
 
 
 
@@ -855,6 +858,7 @@ def setlow():
     low = request.form.get("low")
     low_image = request.files.get("file")
     request_id = request.form.get('request_id')
+    supports_html = request.form.get('supports_html') or False
     isPrivateStr = request.form.get("private")
     isPrivate = False
 
@@ -867,14 +871,14 @@ def setlow():
     if "highlowid" in request.form:
 
         highlow = HighLow(host, username, password, database, high_low_id=request.form["highlowid"])
-        return highlow.update_low(uid, text=low, image=low_image, isPrivate=isPrivate)
+        return highlow.update_low(uid, text=low, image=low_image, isPrivate=isPrivate, supports_html=supports_html)
 
 
 
     else:
 
         highlow = HighLow(host, username, password, database)
-        return highlow.create(uid, request.form["date"], high=None, low=low, high_image=None, low_image=low_image, isPrivate=isPrivate, request_id=request_id)
+        return highlow.create(uid, request.form["date"], high=None, low=low, high_image=None, low_image=low_image, isPrivate=isPrivate, request_id=request_id, supports_html=supports_html)
 
 
 @app.route("/highlow/<string:highlowid>/private/<int:on>", methods=["GET"])
@@ -889,12 +893,14 @@ def toggle_private(highlowid, on):
 
     uid = verification["uid"]
 
+    supports_html = request.args.get('supports_html') or False
+
     highlow = HighLow(host, username, password, database, high_low_id=highlowid)
 
     if on == 1:
-        return highlow.make_private(uid)
+        return highlow.make_private(uid, supports_html=supports_html)
     else:
-        return highlow.make_public(uid)
+        return highlow.make_public(uid, supports_html=supports_html)
 
 
 @app.route("/highlow/like/<string:highlowid>", methods=["POST"])
@@ -977,10 +983,12 @@ def get_today():
     else:
         uid = verification["uid"]
 
+        supports_html = request.args.get('supports_html') or False
+
         #Now, we use `HighLowList` to get today's highlow
         highlowlist = HighLowList(host, username, password, database)
 
-        today_highlow = highlowlist.get_today_for_user(uid)
+        today_highlow = highlowlist.get_today_for_user(uid, supports_html=supports_html)
 
         return json.dumps(today_highlow)
 
@@ -995,8 +1003,9 @@ def get_arbitrary(highlowid):
     else:
 
         try:
+            supports_html = request.args.get('supports_html') or False
             highlow = HighLow(host, username, password, database, highlowid)
-            return json.dumps( highlow.get_json(verification["uid"]) )
+            return json.dumps( highlow.get_json(verification["uid"], supports_html=supports_html) )
         except Exception as e:
             print(e)
             return '{ "error": "invalid-highlowid"  }'
@@ -1016,10 +1025,11 @@ def get_user(page):
     else:
         #Defaults to the current user
         uid = request.args.get("uid") or verification["uid"]
+        supports_html = request.args.get('supports_html') or False
 
         highlowlist = HighLowList(host, username, password, database)
 
-        highlows = highlowlist.get_highlows_for_user(uid, verification["uid"], FEED_LIMIT, page, sortby=request.args.get("sortby") )
+        highlows = highlowlist.get_highlows_for_user(uid, verification["uid"], FEED_LIMIT, page, sortby=request.args.get("sortby"), supports_html=supports_html )
 
         return '{ "highlows": ' + json.dumps( highlows ) + ' }'
 
@@ -1035,10 +1045,11 @@ def get_date():
         return json.dumps( verification )
 
     date = request.form["date"]
+    supports_html = request.form.get('supports_html') or False
 
     highlowlist = HighLowList(host, username, password, database)
 
-    return json.dumps( highlowlist.get_day_for_user(verification["uid"], date, verification["uid"]) )
+    return json.dumps( highlowlist.get_day_for_user(verification["uid"], date, verification["uid"], supports_html=supports_html) )
 
 
 
@@ -1065,11 +1076,12 @@ def flaghighlow(highlowid):
     flagger = result["uid"]
 
     try:
+        supports_html = request.form.get('supports_html') or False
         highlow = HighLow(host, username, password, database, high_low_id=highlowid)
     except:
         return '{ "error": "highlow-no-exist" }'
 
-    return highlow.flag(flagger)
+    return highlow.flag(flagger, supports_html=supports_html)
 
 
 @app.route("/highlow/unflag/<string:highlowid>", methods=["POST"])
@@ -1090,9 +1102,11 @@ def unflaghighlow(highlowid):
 
     flagger = result["uid"]
 
+    supports_html = request.form.get('supports_html') or False
+
     highlow = HighLow(host, username, password, database, high_low_id=highlowid)
 
-    return highlow.unflag(flagger)
+    return highlow.unflag(flagger, supports_html=supports_html)
 
 
 

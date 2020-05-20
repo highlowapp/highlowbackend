@@ -421,7 +421,7 @@ class User:
         return '{"status": "success"}'
 
 
-    def get_feed(self, limit, page):
+    def get_feed(self, limit, page, supports_html=False):
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
@@ -540,6 +540,12 @@ class User:
                     "flagged": (raw_feed[i]["flagged"] == 1)
                 }
             }
+
+            if not supports_html:
+                if feed_item['highlow']['high'] is not None:
+                    feed_item['highlow']['high'] = self.html_to_plain_text(feed_item['highlow']['high'])
+                if feed_item['highlow']['low'] is not None:
+                    feed_item['highlow']['low'] = self.html_to_plain_text(feed_item['highlow']['low'])
 
             feed.append(feed_item)
 

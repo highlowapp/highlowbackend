@@ -8,6 +8,9 @@ import json
 from services.FileStorage import FileStorage
 from services.Notifications import Notifications
 from services.User import User
+from bs4 import BeautifulSoup
+
+VALID_HTML_TAGS = ['strong', 'em', 'b', 'i', 'a', 'p', 'div', 'span', 'ul', 'li', 'br']
 
 class HighLow:
 
@@ -50,7 +53,16 @@ class HighLow:
             self.isPrivate = False
         self.protected_columns = []
 
-    def create(self, uid, _date, high=None, low=None, high_image=None, low_image=None, isPrivate=False, request_id=None):
+    def sanitize_html(self, value):
+        soup = BeautifulSoup(value)
+
+        for tag in soup.findAll(True):
+            if tag.name not in VALID_HTML_TAGS:
+                tag.hidden = True
+
+        return soup.renderContents().decode('utf-8')
+
+    def create(self, uid, _date, high=None, low=None, high_image=None, low_image=None, isPrivate=False, request_id=None, supports_html=False):
         ## Create a new High/Low entry in the database ##
 
         #Connect to MySQL
@@ -93,11 +105,13 @@ class HighLow:
         self.high_low_id = str( uuid.uuid1() )
 
         if high != None:
-            self.high = pymysql.escape_string( bleach.clean(high) )
+            self.high = pymysql.escape_string( self.sanitize_html(high) )
+
+
             self.high = "{}".format(self.high)
 
         if low != None:
-            self.low = pymysql.escape_string( bleach.clean(low) )
+            self.low = pymysql.escape_string( self.sanitize_html(low) )
             self.low = "{}".format(self.low)
 
         if high_image != None:
@@ -172,7 +186,7 @@ class HighLow:
                 pass
 
         #Return the HighLow ID
-        response = json.dumps( self.get_json(uid=self.uid) )
+        response = json.dumps( self.get_json(uid=self.uid, supports_html=supports_html) )
 
         
         #If a request ID was given, store it in the onetime requests table
@@ -189,7 +203,7 @@ class HighLow:
 
 
 
-    def get_json(self, uid=None):
+    def get_json(self, uid=None, supports_html=False):
         json_object = {
             "uid": self.uid,
             "high": self.high,
@@ -203,6 +217,12 @@ class HighLow:
             "comments": [],
             "private": self.isPrivate
         }
+
+        if not supports_html:
+            if json_object['high'] is not None:
+                json_object['high'] = self.html_to_plain_text(json_object['high'])
+            if json_object['low'] is not None:
+                json_object['low'] = self.html_to_plain_text(json_object['low'])
 
         if (uid != self.uid) and self.isPrivate:
             return { "error": "not-authorized" }
@@ -246,7 +266,7 @@ class HighLow:
 
         return json_object
 
-    def make_private(self, uid):
+    def make_private(self, uid, supports_html=False):
         if uid != self.uid:
             return '{"error": "not-authorized"}'
 
@@ -261,9 +281,9 @@ class HighLow:
         conn.commit()
         conn.close()
 
-        return json.dumps( self.get_json(uid=uid) )
+        return json.dumps( self.get_json(uid=uid, supports_html=supports_html) )
 
-    def make_public(self, uid):
+    def make_public(self, uid, supports_html=False):
         if uid != self.uid:
             return '{"error": "not-authorized"}'
 
@@ -278,17 +298,17 @@ class HighLow:
         conn.commit()
         conn.close()
 
-        return json.dumps( self.get_json(uid=uid) )
+        return json.dumps( self.get_json(uid=uid, supports_html=supports_html) )
 
 
-    def update(self, uid, high=None, low=None, high_image=None, low_image=None, isPrivate=False):
+    def update(self, uid, high=None, low=None, high_image=None, low_image=None, isPrivate=False, supports_html=False):
         
         self.update_high(uid, text=high, image=high_image, isPrivate=isPrivate)
         self.update_low(uid, text=low, image=low_image, isPrivate=isPrivate)
 
-        return json.dumps(self.get_json(uid=self.uid))
+        return json.dumps(self.get_json(uid=self.uid, supports_html=supports_html))
 
-    def update_high(self, uid, text=None, image=None, isPrivate=False):
+    def update_high(self, uid, text=None, image=None, isPrivate=False, supports_html=False):
         if uid != self.uid:
             return '{"error": "not-authorized"}'
         self.isPrivate = isPrivate
@@ -298,7 +318,7 @@ class HighLow:
         cursor = conn.cursor()
 
         if text != None:
-            text = pymysql.escape_string( bleach.clean(text) )
+            text = pymysql.escape_string( self.sanitize_html(text) )
             self.high = text
             text = "'{}'".format(text)
         else:
@@ -329,9 +349,9 @@ class HighLow:
         conn.commit()
         conn.close()
 
-        return json.dumps(self.get_json(uid=self.uid))
+        return json.dumps(self.get_json(uid=self.uid, supports_html=supports_html))
 
-    def update_low(self, uid, text=None, image=None, isPrivate=False):
+    def update_low(self, uid, text=None, image=None, isPrivate=False, supports_html=False):
         if uid != self.uid:
             return '{"error": "not-authorized"}'
 
@@ -342,7 +362,7 @@ class HighLow:
         cursor = conn.cursor()
 
         if text != None:
-            text = pymysql.escape_string( bleach.clean(text) )
+            text = pymysql.escape_string( self.sanitize_html(text) )
             self.low = text
             text = "'{}'".format(text)
         else:
@@ -374,7 +394,7 @@ class HighLow:
         conn.commit()
         conn.close()
 
-        return json.dumps(self.get_json(uid=self.uid))
+        return json.dumps(self.get_json(uid=self.uid, supports_html=supports_html))
 
     def delete(self):
         ## Delete the HighLow database entry ##
@@ -616,7 +636,11 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
 
         return json.dumps( { "result": result[column_name] } )
 
-    def flag(self, uid):
+    def html_to_plain_text(self, html):
+        soup = BeautifulSoup(html)
+        return soup.get_text(separator='\n')
+
+    def flag(self, uid, supports_html=False):
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
@@ -639,9 +663,9 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
         conn.commit()
         conn.close()
 
-        return json.dumps(self.get_json(uid=uid))
+        return json.dumps(self.get_json(uid=uid, supports_html=supports_html))
 
-    def unflag(self, uid):
+    def unflag(self, uid, supports_html=False):
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
@@ -661,7 +685,7 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
         conn.commit()
         conn.close()
 
-        return json.dumps(self.get_json(uid=uid))
+        return json.dumps(self.get_json(uid=uid, supports_html=supports_html))
 
 
 class HighLowList:
@@ -671,7 +695,7 @@ class HighLowList:
         self.password = password
         self.database = database
 
-    def get_highlows_for_user(self, uid, current_user, limit, page, sortby=None):
+    def get_highlows_for_user(self, uid, current_user, limit, page, sortby=None, supports_html=False):
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
@@ -755,6 +779,12 @@ class HighLowList:
             highlow["private"] = highlow["private"] == 1
             highlow["comments"] = cursor.fetchall()
 
+            if not supports_html:
+                if highlow['high'] is not None:
+                    highlow['high'] = self.html_to_plain_text(highlow['high'])
+                if highlow['low'] is not None:
+                    highlow['low'] = self.html_to_plain_text(highlow['low'])
+
             for i in highlow["comments"]:
                 i["_timestamp"] = i["_timestamp"].isoformat()
 
@@ -765,7 +795,12 @@ class HighLowList:
 
         return highlows
 
-    def get_today_for_user(self, uid):
+
+    def html_to_plain_text(self, html):
+        soup = BeautifulSoup(html)
+        return soup.get_text(separator='\n')
+
+    def get_today_for_user(self, uid, supports_html=False):
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
@@ -796,6 +831,12 @@ class HighLowList:
                 "comments": []
             }
         
+
+        if not supports_html:
+            if highlow['high'] is not None:
+                highlow['high'] = self.html_to_plain_text(highlow['high'])
+            if highlow['low'] is not None:
+                highlow['low'] = self.html_to_plain_text(highlow['low'])
 
         cursor.execute( "SELECT * FROM likes WHERE uid='{}' AND _date='{}';".format(uid, datestr) )
         if cursor.fetchone() != None:
@@ -833,7 +874,7 @@ class HighLowList:
 
         return highlow
 
-    def get_day_for_user(self, uid, date, viewer):
+    def get_day_for_user(self, uid, date, viewer, supports_html=False):
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
@@ -862,6 +903,12 @@ class HighLowList:
                 "date": "",
                 "comments": []
             }
+
+        if not supports_html:
+            if highlow['high'] is not None:
+                highlow['high'] = self.html_to_plain_text(highlow['high'])
+            if highlow['low'] is not None:
+                highlow['low'] = self.html_to_plain_text(highlow['low'])
 
         cursor.execute( "SELECT * FROM likes WHERE uid='{}' AND highlowid='{}'".format(viewer, highlow["highlowid"]) )
         if cursor.fetchone() != None:
