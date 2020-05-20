@@ -5,6 +5,7 @@ import json
 import datetime
 from services.FileStorage import FileStorage
 from services.Notifications import Notifications
+from bs4 import BeautifulSoup
 
 class User:
 
@@ -56,6 +57,11 @@ class User:
         self.notify_new_like = user["notify_new_like"]
         self.notify_new_comment = user["notify_new_comment"]
         self.interests = [interest['name'] for interest in interests]
+
+
+    def html_to_plain_text(self, html):
+        soup = BeautifulSoup(html)
+        return soup.get_text(separator='\n')
     
     ## Setters ##
 
