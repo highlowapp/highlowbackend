@@ -10,7 +10,7 @@ from services.Notifications import Notifications
 from services.User import User
 from bs4 import BeautifulSoup
 
-VALID_HTML_TAGS = ['strong', 'em', 'b', 'i', 'a', 'p', 'div', 'span', 'ul', 'li', 'br']
+VALID_HTML_TAGS = ['strong', 'em', 'b', 'i', 'a', 'p', 'div', 'span', 'ul', 'li', 'br', 'strike', 's', 'blockquote']
 
 class HighLow:
 
