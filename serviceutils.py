@@ -44,6 +44,14 @@ def verify_token(token):
     #Otherwise, return the UID
     return json.loads('{ "uid": "' + result + '" }')
 
+def get_current_user(request):
+    #Verify auth token
+    token = request.headers["Authorization"].replace("Bearer ", "")
+    verification = verify_token(token)
+    if 'error' in verification:
+        return None, '{ "error": "' + verification['error'] + '" }'
+    return verification.get('uid'), None
+
 def verify_admin_token(token):
     result = auth.validate_admin_token(token)
 

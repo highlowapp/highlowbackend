@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<database>
+    <table name='users'>
+        <column main_type='int' auto_increment='yes' primary_key='yes'>id</column>
+        <column main_type='mediumtext' not_null='yes'>uid</column>
+        <column main_type='mediumtext' not_null='yes'>firstname</column>
+        <column main_type='mediumtext' not_null='yes'>lastname</column>
+        <column main_type='mediumtext' not_null='yes'>email</column>
+        <column main_type='mediumtext' not_null='yes'>password</column>
+        <column main_type='mediumtext' not_null='yes'>profileimage</column>
+        <column main_type='int' default='0'>streak</column>
+        <column main_type='varchar(2048)' default="''">bio</column>
+        <column main_type='int' default='0'>times_flagged</column>
+        <column main_type='tinyint(1)' default='0'>banned</column>
+        <column main_type='tinyint(1)' default='1'>notify_new_friend_req</column>
+        <column main_type='tinyint(1)' default='1'>notify_new_friend_req</column>
+        <column main_type='tinyint(1)' default='1'>notify_new_friend_req</column>
+        <column main_type='tinyint(1)' default='1'>notify_new_friend_req</column>
+        <column main_type='tinyint(1)' default='1'>notify_new_friend_req</column>
+    </table>
+</database>

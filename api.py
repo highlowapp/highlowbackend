@@ -11,6 +11,7 @@ from services.EventLogger import EventLogger
 from services.Notifications import Notifications
 from services.Admin import Admin
 from services.BugReports import BugReports
+from services.Activities import Activities
 import serviceutils
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
@@ -56,6 +57,9 @@ admin = Admin(host, username, password, database)
 
 #Create a bug reports instance
 bug_reports = BugReports(host, username, password, database)
+
+#Create an Activities instance
+activities = Activities(host, username, password, database)
 
 
 #Create a Notifications instance
@@ -142,9 +146,6 @@ def sign_up():
 
     return sign_up_html
 
-
-
-
 #Sign_in
 @app.route("/auth/sign_in", methods=["GET", "POST"])
 def sign_in():
@@ -181,8 +182,6 @@ def oauth_signin():
 
     return auth.sign_in_with_oauth(provider_key, provider_name, firstname, lastname, email, profileimage, request.form.get('is_android'))
 
-
-
 #Reset password
 @app.route("/auth/password_reset/<string:reset_id>", methods=["GET", "POST"])
 def password_reset(reset_id):
@@ -209,8 +208,6 @@ def password_reset(reset_id):
             return "An error occurred when resetting your password. Try again."
 
     return reset_password_html
-
-
 
 #Send password reset email
 @app.route("/auth/forgot_password", methods=["POST"])
@@ -1167,7 +1164,117 @@ def update_comment(commentid):
 
 
 
+########################
+# Activities           #
+########################
 
+@app.route('/user/activities/<string:activity_id>', methods=['GET', 'POST', 'DELETE'])
+def individual_activity(activity_id):
+    uid, error = serviceutils.get_current_user(request)
+    if error is not None:
+        return error
+
+    if request.method == 'GET':
+        return json.dumps( activities.get_by_id(uid, activity_id) )
+    
+    if request.method == 'POST':
+        return json.dumps( activities.update(uid, activity_id, request.form.get('data')))
+
+    if request.method == 'DELETE':
+        return json.dumps( activities.delete(uid, activity_id) )
+
+@app.route('/user/<string:uid>/activities', methods=['GET'])
+def user_activities(uid):
+    viewer, error = serviceutils.get_current_user(request)
+    if error is not None:
+        return error
+    
+    if request.method == 'GET':
+        return json.dumps( activities.get_for_user(uid, viewer, request.form.get('page')) )
+
+@app.route('/user/diaryEntries', methods=['GET'])
+def get_diaryEntries():
+    uid, error = serviceutils.get_current_user(request)
+    if error is not None:
+        return  error
+    
+    return json.dumps( activities.get_diary_entries(uid, request.form.get('page')) )
+    
+@app.route('/user/activities', methods=['POST'])
+def add_activity():
+    uid, error = serviceutils.get_current_user(request)
+    if error is not None:
+        return error
+
+    if request.method == 'POST':
+        return json.dumps( activities.add(uid, request.form.get('type'), request.form.get('data'), request.form.get('date')) )
+
+@app.route('/user/activities/<string:activity_id>/sharing', methods=['GET', 'POST'])
+def sharing(activity_id):
+    uid, error = serviceutils.get_current_user(request)
+    if error is not None:
+        return error
+
+    if request.method == 'GET':
+        return json.dumps( activities.get_sharing_policy(uid, activity_id) )
+    if request.method == 'POST':
+        return json.dumps( activities.set_sharing_policy(uid, activity_id, **request.form) )
+
+@app.route('/user/activities/<string:activity_id>/comments', methods=['POST'])
+def comment_on_activity(activity_id):
+    uid, error = serviceutils.get_current_user(request)
+    if error is not None:
+        return error
+
+    return json.dumps( activities.comment(uid, activity_id, request.form.get('message')) )
+
+@app.route('/comments/<string:commentid>', methods=['POST', 'DELETE'])
+def change_comment(commentid):
+    uid, error = serviceutils.get_current_user(request)
+    if error is not None:
+        return error
+    
+    if request.method == 'POST':
+        return json.dumps( activities.update_comment(uid, commentid, request.form.get('message')) )
+    if request.method == 'DELETE':
+        return json.dumps( activities.delete_comment(uid, commentid) )
+
+@app.route('/user/<string:uid>/activities/chart', methods=['GET'])
+def get_activity_chart(uid):
+    viewer, error = serviceutils.get_current_user(request)
+    if error is not None:
+        return error
+    return json.dumps( activities.get_activity_chart(uid) )
+
+@app.route('/user/activities/<string:activity_id>/flag', methods=['POST', 'DELETE'])
+def flag_activity(activity_id):
+    uid, error = serviceutils.get_current_user(request)
+    if error is not None:
+        return error
+        
+    if request.method == 'POST':
+        return json.dumps( activities.flag(uid, activity_id) )
+    if request.method == 'DELETE':
+        return json.dumps( activities.unflag(uid, activity_id) )
+
+@app.route('/user/newFeed/page/<int:page>', methods=['GET'])
+def get_new_feed(page):
+    uid, error = serviceutils.get_current_user(request)
+    if error is not None:
+        return error
+    
+    return json.dumps( activities.get_new_feed(uid, page) )
+
+@app.route('/user/activities/addImage', methods=['POST'])
+def add_activity_image():
+    image = request.files.get("file")
+    if image is None:
+        return '{ "error": "no-file-found" }'
+    uid, error = serviceutils.get_current_user(request)
+    if error is not None:
+        return error
+    
+    return activities.add_image(uid, image)
 
 
 

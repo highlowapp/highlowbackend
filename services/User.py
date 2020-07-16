@@ -5,6 +5,7 @@ import json
 import datetime
 from services.FileStorage import FileStorage
 from services.Notifications import Notifications
+import db
 from bs4 import BeautifulSoup
 
 class User:
@@ -17,7 +18,6 @@ class User:
         self.password = password
         self.database = database
         
-
         ## Get the user's data from MySQL ##
 
         #Connect to MySQL
@@ -118,8 +118,6 @@ class User:
 
         return result
 
-
-
     def set_password(self, value):
         print("WARNING: Setting the password can be dangerous!")
         self.set_column("password", value)
@@ -188,7 +186,6 @@ class User:
             pass
 
         return { "status": "success" }
-
 
     def list_friends(self):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
@@ -269,9 +266,7 @@ class User:
             uids.append(friend["uid"])
 
         return uids
-
-
-    
+   
     def search_friends(self, search):
         #Clean the search
         search = pymysql.escape_string( bleach.clean(search) ).lower()
@@ -376,7 +371,6 @@ class User:
 
         return '{ "requests": ' + json.dumps( pending ) + ' }' 
 
-
     def is_friend_with(self, uid):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
@@ -425,7 +419,6 @@ class User:
         conn.close()
 
         return '{"status": "success"}'
-
 
     def get_feed(self, limit, page, supports_html=False):
         #Connect to MySQL
@@ -560,7 +553,6 @@ class User:
 
         return '{ "feed": ' + json.dumps( feed ) + ' }'
 
-
     def calculate_streak(self):
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
@@ -654,8 +646,6 @@ class User:
         conn.close()
 
         return { "status": "success" }
-
-
 
     def add_interests(self, interests):
         if interests is None:
@@ -820,3 +810,5 @@ class User:
         return { 
             "users": list(users)
         }
+
+    
