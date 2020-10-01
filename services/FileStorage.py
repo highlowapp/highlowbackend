@@ -244,3 +244,36 @@ class FileStorage:
             'file': filename,
             'url': "https://storage.googleapis.com/highlowfiles/user/{}/activityImages/{}".format(uid, filename)
         })
+
+    def upload_to_activity_audio(self, uid, file):
+
+        client = storage.Client()
+
+        bucket = client.lookup_bucket("highlowfiles")
+
+        file_content = BytesIO( file.read() )
+
+        #Make sure it's an image
+        file_extension = file.filename.split(".")[-1]
+        
+        if file_extension.lower() not in ("m4a", "flac"):
+            return '{"error": "Only M4A and FLAC formats are allowed"}'
+
+
+        #Check MIME type
+        if file.mimetype not in ("audio/mp4", "audio/m4a", "audio/flac"):
+            return '{"error": "Unsupported MIMETYPE. Supported MIMETYPES are ' + ", ".join(("audio/mp4", "audio/m4a", "audio/flac")) + '"}'
+
+        filename = str( uuid.uuid1() ) + ".flac"
+
+        blob = bucket.blob( "user/{}/activityAudio/{}".format(uid, filename) )
+
+        blob.upload_from_string(
+            file_content.getvalue(),
+            content_type=file.content_type
+        )
+        
+        return json.dumps({
+            'file': filename,
+            'url': "https://storage.googleapis.com/highlowfiles/user/{}/activityAudio/{}".format(uid, filename)
+        })

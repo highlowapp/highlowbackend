@@ -11,6 +11,10 @@ from datetime import timedelta
 
 DATE_FORMAT = "%Y-%m-%d"
 
+def printr(val):
+    print(val)
+    return val
+
 class Activities:
     def __init__(self, host, username, password, database):
         self.db = db.DB(host, username, password, database)
@@ -28,8 +32,7 @@ class Activities:
 
     def data_fits_free_plan(self, _type, data):
         json_data = json.loads(data)
-        print(_type)
-        print(json_data)
+        
         if _type in ('diary', 'highlow'):
             blocks = json_data['blocks']
             if len(blocks) > 10:
@@ -73,10 +76,13 @@ class Activities:
 
         return True
 
-    def share_categories(self, uid, is_friend):
+    def share_categories(self, uid, is_friend, is_support_group_member):
+        categories = ['all', uid]
+        if is_support_group_member:
+            categories.append('supportGroup')
         if is_friend:
-            return ('all', 'friends', uid)
-        return ('all', uid)
+            categories.append('friends')
+        return categories
 
     def activity_from_record(self, record):
         record['data'] = json.loads(record['data'])
@@ -119,11 +125,11 @@ class Activities:
             return True, activity
 
         is_friend = self.db.get_one('is_friend', uid, owner) is not None
-
+        is_support_group_member = self.db.get_one('is_support_group_member', owner, uid) is not None
         
 
         for share in sharing:
-            if share['shared_with'] in self.share_categories(uid, is_friend):
+            if share['shared_with'] in self.share_categories(uid, is_friend, is_support_group_member):
                 self.db.commit_and_close()
                 return True, activity
 
@@ -139,6 +145,7 @@ class Activities:
             if not self.data_allowed_for_subscription(uid, _type, data):
                 return self.close_and_return({ 'error': 'requires-subscription' })
             self.db.execute('add_activity', activity_id, uid, json.loads(data)['title'], _type, data, date)
+            self.db.execute('set_sharing_policy', activity_id, 'none')
             record = self.db.get_one('get_user_activity', uid, activity_id)
             activity = self.activity_from_record(record)
 
@@ -194,15 +201,14 @@ class Activities:
             'activities': activities
         })
 
-
     def get_for_user(self, uid, viewer, page=0):
         page = 0 if page is None else page
         if type(page) is not int:
             return self.close_and_return({ 'error': 'page-must-be-int' })
 
         records = None
-
-        if viewer is uid:
+        print(viewer)
+        if viewer == uid:
             records = self.db.get_all('get_user_activities', uid, page * 10)
         else:
             if self.is_friend(viewer, uid):
@@ -243,9 +249,10 @@ class Activities:
         
         new_data = {**activity['data'], **json.loads(data)}
 
-        self.db.execute('update_activity', json.dumps(new_data), uid, activity_id)
+        self.db.execute('update_activity', new_data['title'], json.dumps(new_data), uid, activity_id)
         
         activity['data'] = new_data
+        activity['title'] = new_data['title']
 
         comments = self.db.get_all('get_activity_comments', activity['activity_id'])
         for comment in comments:
@@ -279,25 +286,27 @@ class Activities:
         return self.close_and_return(activity)
 
     def set_sharing_policy(self, uid, activity_id, category, uids=[]):
-
         is_subscriber = self.subscriptions.isPayingUser(uid)
 
-        record = self.db.execute('get_activity', activity_id)
+        record = self.db.get_one('get_activity', activity_id)
 
         if record is None:
             return self.close_and_return({ 'error': 'does-not-exist' })
 
         activity = self.activity_from_record(record)
 
-        if activity['uid'] is not uid:
+        if activity['uid'] != uid:
+            print('~' + activity['uid'] + '~')
+            print('~' + uid + '~')
             return self.close_and_return({ 'error': 'access-denied' })
 
-        if category in ('all', 'friends', 'none'):
+        if category in ('all', 'friends', 'none', 'supportGroup'):
             self.db.execute('set_sharing_policy', activity_id, category)
-        
-        elif category is 'uids':
+        elif category == 'uids':
             if not is_subscriber:
                 return self.close_and_return({ 'error': 'requires-subscription' })
+            if uids is None:
+                return self.close_and_return({ 'error': 'no-uids-provided' })
             self.db.execute('clear_sharing_policy', activity_id)
             for uid in uids:
                 self.db.execute('add_uid_to_sharing_policy', activity_id, uid)
@@ -305,6 +314,12 @@ class Activities:
             return self.close_and_return({ 'error': 'invalid-category' })
 
         activity['flagged'] = self.has_flagged(uid, activity_id)
+
+        comments = self.db.get_all('get_activity_comments', activity['activity_id'])
+        for comment in comments:
+            comment['timestamp'] = comment['timestamp'].isoformat()
+
+        activity['comments'] = comments
 
         return self.close_and_return(activity)
 
@@ -315,16 +330,20 @@ class Activities:
         
         sharing = self.db.get_all('get_sharing_policy', activity_id)
 
-        sharing_policy = []
+        sharing_policy = 'none'
+        users = None
 
         for policy in sharing:
-            if policy['shared_with'] in ('all', 'none', 'friends'):
-                sharing_policy = [policy['shared_with']]
+            if policy['shared_with'] in ('all', 'none', 'friends', 'supportGroup'):
+                sharing_policy = policy['shared_with']
             else:
-                sharing_policy.append(policy['shared_with'])
+                sharing_policy = 'uids'
+                users.append(policy['shared_with'])
 
-        self.close_and_return({
-            'sharing_policy': sharing_policy
+
+        return self.close_and_return({
+            'sharing_policy': sharing_policy,
+            'uids': users
         })
 
     def comment(self, uid, activity_id, message):
@@ -454,13 +473,11 @@ class Activities:
             feed = [chart]
 
             announcements = self.get_announcements(uid)
-            print(announcements)
             for announcement in announcements:
                 announcement["type"] = "announcement"
                 feed.append(announcement)
-
+        
         for item in feed_items:
-
             records = self.db.get_all('get_activity_comments', item['activity_id'])
 
             for record in records:
@@ -489,7 +506,7 @@ class Activities:
                 }
             }
             feed.append(feed_item)
-
+        
         return self.close_and_return({
             'feed': feed
         })
@@ -497,4 +514,5 @@ class Activities:
     def add_image(self, uid, file):
         return self.file_storage.upload_to_activity_images(uid, file)
 
-    
+    def upload_audio(self, uid, file):
+        return self.file_storage.upload_to_activity_audio(uid, file)

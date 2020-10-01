@@ -92,6 +92,10 @@ with open("signIn.html", 'r') as file:
 with open("resetPassword.html", 'r') as file:
     reset_password_html = file.read()
 
+def printr(val):
+    print(val)
+    return val
+
 
 #Create flask app
 app = Flask(__name__)
@@ -1218,7 +1222,7 @@ def sharing(activity_id):
     if request.method == 'GET':
         return json.dumps( activities.get_sharing_policy(uid, activity_id) )
     if request.method == 'POST':
-        return json.dumps( activities.set_sharing_policy(uid, activity_id, **request.form) )
+        return json.dumps( activities.set_sharing_policy(uid, activity_id, category=request.form.get('category'), uids=request.form.getlist('uids[]')) )
 
 @app.route('/user/activities/<string:activity_id>/comments', methods=['POST'])
 def comment_on_activity(activity_id):
@@ -1276,6 +1280,22 @@ def add_activity_image():
     
     return activities.add_image(uid, image)
 
+@app.route('/user/activities/uploadAudio', methods=['POST'])
+def upload_audio(): 
+    audio = request.files.get("file")
+    if audio is None:
+        return '{ "error": "no-file-found" }'
+    uid, error = serviceutils.get_current_user(request)
+    if error is not None:
+        return error
+    return activities.upload_audio(uid, audio)
+
+@app.route('/user/isLoggedIn', methods=['GET'])
+def isLoggedIn():
+    uid, error = serviceutils.get_current_user(request)
+    if error is not None:
+        return error
+    return json.dumps({ 'uid': uid })
 
 
 #######################

@@ -1,15 +1,16 @@
 {
-    "get_user_activities": "SELECT * FROM activities WHERE uid='{}' LIMIT 10 OFFSET {};",
+    "get_user_activities": "SELECT * FROM activities WHERE uid='{}' ORDER BY timestamp DESC LIMIT 10 OFFSET {};",
     "add_activity": "INSERT INTO activities(activity_id, uid, title, type, data, date) VALUES('{}', '{}', '{}', '{}', '{}', '{}');",
-    "update_activity": "UPDATE activities SET data = '{}' WHERE uid = '{}' AND activity_id = '{}';",
+    "update_activity": "UPDATE activities SET title = '{}', data = '{}' WHERE uid = '{}' AND activity_id = '{}';",
     "delete_activity": "DELETE FROM activities WHERE activity_id = '{0}' AND uid = '{1}';",
     "view_friend_activities": "SELECT activities.activity_id AS activity_id, activities.uid AS uid activities.type AS type, activities.timestamp AS timestamp, activities.data AS data FROM activities RIGHT JOIN sharing ON sharing.activity_id = activities.activity_id WHERE activities.uid = '{}' AND sharing.shared_with = ANY('all', 'friends', '{}') ORDER BY timestamp DESC;",
     "view_stranger_activities": "SELECT activities.activity_id AS activity_id, activities.uid AS uid activities.type AS type, activities.timestamp AS timestamp, activities.data AS data FROM activities RIGHT JOIN sharing ON sharing.activity_id = activities.activity_id WHERE activities.uid = '{}' AND sharing.shared_with = 'all' ORDER BY timestamp DESC;",
     "get_activity": "SELECT * FROM activities WHERE activity_id = '{}';",
     "is_friend": "SELECT * FROM friends WHERE status=2 AND ( (initiator='{0}' AND acceptor='{1}') OR (initiator='{1}' AND acceptor='{0}') );",
+    "is_support_group_member": "SELECT * FROM support_groups WHERE friend='{}' AND uid='{}';",
     "get_sharing_policy": "SELECT shared_with FROM sharing WHERE activity_id='{}';",
     "get_user_activity": "SELECT * FROM activities WHERE uid='{}' AND activity_id='{}';",
-    "set_sharing_policy": "DELETE FROM sharing WHERE activity_id='{0}'; INSERT INTO sharing(activity_id, shared_with) VALUES('{0}', '{1}');",
+    "set_sharing_policy": "INSERT INTO sharing(activity_id, shared_with) VALUES('{0}', '{1}');",
     "clear_sharing_policy": "DELETE FROM sharing WHERE activity_id='{}';",
     "add_uid_to_sharing_policy": "INSERT INTO sharing(activity_id, shared_with) VALUES('{}', '{}');",
     "comment_activity": "INSERT INTO activity_comments(commentid, activity_id, uid, message) VALUES('{}','{}','{}', '{}');",
@@ -21,7 +22,8 @@
     "flag_activity": "INSERT INTO activity_flags(flagger, activity_id) VALUES('{}', '{}'); UPDATE users SET times_flagged = times_flagged + 1 WHERE uid='{}';",
     "unflag_activity": "DELETE FROM activity_flags WHERE flagger='{}' AND activity_id='{}';",
     "has_flagged": "SELECT * FROM activity_flags WHERE flagger='{}' AND activity_id='{}';",
-    "get_feed": "SELECT DISTINCT activities.activity_id AS activity_id, activities.uid AS uid, type, timestamp, data, date, firstname, lastname, profileimage, streak, bio FROM activities RIGHT JOIN sharing ON sharing.activity_id = activities.activity_id AND(shared_with = 'all' OR shared_with = '{0}' OR shared_with = 'friends') INNER JOIN ( SELECT CASE WHEN friends.initiator = '{0}' THEN friends.acceptor WHEN friends.acceptor = '{0}' THEN friends.initiator END AS friend_id FROM friends WHERE (friends.acceptor = '{0}' OR friends.initiator = '{0}') AND friends.status = 2) AS frnds ON (sharing.shared_with != 'friends' OR activities.uid = frnds.friend_id) LEFT JOIN users ON users.uid = activities.uid ORDER BY timestamp DESC LIMIT {1} OFFSET {2};",
+    "get_feed": "SELECT DISTINCT activities.activity_id AS activity_id, activities.uid AS uid, type, timestamp, data, date, firstname, lastname, profileimage, streak, bio FROM activities RIGHT JOIN sharing ON sharing.activity_id = activities.activity_id AND(shared_with = 'all' OR shared_with = '{0}' OR shared_with = 'friends') INNER JOIN( SELECT CASE WHEN friends.initiator = '{0}' THEN friends.acceptor WHEN friends.acceptor = '{0}' THEN friends.initiator END AS friend_id FROM friends WHERE (friends.acceptor = '{0}' OR friends.initiator = '{0}') AND friends.status = 2) AS frnds ON (sharing.shared_with != 'friends' OR activities.uid = frnds.friend_id) LEFT JOIN users ON users.uid = activities.uid WHERE activities.activity_id IS NOT NULL ORDER BY timestamp DESC LIMIT {1} OFFSET {2};",
     "get_announcements": "SELECT DISTINCT severity, announcements.message AS message, announcements.link AS link, announcements.announcement_id AS announcement_id FROM announcements LEFT JOIN read_announcements ON (announcements.announcement_id != read_announcements.announcement_id AND read_announcements.uid = '{}') WHERE announcements.open = TRUE;",
-    "get_user_diary_entries": "SELECT * FROM activities WHERE uid='{}' AND type NOT IN ('meditation') LIMIT 10 OFFSET {};"
+    "get_user_diary_entries": "SELECT * FROM activities WHERE uid='{}' AND type NOT IN ('meditation') ORDER BY timestamp DESC LIMIT 10 OFFSET {};",
+    "get_user": "SELECT firstname, lastname, profileimage, uid, streak, bio FROM users WHERE uid='{}';"
 }
