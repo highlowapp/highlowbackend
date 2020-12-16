@@ -1,0 +1,6 @@
+{
+    "highlow": ["blocks", "title"],
+    "diary": ["blocks", "title"],
+    "audio": ["audio_file", "title"],
+    "meditation": ["length", "title"]
+}

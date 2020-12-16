@@ -5,6 +5,7 @@ import json
 import datetime
 from services.FileStorage import FileStorage
 from services.Notifications import Notifications
+import db
 from bs4 import BeautifulSoup
 
 class User:
@@ -16,8 +17,8 @@ class User:
         self.username = username
         self.password = password
         self.database = database
+        self.db = db.DB(host, username, password, database)
         
-
         ## Get the user's data from MySQL ##
 
         #Connect to MySQL
@@ -83,6 +84,8 @@ class User:
         conn.commit()
         conn.close()
 
+        setattr(self, column, value)
+
     def set_firstname(self, value):
         self.set_column("firstname", value)
 
@@ -117,8 +120,6 @@ class User:
         result = fileStorage.set_default_profile_image(self.uid)
 
         return result
-
-
 
     def set_password(self, value):
         print("WARNING: Setting the password can be dangerous!")
@@ -188,7 +189,6 @@ class User:
             pass
 
         return { "status": "success" }
-
 
     def list_friends(self):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
@@ -269,9 +269,7 @@ class User:
             uids.append(friend["uid"])
 
         return uids
-
-
-    
+   
     def search_friends(self, search):
         #Clean the search
         search = pymysql.escape_string( bleach.clean(search) ).lower()
@@ -376,6 +374,20 @@ class User:
 
         return '{ "requests": ' + json.dumps( pending ) + ' }' 
 
+    def get_friends(self, uid):
+        friends = self.db.get_all('get_friends', self.uid)
+        if uid != self.uid:
+            return self.db.close_and_return({
+                'friends': friends,
+                'isCurrentUser': False
+            })
+        pending_requests = self.db.get_all('get_pending_requests', self.uid)
+
+        return self.db.close_and_return({
+            'friends': friends,
+            'pending_requests': pending_requests,
+            'isCurrentUser': True
+        })
 
     def is_friend_with(self, uid):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
@@ -425,7 +437,6 @@ class User:
         conn.close()
 
         return '{"status": "success"}'
-
 
     def get_feed(self, limit, page, supports_html=False):
         #Connect to MySQL
@@ -560,7 +571,6 @@ class User:
 
         return '{ "feed": ' + json.dumps( feed ) + ' }'
 
-
     def calculate_streak(self):
         #Connect to MySQL
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
@@ -654,8 +664,6 @@ class User:
         conn.close()
 
         return { "status": "success" }
-
-
 
     def add_interests(self, interests):
         if interests is None:
@@ -820,3 +828,5 @@ class User:
         return { 
             "users": list(users)
         }
+
+    

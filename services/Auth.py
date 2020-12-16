@@ -442,7 +442,7 @@ class Auth:
         cursor = conn.cursor()
 
         #Get the relevant user(s)
-        cursor.execute("SELECT firstname, lastname, uid, email FROM users WHERE email='" + email + "' AND password IS NOT NULL;")
+        cursor.execute("SELECT firstname, lastname, uid, email FROM users WHERE UPPER(email)='" + email.upper() + "';")
         user = cursor.fetchone()
 
         #Commit and close the connection

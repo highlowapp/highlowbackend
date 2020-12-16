@@ -18,7 +18,7 @@ class Subscriptions:
         self.secret = subscription_config['secret']
         self.overriden = subscription_config['overriden']
 
-    def handleTransactionWithReceipt(receipt_data, uid, testing=False):
+    def handleTransactionWithReceipt(self, receipt_data, uid, testing=False):
         json = {}
 
         #Get verification request
@@ -52,15 +52,14 @@ class Subscriptions:
             
 
 
-        else if status == 21007:
+        elif status == 21007:
             return self.handleTransactionWithReceipt(receipt_data, uid, testing=True)
         else:
             return {
                 'error': 'invalid-receipt'
             }
         
-
-    def validateReceiptSandbox(receipt_data):
+    def validateReceiptSandbox(self, receipt_data):
         payload = {
             'receipt-data': receipt_data,
             'password': self.secret,
@@ -73,8 +72,7 @@ class Subscriptions:
         except:
             return { 'status': 5 }
 
-
-    def validateReceiptProd(receipt_data):
+    def validateReceiptProd(self, receipt_data):
         payload = {
             'receipt-data': receipt_data,
             'password': self.secret,
@@ -88,7 +86,7 @@ class Subscriptions:
         except: 
             return { 'status': 5 }
 
-    def updateSubscriptionRecord(originalTransactionId, data):
+    def updateSubscriptionRecord(self, originalTransactionId, data):
         #Connect to the MySQL server
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
@@ -112,35 +110,22 @@ class Subscriptions:
         conn.commit()
         conn.close()
 
-    def isPayingUser(uid):
+    def isPayingUser(self, uid):
         #If we're overriden
         if self.overriden:
             return True
 
-        #Connect to the MySQL server
-        conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
-        cursor = conn.cursor()
+        url = "https://api.revenuecat.com/v1/subscribers/{}".format(uid)
+        headers = {
+            'content-type': 'application/json',
+            'Authorization': "Bearer {}".format(self.secret)
+        }
 
-        cursor.execute("SELECT * FROM subscriptions WHERE uid='{}';".format(uid))
+        response = requests.request('GET', url, headers=headers)
 
-        record = cursor.fetchone()
+        data = response.json()
 
-        if record is None:
-            return False
-
-        latestExpiryDate = record['latestExpiryDate']
-        isHavingBillingIssues = record['isHavingBillingIssues']
-
-        date1 = time.strptime(datetime.datetime.now().isoformat(), '%Y-%m-%dT%H:%M:%SZ')
-        date2 = time.strptime(latestExpiryDate, '%Y-%m-%dT%H:%M:%SZ')
-        date1 = time.mktime(date1)
-        date2 = time.mktime(date2)
-
-        dateDiff = date2 - date1
-
-        if dateDiff < 0:
-            if not isHavingBillingIssues:
-                return (int(abs(dateDiff)) / 86400) > 4
-            return False
-
-        return True
+        if 'Premium' in data['subscriber']['entitlements']:
+            return True
+        
+        return False
