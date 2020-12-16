@@ -15,7 +15,7 @@ from services.Activities import Activities
 import serviceutils
 from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
-import os 
+import os
 import rook
 
 
@@ -449,7 +449,19 @@ def set_user_profile():
     if bio:
         user.set_column("bio", bio)
 
-    return '{"status": "success"}'
+    #Create user JSON description
+    user_json = {
+        "uid": user.uid,
+        "firstname": user.firstname,
+        "lastname": user.lastname,
+        "profileimage": user.profileimage,
+        "streak": user.calculate_streak(),
+        "email": user.email,
+        "bio": user.bio,
+        "interests": user.interests
+    }
+
+    return json.dumps( user_json )
 
 @app.route("/user/flag/<string:_user>", methods=["POST"])
 def doflag(_user):
@@ -548,6 +560,26 @@ def get_friends():
 
     user = User(uid, host, username, password, database)
     return json.dumps( user.list_friends() )
+
+@app.route("/user/allFriends", methods=["GET"])
+def new_get_friends():
+    #Get token from Authorization
+    token = request.headers["Authorization"].replace("Bearer ", "")
+
+    #Make a request to the Auth service
+    token_verification_request = serviceutils.verify_token(token)
+
+
+    #Obtain the result as JSON
+    result = token_verification_request
+
+    #If there was an error, return the error
+    if "error" in result:
+        return '{ "error": "' + result["error"] + '" }'
+
+    uid = request.args.get("uid") or result["uid"]
+    user = User(uid, host, username, password, database)
+    return json.dumps( user.get_friends(result['uid']) )
 
 @app.route("/user/<string:friend>/unfriend", methods=["POST"])
 def unfriend(friend):
@@ -825,7 +857,7 @@ def sethigh():
     isPrivateStr = request.form.get("private")
     supports_html = request.form.get('supports_html') or False
     isPrivate = False
-    
+
     if isPrivateStr in ['true', '1']:
         isPrivate = True
 
@@ -1180,7 +1212,7 @@ def individual_activity(activity_id):
 
     if request.method == 'GET':
         return json.dumps( activities.get_by_id(uid, activity_id) )
-    
+
     if request.method == 'POST':
         return json.dumps( activities.update(uid, activity_id, request.form.get('data')))
 
@@ -1192,18 +1224,18 @@ def user_activities(uid):
     viewer, error = serviceutils.get_current_user(request)
     if error is not None:
         return error
-    
+
     if request.method == 'GET':
-        return json.dumps( activities.get_for_user(uid, viewer, request.form.get('page')) )
+        return json.dumps( activities.get_for_user(uid, viewer, request.args.get('page')) )
 
 @app.route('/user/diaryEntries', methods=['GET'])
 def get_diaryEntries():
     uid, error = serviceutils.get_current_user(request)
     if error is not None:
         return  error
-    
-    return json.dumps( activities.get_diary_entries(uid, request.form.get('page')) )
-    
+
+    return json.dumps( activities.get_diary_entries(uid, request.args.get('page')) )
+
 @app.route('/user/activities', methods=['POST'])
 def add_activity():
     uid, error = serviceutils.get_current_user(request)
@@ -1237,7 +1269,7 @@ def change_comment(commentid):
     uid, error = serviceutils.get_current_user(request)
     if error is not None:
         return error
-    
+
     if request.method == 'POST':
         return json.dumps( activities.update_comment(uid, commentid, request.form.get('message')) )
     if request.method == 'DELETE':
@@ -1255,7 +1287,7 @@ def flag_activity(activity_id):
     uid, error = serviceutils.get_current_user(request)
     if error is not None:
         return error
-        
+
     if request.method == 'POST':
         return json.dumps( activities.flag(uid, activity_id) )
     if request.method == 'DELETE':
@@ -1266,7 +1298,7 @@ def get_new_feed(page):
     uid, error = serviceutils.get_current_user(request)
     if error is not None:
         return error
-    
+
     return json.dumps( activities.get_new_feed(uid, page) )
 
 @app.route('/user/activities/addImage', methods=['POST'])
@@ -1277,11 +1309,11 @@ def add_activity_image():
     uid, error = serviceutils.get_current_user(request)
     if error is not None:
         return error
-    
+
     return activities.add_image(uid, image)
 
 @app.route('/user/activities/uploadAudio', methods=['POST'])
-def upload_audio(): 
+def upload_audio():
     audio = request.files.get("file")
     if audio is None:
         return '{ "error": "no-file-found" }'
@@ -1346,7 +1378,7 @@ def query():
     return response
 
 
-## ADMIN 
+## ADMIN
 @app.route("/admin/sign_in", methods=["POST"])
 def admin_sign_in():
     result = json.loads( auth.admin_sign_in( request.form["username"], request.form["password"] ) )
@@ -1381,7 +1413,7 @@ def total_users():
 
     if 'error' in verification:
         return json.dumps( verification )
-    
+
     query_result = admin.total_users()
 
     response = jsonify(query_result)

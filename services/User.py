@@ -17,6 +17,7 @@ class User:
         self.username = username
         self.password = password
         self.database = database
+        self.db = db.DB(host, username, password, database)
         
         ## Get the user's data from MySQL ##
 
@@ -82,6 +83,8 @@ class User:
         #Commit and close the connection
         conn.commit()
         conn.close()
+
+        setattr(self, column, value)
 
     def set_firstname(self, value):
         self.set_column("firstname", value)
@@ -370,6 +373,21 @@ class User:
         pending = cursor.fetchall()
 
         return '{ "requests": ' + json.dumps( pending ) + ' }' 
+
+    def get_friends(self, uid):
+        friends = self.db.get_all('get_friends', self.uid)
+        if uid != self.uid:
+            return self.db.close_and_return({
+                'friends': friends,
+                'isCurrentUser': False
+            })
+        pending_requests = self.db.get_all('get_pending_requests', self.uid)
+
+        return self.db.close_and_return({
+            'friends': friends,
+            'pending_requests': pending_requests,
+            'isCurrentUser': True
+        })
 
     def is_friend_with(self, uid):
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')

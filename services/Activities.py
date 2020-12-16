@@ -6,6 +6,8 @@ import pymysql
 import bleach
 from services.Subscriptions import Subscriptions
 from services.FileStorage import FileStorage
+from services.Notifications import Notifications
+from services.User import User
 from datetime import datetime
 from datetime import timedelta
 
@@ -17,7 +19,13 @@ def printr(val):
 
 class Activities:
     def __init__(self, host, username, password, database):
+        self.host = host
+        self.username = username
+        self.password = password
+        self.database = database
+
         self.db = db.DB(host, username, password, database)
+        self.notifications = Notifications(host, username, password, database)
 
         self.activity_types = Helpers.read_json_from_file('activity_types.json')
 
@@ -110,7 +118,7 @@ class Activities:
         sharing = self.db.get_all('get_sharing_policy', activity_id)
         activity['flagged'] = self.has_flagged(uid, activity_id)
 
-        if owner is uid:
+        if owner == uid:
             sharing_policy = []
             for policy in sharing:
                 if policy['shared_with'] in ('all', 'none', 'friends'):
@@ -145,7 +153,30 @@ class Activities:
             if not self.data_allowed_for_subscription(uid, _type, data):
                 return self.close_and_return({ 'error': 'requires-subscription' })
             self.db.execute('add_activity', activity_id, uid, json.loads(data)['title'], _type, data, date)
-            self.db.execute('set_sharing_policy', activity_id, 'none')
+            
+            if _type != 'meditation':
+                self.db.execute('set_sharing_policy', activity_id, 'none')
+            else:
+                self.db.execute('set_sharing_policy', activity_id, 'all')
+
+                friends = self.db.get_all('get_friends', uid)
+
+                user = User(uid, self.host, self.username, self.password, self.database)
+
+                types = {
+                    'diary': 'diary entry',
+                    'highlow': 'High/Low',
+                    'audio': 'audio entry',
+                    'meditation': 'meditation session'
+                }
+
+                activity_type = types[ _type ]
+
+                uids = [friend['uid'] for friend in friends]
+
+                self.notifications.send_notification_to_users("New Feed Item!", "{} shared a new {}!".format(user.firstname + " " + user.lastname, activity_type), uids, 2, data={'activity_id': activity_id})
+
+
             record = self.db.get_one('get_user_activity', uid, activity_id)
             activity = self.activity_from_record(record)
 
@@ -167,6 +198,8 @@ class Activities:
 
         activity['flagged'] = self.has_flagged(uid, activity_id)
 
+
+
         return self.close_and_return(activity)
 
     def is_friend(self, uid, other):
@@ -177,7 +210,9 @@ class Activities:
 
     def get_diary_entries(self, uid, page=0):
         page = 0 if page is None else page
-        if type(page) is not int:
+        if self.is_int(page):
+            page = int(page)
+        else:
             return self.close_and_return({ 'error': 'page-must-be-int' })
         
         records = None
@@ -201,20 +236,30 @@ class Activities:
             'activities': activities
         })
 
+    def is_int(self, s):
+        try: 
+            int(s)
+            return True
+        except ValueError:
+            return False
+
+
     def get_for_user(self, uid, viewer, page=0):
         page = 0 if page is None else page
-        if type(page) is not int:
+        if self.is_int(page):
+            page = int(page)
+        else:
             return self.close_and_return({ 'error': 'page-must-be-int' })
-
+    
         records = None
-        print(viewer)
+
         if viewer == uid:
             records = self.db.get_all('get_user_activities', uid, page * 10)
         else:
             if self.is_friend(viewer, uid):
-                records = self.db.get_all('view_friend_activities', uid, viewer)
+                records = self.db.get_all('view_friend_activities', uid, viewer, page * 10)
             else:
-                records = self.db.get_all('view_stranger_activities', viewer)
+                records = self.db.get_all('view_stranger_activities', viewer, page * 10)
 
         activities = []
 
@@ -246,7 +291,9 @@ class Activities:
         
         if not self.verify_activity_data(_type, data):
             return self.close_and_return({ 'error': 'invalid-data' })
-        
+
+        if not self.data_allowed_for_subscription(uid, _type, data):
+            return self.close_and_return({ 'error': 'requires-subscription' })
         new_data = {**activity['data'], **json.loads(data)}
 
         self.db.execute('update_activity', new_data['title'], json.dumps(new_data), uid, activity_id)
@@ -296,12 +343,30 @@ class Activities:
         activity = self.activity_from_record(record)
 
         if activity['uid'] != uid:
-            print('~' + activity['uid'] + '~')
-            print('~' + uid + '~')
             return self.close_and_return({ 'error': 'access-denied' })
 
         if category in ('all', 'friends', 'none', 'supportGroup'):
             self.db.execute('set_sharing_policy', activity_id, category)
+
+            if category != 'none' and category != 'supportGroup':
+                friends = self.db.get_all('get_friends', uid)
+
+                user = User(uid, self.host, self.username, self.password, self.database)
+
+                types = {
+                    'diary': 'diary entry',
+                    'highlow': 'High/Low',
+                    'audio': 'audio entry',
+                    'meditation': 'meditation session'
+                }
+
+                activity_type = types[ activity['type'] ]
+
+                uids = [friend['uid'] for friend in friends]
+
+                self.notifications.send_notification_to_users("New Feed Item!", "{} shared a new {}!".format(user.firstname + " " + user.lastname, activity_type), uids, 2, data={'activity_id': activity_id})
+
+
         elif category == 'uids':
             if not is_subscriber:
                 return self.close_and_return({ 'error': 'requires-subscription' })
@@ -310,6 +375,19 @@ class Activities:
             self.db.execute('clear_sharing_policy', activity_id)
             for uid in uids:
                 self.db.execute('add_uid_to_sharing_policy', activity_id, uid)
+
+            user = User(uid, self.host, self.username, self.password, self.database)
+
+            types = {
+                'diary': 'diary entry',
+                'highlow': 'High/Low',
+                'audio': 'audio entry',
+                'meditation': 'meditation session'
+            }
+
+            activity_type = types[ activity['type'] ]
+
+            self.notifications.send_notification_to_users("New Feed Item!", "{} shared a new {}!".format(user.firstname + " " + user.lastname, activity_type), uids, 2, data={'activity_id': activity_id})
         else:
             return self.close_and_return({ 'error': 'invalid-category' })
 
@@ -356,33 +434,62 @@ class Activities:
 
         self.db.execute('comment_activity', commentid, activity_id, uid, message)
 
+        activity['comments'] = self.get_comments(activity_id)
         activity['flagged'] = self.has_flagged(uid, activity_id)
 
+        users = self.db.get_all('get_commenters', activity_id, uid)
+
+        uids = [user['uid'] for user in users]
+
+        other_user = User(uid, self.host, self.username, self.password, self.database)
+
+        owner = User(activity['uid'], self.host, self.username, self.password, self.database)
+
+
+        if len(users) > 0:
+            self.notifications.send_notification_to_users("{} {} commented in your discussion".format(other_user.firstname, other_user.lastname), bleach.clean(message), uids, 4, data={'activity_id': activity_id})
+
+        print("Owner: " + owner.uid)
+        print("Commenter: " + uid)
+
+        if uid != owner.uid and owner.uid not in uids and owner.notify_new_comment:
+            print("Notifications")
+            self.notifications.send_notification_to_user("{} {} commented on your activity".format(other_user.firstname, other_user.lastname), bleach.clean(message), owner.uid, data={'activity_id': activity_id})
+
         return self.close_and_return(activity)
+
+    def get_comments(self, activity_id):
+        comments = self.db.get_all('get_activity_comments', activity_id)
+        for comment in comments:
+            comment['timestamp'] = comment['timestamp'].isoformat()
+        return comments
 
     def update_comment(self, uid, commentid, message):
         record = self.db.get_one('get_comment', commentid)
 
-        if uid is not commentid['uid']:
+        if uid != record['uid']:
             return self.close_and_return({ 'error': 'access-denied' })
         
-        self.db.execute('udpate_comment', message, commentid, uid)
+        self.db.execute('update_comment', message, commentid, uid)
+    
+        activity_id = record['activity_id']
+        
+        activity = self.get_by_id(uid, activity_id)
 
-        record['message'] = message
-        record['timestamp'] = record['timestamp'].isoformat()
-
-        return self.close_and_return(record)
+        return self.close_and_return(activity)
 
     def delete_comment(self, uid, commentid):
         record = self.db.get_one('get_comment', commentid)
-        if uid is not commentid['uid']:
+        if uid != record['uid']:
             return self.close_and_return({ 'error': 'access-denied' })
 
         self.db.execute('delete_comment', commentid, uid)
 
-        record['timestamp'] = record['timestamp'].isoformat()
+        activity_id = record['activity_id']
+        
+        activity = self.get_by_id(uid, activity_id)
 
-        return self.close_and_return(record)
+        return self.close_and_return(activity)
         
     def get_activity_chart(self, uid):
         days = list(self.db.get_all('get_activity_chart', uid))
@@ -437,7 +544,8 @@ class Activities:
 
         owner = activity['uid']
 
-        self.db.execute('flag_activity', uid, activity_id, owner)
+        self.db.execute('flag_activity', uid, activity_id)
+        self.db.execute('increment_user_times_flagged', owner)
 
         activity['flagged'] = self.has_flagged(uid, activity_id)
 

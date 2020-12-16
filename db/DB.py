@@ -45,7 +45,7 @@ class DB:
         clean_params = []
         for param in params:
             if type(param) is str:
-                param = pymysql.escape_string( bleach.clean(param) )
+                param = pymysql.escape_string( bleach.clean(param, tags=['a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em', 'i', 'li', 'ol', 'strong', 'ul', 'u', 'strike'] ))
             clean_params.append(param)
         return clean_params
     
@@ -169,3 +169,7 @@ class DB:
 
         #Execute SQL command
         self.cursor.execute(sql_with_params)
+
+    def close_and_return(self, value):
+        self.commit_and_close()
+        return value

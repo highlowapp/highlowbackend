@@ -2,3 +2,5 @@ runtime: python37
 
 entrypoint: gunicorn -w 2 -b 0.0.0.0:$PORT wsgi
 #entrypoint: python3 api.py
+env_variables:
+    GOOGLE_CLOUD_PROJECT: highlow

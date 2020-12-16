@@ -73,6 +73,9 @@ class Notifications:
 
         devices = cursor.fetchall()
 
+        conn.commit()
+        conn.close()
+
         device_tokens = [device["device_id"] for device in devices]
 
         push_notification = messaging.MulticastMessage(
@@ -93,6 +96,8 @@ class Notifications:
         )
 
         response = messaging.send_multicast(push_notification)
+        print("Response: ")
+        print(response.responses[0].exception)
 
     def send_notification_to_users(self, title, message, uids, setting, data=None):
         settings = ['users.notify_new_friend_req', 'users.notify_new_friend_acc', 'notify_new_feed_item', 'notify_new_like', 'notify_new_comment']
@@ -109,6 +114,9 @@ class Notifications:
 LEFT OUTER JOIN devices ON devices.uid = users.uid
 
 WHERE devices.uid IN ({}) AND {} = 1;""".format(",".join(["'{}'".format(uid) for uid in uids]), settings[setting]))
+
+        conn.commit()
+        conn.close()
 
         devices = cursor.fetchall()
 
