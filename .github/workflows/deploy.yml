@@ -14,10 +14,10 @@ jobs:
       - name: Retrieving the repo
         uses: actions/checkout@v1
       - name: Setup gcloud environment
-        uses: GoogleCloudPlatform/github-actions@0.1.1
-        with:
-          # The service account key which will be used for authentication.
-          service_account_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
+        uses: actions-hub/gcloud@master
+        env: 
+          PROJECT_ID: highlow
+          APPLICATION_CREDENTIALS: ${{ secrets.GCLOUD_SERVICE_KEY }}
       - name: Clone config repo
         run: gcloud source repos clone config --project highlow
       - name: Set up Python 3.7
