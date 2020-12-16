@@ -17,6 +17,7 @@ from urllib.parse import unquote
 from werkzeug.contrib.fixers import ProxyFix
 import os
 import rook
+import db
 
 
 
@@ -1798,7 +1799,99 @@ def turn_notif_setting_off(setting):
         return '{ "error": "invalid-setting" }'
 
 
+TAG_RE = re.compile(r'<[^>]+>')
 
+def remove_tags(text):
+    return TAG_RE.sub('', text)
+
+
+##Data Migration
+@app.route('/checkNewHighLows', methods=["GET"])
+def checkNewHighLows():
+    if request.args['password'] != eventlogger_config['admin_password']:
+        return '{ "error": "access-denied" }'
+
+    working_db = db.DB(host, username, password, database)
+
+    highlows = working_db.get_all('get_missing_highlows')
+
+    for highlow in highlows:
+        #activity_id, uid, type, timestamp, data, date, title
+        activity_id = highlow['highlowid']
+        uid = highlow['uid']
+        _type = 'highlow'
+        date = highlow['_date']
+        timestamp = highlow['_timestamp']
+
+        year = date[0:4]
+        month = date[5:7]
+        day = date[8:10]
+
+        title = "{}/{}/{}".format(month, day, year)
+
+        high = 'No content provided'
+        if highlow['high'] is not None and len(highlow['high']) > 0:
+            high = remove_tags(highlow['high'])
+
+        low = 'No content provided'
+        if highlow['low'] is not None and len(highlow['low']) > 0:
+            low = remove_tags(highlow['low'])
+        
+        data = {
+            'title': title,
+            'type': 'highlow',
+            'blocks': [
+                {
+                    'type': 'h1',
+                    'content': 'High',
+                    'editable': False
+                },
+                {
+                    'type': 'img',
+                    'src': 'https://storage.googleapis.com/highlowfiles/highs/' + highlow['high_image'] if highlow['high_image'] is not None else '',
+                    'editable': True
+                },
+                {
+                    'type': 'p',
+                    'content': high,
+                    'editable': True
+                },
+                {
+                    'type': 'h1',
+                    'content': 'Low',
+                    'editable': False
+                },
+                {
+                    'type': 'img',
+                    'src': 'https://storage.googleapis.com/highlowfiles/lows/' + highlow['low_image'] if highlow['low_image'] is not None else '',
+                    'editable': True
+                },
+                {
+                    'type': 'p',
+                    'content': low,
+                    'editable': True
+                }
+            ]
+        }
+
+        working_db.execute('add_full_activity', activity_id, uid, title, _type, timestamp, json.dumps(data), date)
+
+        comments = working_db.get_all('get_missing_highlow_comments')
+
+        for comment in comments:
+            commentid = comment['commentid']
+            activity_id = comment['highlowid']
+            uid = comment['uid']
+            message = comment['message']
+            timestamp = comment['_timestamp']
+
+            working_db.execute('add_full_activity_comment', commentid, activity_id, uid, message, timestamp)
+
+        working_db.commit_and_close()
+
+        return '{"status": "success"}'
+
+    
 
 
 

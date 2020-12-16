@@ -29,5 +29,10 @@
     "get_user": "SELECT firstname, lastname, profileimage, uid, streak, bio FROM users WHERE uid='{}';",
     "get_friends": "SELECT frnds.friend_id AS uid, users.firstname AS firstname, users.lastname AS lastname, users.profileimage AS profileimage, users.streak AS streak, users.bio AS bio FROM ( SELECT CASE WHEN friends.initiator = '{0}' THEN friends.acceptor WHEN friends.acceptor = '{0}' THEN friends.initiator END AS friend_id, friends.status AS status FROM friends WHERE (friends.initiator = '{0}' OR friends.acceptor = '{0}') AND friends.status = 2 ) AS frnds JOIN users ON users.uid = frnds.friend_id;",
     "get_pending_requests": "SELECT frnds.friend_id AS uid, users.firstname AS firstname, users.lastname AS lastname, users.profileimage AS profileimage, users.streak AS streak, users.bio AS bio FROM( SELECT CASE WHEN friends.initiator = '{0}' THEN friends.acceptor WHEN friends.acceptor = '{0}' THEN friends.initiator END AS friend_id, friends.status AS status FROM friends WHERE (friends.acceptor = '{0}') AND friends.status = 1) AS frnds JOIN users ON users.uid = frnds.friend_id;",
-    "get_commenters": "SELECT DISTINCT activity_comments.uid AS uid FROM activity_comments JOIN users ON users.uid = activity_comments.uid WHERE activity_comments.activity_id = '{}' AND users.notify_new_comment = TRUE AND activity_comments.uid != '{}';"
+    "get_commenters": "SELECT DISTINCT activity_comments.uid AS uid FROM activity_comments JOIN users ON users.uid = activity_comments.uid WHERE activity_comments.activity_id = '{}' AND users.notify_new_comment = TRUE AND activity_comments.uid != '{}';",
+    "get_all_users": "SELECT * FROM users;",
+    "get_missing_highlows": "SELECT * FROM highlows LEFT OUTER JOIN activities ON highlows.highlowid = activities.activity_id WHERE activities.activity_id IS NULL;",
+    "get_missing_highlow_comments": "SELECT * FROM comments LEFT OUTER JOIN activity_comments ON comments.commentid = activity_comments.commentid WHERE activity_comments.commentid IS NULL;",
+    "add_full_activity_comment": "INSERT INTO activity_comments(commentid, activity_id, uid, message, timestamp) VALUES('{}','{}','{}', '{}', '{}');",
+    "add_full_activity": "INSERT INTO activities(activity_id, uid, title, type, timestamp, data, date) VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}');"
 }
