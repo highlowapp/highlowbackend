@@ -18,7 +18,7 @@
     "get_comment": "SELECT * FROM activity_comments WHERE commentid='{}';",
     "update_comment": "UPDATE activity_comments SET message='{}' WHERE commentid='{}' AND uid='{}';",
     "delete_comment": "DELETE FROM activity_comments WHERE commentid='{}' AND uid='{}';",
-    "get_activity_chart": "SELECT COUNT(activity_id) AS activities, date FROM activities WHERE uid='{}' GROUP BY date ORDER BY date ASC LIMIT 10;",
+    "get_activity_chart": "SELECT COUNT(activity_id) AS activities FROM activities WHERE uid='{}' AND date='{}' LIMIT 10;",
     "flag_activity": "INSERT INTO activity_flags(flagger, activity_id) VALUES('{}', '{}');",
     "increment_user_times_flagged":  "UPDATE users SET times_flagged = times_flagged + 1 WHERE uid='{}';",
     "unflag_activity": "DELETE FROM activity_flags WHERE flagger='{}' AND activity_id='{}';",
