@@ -1,3 +1,4 @@
+from pymysql import DATE
 import Helpers
 import db
 import uuid
@@ -492,47 +493,21 @@ class Activities:
         return self.close_and_return(activity)
         
     def get_activity_chart(self, uid):
-        days = list(self.db.get_all('get_activity_chart', uid))
-        if len(days) is 0:
-            days.append({
-                "activities": 0,
-                "date": (datetime.now() - timedelta(days=10)).strftime(DATE_FORMAT)
+        base = datetime.today()
+        date_list = [base - timedelta(days=x) for x in range(10)] 
+
+        chart = []
+
+        for date in date_list:
+            date_str = datetime.strftime(date, DATE_FORMAT)
+            activities = self.db.get_one('get_activity_chart', uid, date_str)
+            chart.append({
+                'activities': activities['activities'],
+                'date': date_str
             })
-        today_delta = (datetime.now() - datetime.strptime(days[-1]["date"], DATE_FORMAT)).days
-        if len(days) > 0 and today_delta > 0:
-            days.append({
-                "activities": 0,
-                "date": datetime.now().strftime(DATE_FORMAT)
-            })
 
-
-        filled_days = []
-
-        for day in days:
-            if len(filled_days) is 0:
-                filled_days.append(day)
-            else:
-                old_date = datetime.strptime(filled_days[-1]["date"], DATE_FORMAT)
-                new_date = datetime.strptime(day["date"], DATE_FORMAT)
-                delta = new_date - old_date
-
-                start = old_date if delta.days >= 0 else new_date
-                end = new_date if delta.days >= 0 else old_date                
-                
-                for i in range(delta.days - 1):
-                    working_date = start + timedelta(days=i + 1)
-                    
-                    filled_days.append({
-                        "activities": 0,
-                        "date": working_date.strftime(DATE_FORMAT)
-                    })
-                
-                filled_days.append(day)
-        filled_days.reverse()
-        first_ten = filled_days[:10]
-        first_ten.reverse()
         return self.close_and_return({
-            'chart': first_ten
+            'chart': chart
         })
 
     def flag(self, uid, activity_id):
