@@ -506,6 +506,7 @@ class Activities:
                 'date': date_str
             })
 
+        chart.reverse()
         return self.close_and_return({
             'chart': chart
         })
