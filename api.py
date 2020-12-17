@@ -1809,7 +1809,9 @@ def remove_tags(text):
 ##Data Migration
 @app.route('/checkNewHighLows', methods=["GET"])
 def checkNewHighLows():
-    if request.args['password'] != eventlogger_config['admin_password']:
+    given_password = request.args['password']
+    correct_password = eventlogger_config['admin_password']
+    if given_password != correct_password:
         return '{ "error": "access-denied" }'
 
     working_db = db.DB(host, username, password, database)
