@@ -1876,6 +1876,9 @@ def checkNewHighLows():
         }
 
         working_db.execute('add_full_activity', activity_id, uid, title, _type, timestamp, json.dumps(data), date)
+        
+        if highlow['private'] == 0:
+            working_db.execute('set_sharing_policy', activity_id, 'all')
 
         comments = working_db.get_all('get_missing_highlow_comments')
 
