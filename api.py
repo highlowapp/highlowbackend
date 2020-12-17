@@ -1807,9 +1807,9 @@ def remove_tags(text):
 
 
 ##Data Migration
-@app.route('/checkNewHighLows', methods=["GET"])
+@app.route('/checkNewHighLows', methods=["POST"])
 def checkNewHighLows():
-    given_password = request.args['password']
+    given_password = request.form['password']
     correct_password = eventlogger_config['admin_password']
     if given_password != correct_password:
         return '{ "error": "access-denied" }'
