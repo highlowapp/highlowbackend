@@ -260,7 +260,7 @@ class Activities:
             if self.is_friend(viewer, uid):
                 records = self.db.get_all('view_friend_activities', uid, viewer, page * 10)
             else:
-                records = self.db.get_all('view_stranger_activities', viewer, page * 10)
+                records = self.db.get_all('view_stranger_activities', uid, page * 10)
 
         activities = []
 
