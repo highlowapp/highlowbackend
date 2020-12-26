@@ -388,7 +388,7 @@ class Auth:
 
         token = jwt.encode(token_payload, self.ADMIN_SECRET_KEY, algorithm="HS256")
 
-        token = token.decode('utf-8')
+        #token = token.decode('utf-8')
 
         return token
 
@@ -575,7 +575,7 @@ class Auth:
 
         token = jwt.encode(token_payload, self.ADMIN_SECRET_KEY, algorithm="HS256")
 
-        token = token.decode('utf-8')
+        #token = token.decode('utf-8')
 
         return token
 
