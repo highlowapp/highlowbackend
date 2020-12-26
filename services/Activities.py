@@ -571,6 +571,7 @@ class Activities:
                 'activity': {
                     'activity_id': item['activity_id'],
                     'uid': item['uid'],
+                    'title': item['title'],
                     'type': item['type'],
                     'timestamp': item['timestamp'].isoformat(),
                     'data': json.loads( item['data'] ),
