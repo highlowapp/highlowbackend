@@ -96,8 +96,6 @@ class Notifications:
         )
 
         response = messaging.send_multicast(push_notification)
-        print("Response: ")
-        print(response.responses[0].exception)
 
     def send_notification_to_users(self, title, message, uids, setting, data=None):
         settings = ['users.notify_new_friend_req', 'users.notify_new_friend_acc', 'notify_new_feed_item', 'notify_new_like', 'notify_new_comment']
@@ -121,8 +119,6 @@ WHERE devices.uid IN ({}) AND {} = 1;""".format(",".join(["'{}'".format(uid) for
         devices = cursor.fetchall()
 
         device_tokens = [device["device_id"] for device in devices]
-        print("Hi there")
-        print(device_tokens)
         push_notification = messaging.MulticastMessage(
             device_tokens,
             notification=messaging.Notification(title=title, body=message),

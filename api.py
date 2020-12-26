@@ -771,8 +771,6 @@ def remove_interest():
 
     interests = request.form.getlist('interests[]')
 
-    print(request.form)
-
     user = User(uid, host, username, password, database)
 
     return json.dumps( user.remove_interests(interests) )
@@ -792,8 +790,6 @@ def remove_single_interest():
     uid = result["uid"]
 
     interest = request.form.get('interest')
-
-    print(request.form)
 
     user = User(uid, host, username, password, database)
 
@@ -1042,7 +1038,6 @@ def get_arbitrary(highlowid):
             highlow = HighLow(host, username, password, database, highlowid)
             return json.dumps( highlow.get_json(verification["uid"], supports_html=supports_html) )
         except Exception as e:
-            print(e)
             return '{ "error": "invalid-highlowid"  }'
 
 
