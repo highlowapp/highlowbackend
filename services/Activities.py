@@ -450,11 +450,8 @@ class Activities:
         if len(users) > 0:
             self.notifications.send_notification_to_users("{} {} commented in your discussion".format(other_user.firstname, other_user.lastname), bleach.clean(message), uids, 4, data={'activity_id': activity_id})
 
-        print("Owner: " + owner.uid)
-        print("Commenter: " + uid)
 
         if uid != owner.uid and owner.uid not in uids and owner.notify_new_comment:
-            print("Notifications")
             self.notifications.send_notification_to_user("{} {} commented on your activity".format(other_user.firstname, other_user.lastname), bleach.clean(message), owner.uid, data={'activity_id': activity_id})
 
         return self.close_and_return(activity)
@@ -574,6 +571,7 @@ class Activities:
                 'activity': {
                     'activity_id': item['activity_id'],
                     'uid': item['uid'],
+                    'title': item['title'],
                     'type': item['type'],
                     'timestamp': item['timestamp'].isoformat(),
                     'data': json.loads( item['data'] ),
