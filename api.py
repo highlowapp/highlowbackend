@@ -1290,6 +1290,17 @@ def flag_activity(activity_id):
     if request.method == 'DELETE':
         return json.dumps( activities.unflag(uid, activity_id) )
 
+@app.route('/user/activities/<string:activity_id>/like', methods=['POST', 'DELETE'])
+def like_activity(activity_id):
+    uid, error = serviceutils.get_current_user(request)
+    if error is not None:
+        return error
+    
+    if request.method == 'POST':
+        return json.dumps( activities.like(uid, activity_id) )
+    if request.method == 'DELETE':
+        return json.dumps( activities.unlike(uid, activity_id) )
+
 @app.route('/user/newFeed/page/<int:page>', methods=['GET'])
 def get_new_feed(page):
     uid, error = serviceutils.get_current_user(request)

@@ -34,5 +34,9 @@
     "get_missing_highlows": "SELECT * FROM highlows LEFT OUTER JOIN activities ON highlows.highlowid = activities.activity_id WHERE activities.activity_id IS NULL;",
     "get_missing_highlow_comments": "SELECT * FROM comments LEFT OUTER JOIN activity_comments ON comments.commentid = activity_comments.commentid WHERE activity_comments.commentid IS NULL;",
     "add_full_activity_comment": "INSERT INTO activity_comments(commentid, activity_id, uid, message, timestamp) VALUES('{}','{}','{}', '{}', '{}');",
-    "add_full_activity": "INSERT INTO activities(activity_id, uid, title, type, timestamp, data, date) VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}');"
+    "add_full_activity": "INSERT INTO activities(activity_id, uid, title, type, timestamp, data, date) VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}');",
+    "like_activity": "INSERT INTO activity_likes(activity_id, uid) VALUES('{}', '{}');",
+    "get_activity_likes": "SELECT users.firstname AS firstname, users.lastname AS lastname, users.profileimage AS profileimage, users.streak AS streak, users.bio AS bio, users.uid AS uid FROM activity_likes LEFT OUTER JOIN users ON activity_likes.uid = users.uid WHERE activity_likes.activity_id = '{}';",
+    "has_liked": "SELECT * FROM activity_likes WHERE uid='{}' AND activity_id='{}';",
+    "unlike_activity": "DELETE FROM activity_likes WHERE uid='{}' AND activity_id='{}';"
 }
