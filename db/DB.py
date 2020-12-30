@@ -45,7 +45,7 @@ class DB:
         clean_params = []
         for param in params:
             if type(param) is str:
-                param = pymysql.escape_string( bleach.clean(param, tags=['a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em', 'i', 'li', 'ol', 'strong', 'ul', 'u', 'strike'] ))
+                param = pymysql.escape_string( bleach.clean(param, tags=['a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em', 'i', 'li', 'ol', 'strong', 'ul', 'u', 'strike', 'br'] ))
             clean_params.append(param)
         return clean_params
     
@@ -54,6 +54,11 @@ class DB:
         if self.conn is not None and self.conn.open:
             self.conn.commit()
             self.conn.close()
+
+    def commit(self):
+        #Commit all pending transactions
+        if self.conn is not None and self.conn.open:
+            self.conn.commit()
 
     def get_all(self, cmd, *params):
         #Get the SQL template

@@ -39,6 +39,12 @@ class Activities:
             return True
         return False
 
+    def has_liked(self, uid, activity_id):
+        record = self.db.get_one('has_liked', uid, activity_id)
+        if record is not None:
+            return True
+        return False
+
     def data_fits_free_plan(self, _type, data):
         json_data = json.loads(data)
         
@@ -188,6 +194,13 @@ class Activities:
             activity['comments'] = comments
 
             activity['flagged'] = self.has_flagged(uid, activity_id)
+
+            likes = self.db.get_all('get_activity_likes', activity_id)
+
+            activity['likes'] = likes
+
+            activity['liked'] = self.has_liked(uid, activity_id)
+
             return self.close_and_return(activity)
         return self.close_and_return({ 'error': 'invalid-data' })
 
@@ -231,6 +244,12 @@ class Activities:
 
             activity['comments'] = comments
 
+            likes = self.db.get_all('get_activity_likes', activity['activity_id'])
+
+            activity['likes'] = likes
+
+            activity['liked'] = self.has_liked(uid, activity['activity_id'])
+
             activities.append(activity)
 
         return self.close_and_return({
@@ -243,7 +262,6 @@ class Activities:
             return True
         except ValueError:
             return False
-
 
     def get_for_user(self, uid, viewer, page=0):
         page = 0 if page is None else page
@@ -272,6 +290,13 @@ class Activities:
                 comment['timestamp'] = comment['timestamp'].isoformat()
 
             activity['comments'] = comments
+
+            likes = self.db.get_all('get_activity_likes', activity['activity_id'])
+
+            activity['likes'] = likes
+
+            activity['liked'] = self.has_liked(uid, activity['activity_id'])
+
             activity['flagged'] = self.has_flagged(uid, activity['activity_id'])
 
             activities.append(activity)
@@ -308,6 +333,12 @@ class Activities:
 
         activity['comments'] = comments
 
+        likes = self.db.get_all('get_activity_likes', activity_id)
+
+        activity['likes'] = likes
+
+        activity['liked'] = self.has_liked(uid, activity_id)
+
         activity['flagged'] = self.has_flagged(uid, activity_id)
 
 
@@ -330,6 +361,12 @@ class Activities:
 
         activity['comments'] = comments
         activity['flagged'] = self.has_flagged(uid, activity_id)
+
+        likes = self.db.get_all('get_activity_likes', activity_id)
+
+        activity['likes'] = likes
+
+        activity['liked'] = self.has_liked(uid, activity_id)
 
         return self.close_and_return(activity)
 
@@ -400,6 +437,12 @@ class Activities:
 
         activity['comments'] = comments
 
+        likes = self.db.get_all('get_activity_likes', activity_id)
+
+        activity['likes'] = likes
+
+        activity['liked'] = self.has_liked(uid, activity_id)
+
         return self.close_and_return(activity)
 
     def get_sharing_policy(self, uid, activity_id):
@@ -425,6 +468,63 @@ class Activities:
             'uids': users
         })
 
+    def like(self, uid, activity_id):
+
+        # Check if the user has access to the activity
+        has_access, activity = self.has_access(uid, activity_id)
+
+        # If we don't have an activity, send an error
+        if activity is None:
+            return self.close_and_return({ 'error': ('access-denied' if has_access is False else 'does-not-exist')})
+
+        # Otherwise, like the activity
+        self.db.execute('unlike_activity', activity_id, uid) #Clear out any of their previous likes of this activity just in case
+        self.db.execute('like_activity', activity_id, uid)
+
+        # Return the activity after updating its content
+        activity['flagged'] = self.has_flagged(uid, activity_id)
+        
+        comments = self.db.get_all('get_activity_comments', activity['activity_id'])
+        for comment in comments:
+            comment['timestamp'] = comment['timestamp'].isoformat()
+        activity['comments'] = comments
+
+        likes = self.db.get_all('get_activity_likes', activity_id)
+
+
+        activity['likes'] = likes
+
+        activity['liked'] = self.has_liked(uid, activity_id)
+
+        return self.close_and_return(activity)
+
+    def unlike(self, uid, activity_id):
+        # Check if the user has access to the activity
+        has_access, activity = self.has_access(uid, activity_id)
+
+        # If we don't have an activity, send an error
+        if activity is None:
+            return self.close_and_return({ 'error': ('access-denied' if has_access is False else 'does-not-exist')})
+
+        # Otherwise, unlike the activity
+        self.db.execute('unlike_activity', uid, activity_id)
+
+        # Return the activity after updating its content
+        activity['flagged'] = self.has_flagged(uid, activity_id)
+        
+        comments = self.db.get_all('get_activity_comments', activity['activity_id'])
+        for comment in comments:
+            comment['timestamp'] = comment['timestamp'].isoformat()
+        activity['comments'] = comments
+
+        likes = self.db.get_all('get_activity_likes', activity_id)
+
+        activity['likes'] = likes
+
+        activity['liked'] = self.has_liked(uid, activity_id)
+
+        return self.close_and_return(activity)
+
     def comment(self, uid, activity_id, message):
         has_access, activity = self.has_access(uid, activity_id)
         
@@ -437,6 +537,12 @@ class Activities:
 
         activity['comments'] = self.get_comments(activity_id)
         activity['flagged'] = self.has_flagged(uid, activity_id)
+
+        likes = self.db.get_all('get_activity_likes', activity_id)
+
+        activity['likes'] = likes
+
+        activity['liked'] = self.has_liked(uid, activity_id)
 
         users = self.db.get_all('get_commenters', activity_id, uid)
 
@@ -522,6 +628,12 @@ class Activities:
 
         activity['flagged'] = self.has_flagged(uid, activity_id)
 
+        likes = self.db.get_all('get_activity_likes', activity_id)
+
+        activity['likes'] = likes
+
+        activity['liked'] = self.has_liked(uid, activity_id)
+
         return self.close_and_return(activity)
 
     def unflag(self, uid, activity_id):
@@ -534,6 +646,12 @@ class Activities:
         self.db.execute('unflag_activity', uid, activity_id)
 
         activity['flagged'] = self.has_flagged(uid, activity_id)
+
+        likes = self.db.get_all('get_activity_likes', activity_id)
+
+        activity['likes'] = likes
+
+        activity['liked'] = self.has_liked(uid, activity_id)
 
         return self.close_and_return(activity)
 
@@ -566,6 +684,12 @@ class Activities:
             
             item['comments'] = records
 
+            likes = self.db.get_all('get_activity_likes', item['activity_id'])
+
+            item['likes'] = likes
+
+            item['liked'] = self.has_liked(uid, item['activity_id'])
+
             feed_item = {
                 'type': 'activity',
                 'activity': {
@@ -576,7 +700,9 @@ class Activities:
                     'timestamp': item['timestamp'].isoformat(),
                     'data': json.loads( item['data'] ),
                     'date': item['date'],
-                    'comments': item['comments']
+                    'comments': item['comments'],
+                    'likes': item['likes'], 
+                    'liked': item['liked']
                 },
                 'user': {
                     'uid': item['uid'],
