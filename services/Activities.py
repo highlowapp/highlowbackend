@@ -503,7 +503,7 @@ class Activities:
 
         if owner.notify_new_like:
             notifs = Notifications(self.host, self.username, self.password, self.database)
-            notifs.send_notification_to_user(name + " loved your post!", "You have received a like on one of your activities!", self.uid, data={"highlowid": self.high_low_id})
+            notifs.send_notification_to_user(name + " loved your post!", "You have received a like on one of your activities!", owner.uid, data={})
 
         return self.close_and_return(activity)
 
