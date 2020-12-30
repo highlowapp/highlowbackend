@@ -496,6 +496,15 @@ class Activities:
 
         activity['liked'] = self.has_liked(uid, activity_id)
 
+        viewer = User(uid, self.host, self.username, self.password, self.database)
+        owner = User(activity['uid'], self.host, self.username, self.password, self.database)
+
+        name = viewer.firstname + ' ' + viewer.lastname
+
+        if owner.notify_new_like:
+            notifs = Notifications(self.host, self.username, self.password, self.database)
+            notifs.send_notification_to_user(name + " loved your post!", "You have received a like on one of your activities!", self.uid, data={"highlowid": self.high_low_id})
+
         return self.close_and_return(activity)
 
     def unlike(self, uid, activity_id):
