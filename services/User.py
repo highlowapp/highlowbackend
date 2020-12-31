@@ -3,6 +3,7 @@ import bleach
 import uuid
 import json
 import datetime
+import threading
 from services.FileStorage import FileStorage
 from services.Notifications import Notifications
 import db
@@ -146,10 +147,14 @@ class User:
         conn.close()
 
         other_user = User(uid, self.host, self.username, self.password, self.database)
+
+        def send_notif(notifs, firstname, lastname, uid):
+            notifs.send_notification_to_user("New Friend Request", firstname + " " + lastname + " has requested your friendship", uid, data={"uid": uid})
         
         if other_user.notify_new_friend_req:
             notifs = Notifications(self.host, self.username, self.password, self.database)
-            notifs.send_notification_to_user("New Friend Request", self.firstname + " " + self.lastname + " has requested your friendship", uid, data={"uid": uid})
+            thread = threading.Thread(target=send_notif, args=(notifs, self.firstname, self.lastname, uid) )
+            thread.start()
         
         return { "status": "success" }
 
@@ -182,9 +187,13 @@ class User:
         try:
             other_user = User(uid, self.host, self.username, self.password, self.database)
             
+            def send_notif(notifs, firstname, lastname, uid):
+                notifs.send_notification_to_user("Friendship Accepted!", firstname + " " + lastname + " has accepted your friendship!", uid, data={"uid": uid})
+
             if other_user.notify_new_friend_acc:
                 notifs = Notifications(self.host, self.username, self.password, self.database)
-                notifs.send_notification_to_user("Friendship Accepted!", self.firstname + " " + self.lastname + " has accepted your friendship!", uid, data={"uid": uid})
+                thread = threading.Thread(target=send_notif, args=(notifs, self.firstname, self.lastname, uid))
+                thread.start()
         except:
             pass
 
