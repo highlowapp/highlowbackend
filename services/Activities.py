@@ -5,6 +5,7 @@ import uuid
 import json
 import pymysql
 import bleach
+import threading
 from services.Subscriptions import Subscriptions
 from services.FileStorage import FileStorage
 from services.Notifications import Notifications
@@ -121,6 +122,12 @@ class Activities:
         activity['comments'] = records
 
         owner = activity['uid']
+
+        likes = self.db.get_all('get_activity_likes', activity_id)
+
+        activity['likes'] = likes
+
+        activity['liked'] = self.has_liked(uid, activity_id)
 
         sharing = self.db.get_all('get_sharing_policy', activity_id)
         activity['flagged'] = self.has_flagged(uid, activity_id)
@@ -402,7 +409,11 @@ class Activities:
 
                 uids = [friend['uid'] for friend in friends]
 
-                self.notifications.send_notification_to_users("New Feed Item!", "{} shared a new {}!".format(user.firstname + " " + user.lastname, activity_type), uids, 2, data={'activity_id': activity_id})
+                def send_notifications(notifications, user, activity_type, uids, activity_id):
+                    notifications.send_notification_to_users("New Feed Item!", "{} shared a new {}!".format(user.firstname + " " + user.lastname, activity_type), uids, 2, data={'activity_id': activity_id})
+
+                thread = threading.Thread(target=send_notifications, args=(self.notifications, user, activity_type, uids, activity_id))
+                thread.start()
 
 
         elif category == 'uids':
@@ -424,8 +435,10 @@ class Activities:
             }
 
             activity_type = types[ activity['type'] ]
-
-            self.notifications.send_notification_to_users("New Feed Item!", "{} shared a new {}!".format(user.firstname + " " + user.lastname, activity_type), uids, 2, data={'activity_id': activity_id})
+            def send_notifications(notifications, user, activity_type, uids, activity_id):
+                notifications.send_notification_to_users("New Feed Item!", "{} shared a new {}!".format(user.firstname + " " + user.lastname, activity_type), uids, 2, data={'activity_id': activity_id})
+            thread = threading.Thread(target=send_notifications, args=(self.notifications, user, activity_type, uids, activity_id))
+            thread.start()
         else:
             return self.close_and_return({ 'error': 'invalid-category' })
 
@@ -501,9 +514,13 @@ class Activities:
 
         name = viewer.firstname + ' ' + viewer.lastname
 
-        if owner.notify_new_like:
+        def send_notification(host, username, password, database, name, uid, data):
             notifs = Notifications(self.host, self.username, self.password, self.database)
-            notifs.send_notification_to_user(name + " loved your post!", "You have received a like on one of your activities!", owner.uid, data={})
+            notifs.send_notification_to_user(name + " loved your post!", "You have received a like on one of your activities!", owner.uid, data=data)
+
+        if owner.notify_new_like:
+            thread = threading.Thread(target=send_notification, args=(self.host, self.username, self.password, self.database, name, owner.uid, {}))
+            thread.start()
 
         return self.close_and_return(activity)
 
@@ -561,13 +578,17 @@ class Activities:
 
         owner = User(activity['uid'], self.host, self.username, self.password, self.database)
 
+        def send_notifications(num_users, notifications, other_user, message, uids, activity_id, uid, owner):
+            print('Sending Notifications in the Background')
+            if num_users > 0:
+                notifications.send_notification_to_users("{} {} commented in your discussion".format(other_user.firstname, other_user.lastname), bleach.clean(message), uids, 4, data={'activity_id': activity_id})
 
-        if len(users) > 0:
-            self.notifications.send_notification_to_users("{} {} commented in your discussion".format(other_user.firstname, other_user.lastname), bleach.clean(message), uids, 4, data={'activity_id': activity_id})
 
+            if uid != owner.uid and owner.uid not in uids and owner.notify_new_comment:
+                notifications.send_notification_to_user("{} {} commented on your activity".format(other_user.firstname, other_user.lastname), bleach.clean(message), owner.uid, data={'activity_id': activity_id})
 
-        if uid != owner.uid and owner.uid not in uids and owner.notify_new_comment:
-            self.notifications.send_notification_to_user("{} {} commented on your activity".format(other_user.firstname, other_user.lastname), bleach.clean(message), owner.uid, data={'activity_id': activity_id})
+        thread = threading.Thread(target=send_notifications, args=(len(users), self.notifications, other_user, message, uids, activity_id, uid, owner))
+        thread.start()
 
         return self.close_and_return(activity)
 

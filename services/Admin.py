@@ -34,7 +34,7 @@ class Admin:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM flags WHERE open=TRUE;")
+        cursor.execute("SELECT * FROM activity_flags WHERE open=TRUE;")
 
         flags = cursor.fetchall()
 
@@ -52,7 +52,7 @@ class Admin:
 
         flag_id_str = pymysql.escape_string( bleach.clean(str(flag_id)) )
 
-        cursor.execute("UPDATE flags SET open=false WHERE id={}".format(flag_id_str))
+        cursor.execute("UPDATE activity_flags SET open=false WHERE id={}".format(flag_id_str))
 
         conn.commit()
         conn.close()
@@ -86,11 +86,11 @@ class Admin:
         row = cursor.fetchone()
         num_friendships = row['num_friendships']
 
-        cursor.execute("SELECT COUNT(*) AS num_highlows FROM highlows;")
+        cursor.execute("SELECT COUNT(*) AS num_activities FROM activities;")
         row = cursor.fetchone()
-        num_highlows = row['num_highlows']
+        num_activities = row['num_activities']
 
-        cursor.execute("INSERT INTO analytics(num_users, num_oauth_users, num_friendships, num_highlows) VALUES({}, {}, {}, {});".format(num_users, num_oauth_accounts, num_friendships, num_highlows))
+        cursor.execute("INSERT INTO analytics(num_users, num_oauth_users, num_friendships, num_highlows) VALUES({}, {}, {}, {});".format(num_users, num_oauth_accounts, num_friendships, num_activities))
 
         conn.commit()
         conn.close()
