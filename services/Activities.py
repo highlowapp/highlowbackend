@@ -391,6 +391,7 @@ class Activities:
             return self.close_and_return({ 'error': 'access-denied' })
 
         if category in ('all', 'friends', 'none', 'supportGroup'):
+            self.db.execute('clear_sharing_policy', activity_id)
             self.db.execute('set_sharing_policy', activity_id, category)
 
             if category != 'none' and category != 'supportGroup':
