@@ -3,7 +3,7 @@ six
 gunicorn
 flask
 flask-cors
-pymysql==1.0.1
+pymysql==0.10.1
 bleach
 bcrypt
 cryptography
