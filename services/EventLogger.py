@@ -54,17 +54,17 @@ class EventLogger:
         #Time constraint
         time_constraint_str = ""
 
-        if min_time != None:
+        if min_time is not None:
             time_constraint_str += " AND _timestamp >= TIMESTAMP('{}') ".format(min_time)
 
-        if max_time != None:
+        if max_time is not None:
             time_constraint_str += " AND _timestamp <= TIMESTAMP('{}') ".format(max_time)
         
 
         #Type constraint
         type_str = ""
         
-        if _type != None:
+        if _type is not None:
             type_str += " AND type='{}'".format(_type)
 
         #Password check

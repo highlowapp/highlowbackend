@@ -88,7 +88,7 @@ class Auth:
 
         user = cursor.fetchone()
 
-        if user != None:
+        if user is not None:
             conn.close()
             return json.dumps({
                 "uid": user["uid"],
@@ -244,7 +244,7 @@ class Auth:
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
             #Insert into the database
-            if platform == None:
+            if platform is None:
                 cursor.execute("INSERT INTO users(uid, firstname, lastname, email, password, profileimage, streak, bio) VALUES('" + str(uid) + "', '" + firstname + "', '" + lastname + "', '" + email + "', '" + hashed_password.decode('utf-8') + "', 'user/" + str(uid) + "/profile/profile.png', 0, '');")
             else:
                 cursor.execute("INSERT INTO users(uid, firstname, lastname, email, password, profileimage, streak, bio, platform) VALUES('" + str(uid) + "', '" + firstname + "', '" + lastname + "', '" + email + "', '" + hashed_password.decode('utf-8') + "', 'user/" + str(uid) + "/profile/profile.png', 0, '', " + str(platform) + ");")
@@ -289,10 +289,10 @@ class Auth:
         existingUser = cursor.fetchone()
 
 
-        if existingUser != None:
+        if existingUser is not None:
 
             #If the password is correct...
-            if existingUser["banned"] != True and bcrypt.checkpw(password.encode('utf-8'), existingUser["password"].encode('utf-8')):
+            if existingUser["banned"] is not True and bcrypt.checkpw(password.encode('utf-8'), existingUser["password"].encode('utf-8')):
 
                 #The user is authenticated; create and return a token
                 access_token = self.create_token( existingUser["uid"] )
@@ -332,7 +332,7 @@ class Auth:
         existingUser = cursor.fetchone()
 
 
-        if existingUser != None:
+        if existingUser is not None:
 
             #If the password is correct...
             if bcrypt.checkpw(password.encode('utf-8'), existingUser["password"].encode('utf-8')):
@@ -601,7 +601,7 @@ class Auth:
 
             conn.commit()
             conn.close()
-            if user != None and user["banned"]:
+            if user is not None and user["banned"]:
                 return "ERROR-INVALID-REFRESH-TOKEN"
 
             #Create a new token and return it

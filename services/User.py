@@ -40,7 +40,7 @@ class User:
         conn.close()
 
         #Make sure the user existed in the first place
-        if user == None:
+        if user is None:
             raise ValueError("user-no-exist")
 
         #Otherwise, get all the data and store it
@@ -412,7 +412,7 @@ class User:
         conn.close()
 
 
-        if row == None:
+        if row is None:
             return '{"isFriend": false}'
 
         return '{"isFriend": true}'

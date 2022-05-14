@@ -21,7 +21,7 @@ class HighLow:
         self.database = database
         self.high_low_id = ""
 
-        if high_low_id != None:
+        if high_low_id is not None:
             self.high_low_id = pymysql.escape_string( bleach.clean(high_low_id) )
 
             conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
@@ -104,17 +104,17 @@ class HighLow:
         #Create a High/Low ID
         self.high_low_id = str( uuid.uuid1() )
 
-        if high != None:
+        if high is not None:
             self.high = pymysql.escape_string( self.sanitize_html(high) )
 
 
             self.high = "{}".format(self.high)
 
-        if low != None:
+        if low is not None:
             self.low = pymysql.escape_string( self.sanitize_html(low) )
             self.low = "{}".format(self.low)
 
-        if high_image != None:
+        if high_image is not None:
             fileStorage = FileStorage()
 
             upload_result = json.loads( fileStorage.upload_to_high_images(high_image) )
@@ -126,7 +126,7 @@ class HighLow:
         
             self.high_image = "{}".format(upload_result["file"])
 
-        if low_image != None:
+        if low_image is not None:
             fileStorage = FileStorage()
 
             upload_result = json.loads( fileStorage.upload_to_low_images(low_image) )
@@ -231,12 +231,12 @@ class HighLow:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        if uid != None:
+        if uid is not None:
             cursor.execute( "SELECT * FROM likes WHERE uid='{}' AND highlowid='{}'".format(uid, self.high_low_id) )
-            if cursor.fetchone() != None:
+            if cursor.fetchone() is not None:
                 json_object["liked"] = True
             cursor.execute("SELECT * FROM flags WHERE uid='{}' AND highlowid='{}'".format(uid, self.high_low_id))
-            if cursor.fetchone() != None:
+            if cursor.fetchone() is not None:
                 json_object["flagged"] = True
 
         cursor.execute( """
@@ -317,7 +317,7 @@ class HighLow:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        if text != None:
+        if text is not None:
             text = pymysql.escape_string( self.sanitize_html(text) )
             self.high = text
             text = "'{}'".format(text)
@@ -326,7 +326,7 @@ class HighLow:
 
         filename = ""
 
-        if image != None:
+        if image is not None:
             
             fileStorage = FileStorage()
 
@@ -361,7 +361,7 @@ class HighLow:
         conn = pymysql.connect(self.host, self.username, self.password, self.database, cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
         cursor = conn.cursor()
 
-        if text != None:
+        if text is not None:
             text = pymysql.escape_string( self.sanitize_html(text) )
             self.low = text
             text = "'{}'".format(text)
@@ -370,7 +370,7 @@ class HighLow:
 
         filename = ""
 
-        if image != None:
+        if image is not None:
             
             fileStorage = FileStorage()
 
@@ -437,7 +437,7 @@ class HighLow:
         #Make sure this user hasn't "liked" before
         cursor.execute("SELECT * FROM likes WHERE highlowid='{}' AND uid='{}';".format(self.high_low_id, uid))
 
-        if cursor.fetchone() != None:
+        if cursor.fetchone() is not None:
             conn.commit()
             conn.close()
             return { 'error': 'already-liked' }
@@ -445,7 +445,7 @@ class HighLow:
         #Make sure the highlow does not belong to the user
         cursor.execute("SELECT uid FROM highlows WHERE highlowid='{}' AND uid='{}';".format(self.high_low_id, uid))
 
-        if cursor.fetchone() != None:
+        if cursor.fetchone() is not None:
             conn.commit()
             conn.close()
             return { 'error': 'not-allowed' }
@@ -487,7 +487,7 @@ class HighLow:
 
         #Update the High/Low's total likes
         cursor.execute( "SELECT * FROM likes WHERE highlowid='{}' AND uid='{}';".format(self.high_low_id, uid) )
-        if cursor.fetchone() != None:
+        if cursor.fetchone() is not None:
             cursor.execute( "UPDATE highlows SET total_likes = total_likes - 1 WHERE highlowid='{}'".format(self.high_low_id) )
 
         #Delete the entry, if it exists
@@ -674,7 +674,7 @@ WHERE comments.highlowid = '{}' AND users.notify_new_comment = TRUE AND comments
 
         cursor.execute("SELECT id FROM flags WHERE highlowid='{}' AND flagger='{}';".format(self.high_low_id, uid))
 
-        if cursor.fetchone() != None:
+        if cursor.fetchone() is not None:
             cursor.execute( """
             UPDATE users
             SET times_flagged = IF(times_flagged > 0, times_flagged - 1, 0)
@@ -740,7 +740,7 @@ class HighLowList:
 
         highlows = cursor.fetchall()
 
-        if sortby != None:
+        if sortby is not None:
 
             options = {
 
@@ -750,7 +750,7 @@ class HighLowList:
 
             }
 
-            if options[sortby][0] == None:
+            if options[sortby][0] is None:
                 highlows = sorted(highlows, reverse=options[sortby][1])
             else:
                 highlows = sorted(highlows, key=lambda a: a[ options[sortby][0] ], reverse=options[sortby][1])
@@ -814,7 +814,7 @@ class HighLowList:
 
         highlow = cursor.fetchone()
 
-        if highlow == None:
+        if highlow is None:
             conn.commit()
             conn.close()
             
@@ -839,10 +839,10 @@ class HighLowList:
                 highlow['low'] = self.html_to_plain_text(highlow['low'])
 
         cursor.execute( "SELECT * FROM likes WHERE uid='{}' AND _date='{}';".format(uid, datestr) )
-        if cursor.fetchone() != None:
+        if cursor.fetchone() is not None:
             highlow["liked"] = True
         cursor.execute("SELECT * FROM flags WHERE uid='{}' AND _date='{}';".format(uid, datestr))
-        if cursor.fetchone() != None:
+        if cursor.fetchone() is not None:
             highlow["flagged"] = True
 
 
@@ -889,7 +889,7 @@ class HighLowList:
         highlow = cursor.fetchone()
 
         
-        if highlow == None:
+        if highlow is None:
             conn.commit()
             conn.close()
 
@@ -911,10 +911,10 @@ class HighLowList:
                 highlow['low'] = self.html_to_plain_text(highlow['low'])
 
         cursor.execute( "SELECT * FROM likes WHERE uid='{}' AND highlowid='{}'".format(viewer, highlow["highlowid"]) )
-        if cursor.fetchone() != None:
+        if cursor.fetchone() is not None:
             highlow["liked"] = True
         cursor.execute("SELECT * FROM flags WHERE uid='{}' AND highlowid='{}'".format(viewer, highlow["highlowid"]))
-        if cursor.fetchone() != None:
+        if cursor.fetchone() is not None:
             highlow["flagged"] = True
 
 
@@ -972,7 +972,7 @@ class Comments:
         conn.close()
 
     def update_comment(self, uid, commentid, message):
-        if message == None or message == "":
+        if message is None or message == "":
             return '{ "error": "no-message" }'
 
 
